@@ -16,6 +16,10 @@ part 'hive_box_providers.g.dart';
 
 /// 1️⃣ Derive a per-device AES-256 key (hash + salt).
 Future<List<int>> _deviceKey() async {
+  if (kIsWeb) {
+    // Web doesn't have a unique device ID, so we use a fixed salt.
+    return sha256.convert(utf8.encode('web-device-🔥salt')).bytes;
+  }
   final String? rawId = Platform.isAndroid
       ? await const AndroidId().getId()          // android_id pkg
       : await DeviceInfoPlugin().iosInfo
