@@ -1,3 +1,4 @@
+import 'package:logger/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/authentication_repository.dart';
@@ -73,7 +74,7 @@ class LoginController extends _$LoginController {
             .read(userRepositoryProvider)
             .cacheUser(user)
             .catchError((dynamic error) {
-          throw Exception('Failed to cache user: $error');
+          Logger().e('Failed to cache user: $error');
         });
       }
     }
