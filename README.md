@@ -105,6 +105,26 @@ The template includes a complete authentication system with secure credential st
 - **Error Handling:** All network and validation errors are surfaced in the UI.
 - **Loading State:** UI reflects loading and error states for a smooth UX.
 
+### Test Credentials
+
+You can test the authentication functionality using these credentials from [reqres.in](https://reqres.in/):
+
+**Login:**
+```json
+{
+    "email": "eve.holt@reqres.in",
+    "password": "cityslicka"
+}
+```
+
+**Register:**
+```json
+{
+    "email": "eve.holt@reqres.in",
+    "password": "pistol"
+}
+```
+
 **Example:**
 ```dart
 @riverpod
