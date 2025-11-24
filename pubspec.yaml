@@ -53,7 +53,7 @@ dependencies:
   intl: ^0.20.2
   stack_trace: ^1.11.0
   google_fonts: ^6.2.1
-  android_id: ^0.4.0
+  android_id: ^0.5.1
   hive_ce: ^2.11.1
   device_info_plus: ^11.4.0
   crypto: ^3.0.6
