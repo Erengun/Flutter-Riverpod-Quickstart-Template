@@ -55,7 +55,7 @@ dependencies:
   google_fonts: ^6.2.1
   android_id: ^0.4.0
   hive_ce: ^2.11.1
-  device_info_plus: ^11.4.0
+  device_info_plus: ^12.3.0
   crypto: ^3.0.6
   hive_ce_flutter: ^2.3.0
 
