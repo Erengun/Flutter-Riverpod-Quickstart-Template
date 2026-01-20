@@ -6,7 +6,6 @@ on:
 
   push:
     branches: [ "main" ]
-
 jobs:
   analyze:
     runs-on: ubuntu-latest
@@ -20,12 +19,15 @@ jobs:
         with:
           channel: stable
       - run: flutter --version
-      
+
       - name: Install dependencies
         run: flutter pub get
 
       - name: Run Build Runner
-        run: flutter pub run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run tests
         run: flutter test
+
+      - name: Run Flutter Analyze
+        run: flutter analyze --no-pub --fatal-infos --fatal-warnings
