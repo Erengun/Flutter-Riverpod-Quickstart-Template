@@ -29,7 +29,7 @@ final class NetworkRepositoryProvider
         argument: null,
         retry: null,
         name: r'networkRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -50,7 +50,7 @@ final class NetworkRepositoryProvider
   }
 }
 
-String _$networkRepositoryHash() => r'0c5d42085b91676005e347cf3d7d35cbe79a390a';
+String _$networkRepositoryHash() => r'9b96935e7fa8b483321e5673f3d05ccdf46f86c7';
 
 /// A repository class that extends _$NetworkRepository to handle network-related operations.
 /// This class serves as an abstraction layer for managing network requests and responses,
