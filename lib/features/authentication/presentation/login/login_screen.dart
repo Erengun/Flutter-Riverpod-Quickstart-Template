@@ -294,7 +294,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               }
                             });
                       },
-                      child: authUiModel.isLoading
+                      child: authUiModelAsync.isLoading
                           ? const CircularProgressIndicator()
                           : const Text('Login'),
                     ),

@@ -64,7 +64,6 @@ void main() {
     expect(state.user, isNull);
     expect(state.rememberMe, isFalse);
     expect(state.showPassword, isFalse);
-    expect(state.isLoading, isFalse);
   });
 
   group('login', () {
@@ -77,7 +76,7 @@ void main() {
         password: 'cityslicka',
       );
 
-      expect(controller.state.requireValue.isLoading, isFalse);
+      expect(controller.state.requireValue.rememberMe, isFalse);
     });
 
     test('throws exception when credentials are empty', () async {

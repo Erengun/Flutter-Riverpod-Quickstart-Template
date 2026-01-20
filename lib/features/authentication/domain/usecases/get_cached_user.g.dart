@@ -48,4 +48,4 @@ final class GetCachedUserProvider
   }
 }
 
-String _$getCachedUserHash() => r'6ef03abbfa6fe486e7ba7e3a057bfa8811f508f8';
+String _$getCachedUserHash() => r'944f206d179c98ac85c346fda1e716f57957f2c5';

@@ -22,6 +22,8 @@ analyzer:
 
 linter:
   rules:
+    # Conflicts with riverpod avoid public notifier properties
+    use_setters_to_change_properties: false
     # Why i have to sort deps lol
     sort_pub_dependencies: false
     # Unnecessary, for reading

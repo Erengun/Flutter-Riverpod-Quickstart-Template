@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthUiModel {
 
- LoginCredentials? get user; bool get rememberMe; bool get showPassword; bool get isLoading;
+ LoginCredentials? get user; bool get rememberMe; bool get showPassword;
 /// Create a copy of AuthUiModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AuthUiModelCopyWith<AuthUiModel> get copyWith => _$AuthUiModelCopyWithImpl<Auth
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthUiModel&&(identical(other.user, user) || other.user == user)&&(identical(other.rememberMe, rememberMe) || other.rememberMe == rememberMe)&&(identical(other.showPassword, showPassword) || other.showPassword == showPassword)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthUiModel&&(identical(other.user, user) || other.user == user)&&(identical(other.rememberMe, rememberMe) || other.rememberMe == rememberMe)&&(identical(other.showPassword, showPassword) || other.showPassword == showPassword));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,user,rememberMe,showPassword,isLoading);
+int get hashCode => Object.hash(runtimeType,user,rememberMe,showPassword);
 
 @override
 String toString() {
-  return 'AuthUiModel(user: $user, rememberMe: $rememberMe, showPassword: $showPassword, isLoading: $isLoading)';
+  return 'AuthUiModel(user: $user, rememberMe: $rememberMe, showPassword: $showPassword)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AuthUiModelCopyWith<$Res>  {
   factory $AuthUiModelCopyWith(AuthUiModel value, $Res Function(AuthUiModel) _then) = _$AuthUiModelCopyWithImpl;
 @useResult
 $Res call({
- LoginCredentials? user, bool rememberMe, bool showPassword, bool isLoading
+ LoginCredentials? user, bool rememberMe, bool showPassword
 });
 
 
@@ -65,12 +65,11 @@ class _$AuthUiModelCopyWithImpl<$Res>
 
 /// Create a copy of AuthUiModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? user = freezed,Object? rememberMe = null,Object? showPassword = null,Object? isLoading = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? user = freezed,Object? rememberMe = null,Object? showPassword = null,}) {
   return _then(_self.copyWith(
 user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as LoginCredentials?,rememberMe: null == rememberMe ? _self.rememberMe : rememberMe // ignore: cast_nullable_to_non_nullable
 as bool,showPassword: null == showPassword ? _self.showPassword : showPassword // ignore: cast_nullable_to_non_nullable
-as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -168,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LoginCredentials? user,  bool rememberMe,  bool showPassword,  bool isLoading)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LoginCredentials? user,  bool rememberMe,  bool showPassword)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthUiModel() when $default != null:
-return $default(_that.user,_that.rememberMe,_that.showPassword,_that.isLoading);case _:
+return $default(_that.user,_that.rememberMe,_that.showPassword);case _:
   return orElse();
 
 }
@@ -189,10 +188,10 @@ return $default(_that.user,_that.rememberMe,_that.showPassword,_that.isLoading);
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LoginCredentials? user,  bool rememberMe,  bool showPassword,  bool isLoading)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LoginCredentials? user,  bool rememberMe,  bool showPassword)  $default,) {final _that = this;
 switch (_that) {
 case _AuthUiModel():
-return $default(_that.user,_that.rememberMe,_that.showPassword,_that.isLoading);case _:
+return $default(_that.user,_that.rememberMe,_that.showPassword);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +208,10 @@ return $default(_that.user,_that.rememberMe,_that.showPassword,_that.isLoading);
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LoginCredentials? user,  bool rememberMe,  bool showPassword,  bool isLoading)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LoginCredentials? user,  bool rememberMe,  bool showPassword)?  $default,) {final _that = this;
 switch (_that) {
 case _AuthUiModel() when $default != null:
-return $default(_that.user,_that.rememberMe,_that.showPassword,_that.isLoading);case _:
+return $default(_that.user,_that.rememberMe,_that.showPassword);case _:
   return null;
 
 }
@@ -224,13 +223,12 @@ return $default(_that.user,_that.rememberMe,_that.showPassword,_that.isLoading);
 @JsonSerializable()
 
 class _AuthUiModel implements AuthUiModel {
-  const _AuthUiModel({this.user, this.rememberMe = false, this.showPassword = false, this.isLoading = false});
+  const _AuthUiModel({this.user, this.rememberMe = false, this.showPassword = false});
   factory _AuthUiModel.fromJson(Map<String, dynamic> json) => _$AuthUiModelFromJson(json);
 
 @override final  LoginCredentials? user;
 @override@JsonKey() final  bool rememberMe;
 @override@JsonKey() final  bool showPassword;
-@override@JsonKey() final  bool isLoading;
 
 /// Create a copy of AuthUiModel
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +243,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthUiModel&&(identical(other.user, user) || other.user == user)&&(identical(other.rememberMe, rememberMe) || other.rememberMe == rememberMe)&&(identical(other.showPassword, showPassword) || other.showPassword == showPassword)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthUiModel&&(identical(other.user, user) || other.user == user)&&(identical(other.rememberMe, rememberMe) || other.rememberMe == rememberMe)&&(identical(other.showPassword, showPassword) || other.showPassword == showPassword));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,user,rememberMe,showPassword,isLoading);
+int get hashCode => Object.hash(runtimeType,user,rememberMe,showPassword);
 
 @override
 String toString() {
-  return 'AuthUiModel(user: $user, rememberMe: $rememberMe, showPassword: $showPassword, isLoading: $isLoading)';
+  return 'AuthUiModel(user: $user, rememberMe: $rememberMe, showPassword: $showPassword)';
 }
 
 
@@ -265,7 +263,7 @@ abstract mixin class _$AuthUiModelCopyWith<$Res> implements $AuthUiModelCopyWith
   factory _$AuthUiModelCopyWith(_AuthUiModel value, $Res Function(_AuthUiModel) _then) = __$AuthUiModelCopyWithImpl;
 @override @useResult
 $Res call({
- LoginCredentials? user, bool rememberMe, bool showPassword, bool isLoading
+ LoginCredentials? user, bool rememberMe, bool showPassword
 });
 
 
@@ -282,12 +280,11 @@ class __$AuthUiModelCopyWithImpl<$Res>
 
 /// Create a copy of AuthUiModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? user = freezed,Object? rememberMe = null,Object? showPassword = null,Object? isLoading = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? user = freezed,Object? rememberMe = null,Object? showPassword = null,}) {
   return _then(_AuthUiModel(
 user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as LoginCredentials?,rememberMe: null == rememberMe ? _self.rememberMe : rememberMe // ignore: cast_nullable_to_non_nullable
 as bool,showPassword: null == showPassword ? _self.showPassword : showPassword // ignore: cast_nullable_to_non_nullable
-as bool,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

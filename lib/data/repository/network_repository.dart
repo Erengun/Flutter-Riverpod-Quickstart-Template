@@ -48,9 +48,7 @@ class NetworkRepository extends _$NetworkRepository {
     return dio;
   }
 
-  String get baseUrl => state.options.baseUrl;
-
-  set baseUrl(String baseUrl) {
+  void setBaseUrl(String baseUrl) {
     state.options.baseUrl = baseUrl;
   }
 
