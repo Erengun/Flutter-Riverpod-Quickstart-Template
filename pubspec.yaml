@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.0.5+1
 
 environment:
-  sdk: ">=3.0.5 <4.0.0"
+  sdk: ^3.10.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -35,11 +35,11 @@ dependencies:
   easy_localization: ^3.0.7
   ionicons: ^0.2.2
   cupertino_icons: ^1.0.2
-  flutter_riverpod: ^2.6.1
-  riverpod: ^2.6.1
-  dio: ^5.8.0+1
-  freezed_annotation: ^3.0.0
-  riverpod_annotation: ^2.6.1
+  flutter_riverpod: ^3.1.0
+  riverpod: ^3.1.0
+  dio: ^5.9.0
+  freezed_annotation: ^3.1.0
+  riverpod_annotation: ^4.0.0
   logger: ^2.5.0
   get_storage: ^2.1.1
   gap: ^3.0.1
@@ -71,15 +71,13 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   # The "build_runner" package provides a way to generate files using Dart code
-  build_runner: ^2.4.15
+  build_runner: ^2.10.4
   json_serializable: ^6.9.4
-  riverpod_generator: ^2.6.4
-  custom_lint: ^0.7.5
-  riverpod_lint: ^2.6.4
-  freezed: ^3.0.6
+  riverpod_generator: ^4.0.0
+  riverpod_lint: ^3.1.0
+  freezed: ^3.2.3
   rider: ^0.0.1
   hive_ce_generator: ^1.9.1
-  riverpod_test: ^0.1.9
 
 
 # For information on the generic Dart part of this file, see the

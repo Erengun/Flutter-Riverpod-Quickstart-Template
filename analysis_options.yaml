@@ -5,7 +5,7 @@ analyzer:
     strict-inference: true
     strict-raw-types: true
   plugins:
-    - custom_lint
+    - riverpod_lint
   exclude: 
     [build/**, lib/**.freezed.dart, lib/**.g.dart]
   errors:
