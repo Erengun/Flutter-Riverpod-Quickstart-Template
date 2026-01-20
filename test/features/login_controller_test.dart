@@ -45,9 +45,9 @@ void main() {
         authenticationRepositoryProvider.overrideWithValue(FakeAuthRepository()),
         userRepositoryProvider.overrideWith(FakeUserRepository.new),
       ],
-    );
+    )
     // Listen to the provider to keep it alive during the test
-    container.listen<AsyncValue<AuthUiModel>>(
+    ..listen<AsyncValue<AuthUiModel>>(
       loginControllerProvider,
       (AsyncValue<AuthUiModel>? previous, AsyncValue<AuthUiModel> next) {},
     );

@@ -25,11 +25,11 @@ class LoginController extends _$LoginController {
     if (rememberMe) {
       ref.keepAlive();
     }
-    state = AsyncData(state.value!.copyWith(rememberMe: rememberMe));
+    state = AsyncData<AuthUiModel>(state.value!.copyWith(rememberMe: rememberMe));
   }
 
   void updateShowPassword({required bool showPassword}) {
-    state = AsyncData(state.value!.copyWith(showPassword: showPassword));
+    state = AsyncData<AuthUiModel>(state.value!.copyWith(showPassword: showPassword));
   }
 
   Future<LoginResponse> login({
@@ -51,7 +51,7 @@ class LoginController extends _$LoginController {
         });
     if (loginResponse.token.isNotEmpty) {
       if (state.value!.rememberMe) {
-        state = AsyncData(
+        state = AsyncData<AuthUiModel>(
           state.value!.copyWith(
             user: state.value!.user?.copyWith(
               email: user.email,
@@ -82,7 +82,7 @@ class LoginController extends _$LoginController {
         .register(email, password);
     if (registerResponse.token.isNotEmpty) {
       // Handle successful registration
-      state = AsyncData(
+      state = AsyncData<AuthUiModel>(
         state.value!.copyWith(
           user: state.value!.user?.copyWith(email: email, password: password),
           rememberMe: true,
