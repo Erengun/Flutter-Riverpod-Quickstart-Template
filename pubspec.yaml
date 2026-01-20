@@ -58,6 +58,8 @@ dependencies:
   device_info_plus: ^11.4.0
   crypto: ^3.0.6
   hive_ce_flutter: ^2.3.0
+  dio_smart_retry: ^7.0.1
+  dio_cache_interceptor: ^4.0.5
 
 
 dev_dependencies:
