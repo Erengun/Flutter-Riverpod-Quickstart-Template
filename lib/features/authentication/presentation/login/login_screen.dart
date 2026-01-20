@@ -37,13 +37,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final AuthUiModel authUiModel =
-        ref.watch(loginControllerProvider); // Access the state
-    ref.listen(loginControllerProvider,
-        (AuthUiModel? previous, AuthUiModel next) {
-      if (next.user != null) {
-        _emailController.text = next.user!.email;
-        _passwordController.text = next.user!.password;
+    final AsyncValue<AuthUiModel> authUiModelAsync = ref.watch(
+      loginControllerProvider,
+    ); // Access the state
+    ref.listen(loginControllerProvider, (
+      AsyncValue<AuthUiModel>? previous,
+      AsyncValue<AuthUiModel> next,
+    ) {
+      if (next.value?.user != null) {
+        _emailController.text = next.value!.user!.email;
+        _passwordController.text = next.value!.user!.password;
       }
     });
     return Scaffold(
@@ -55,10 +58,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             icon: const Icon(Icons.person_outline_outlined),
             onPressed: () async {
               await showAdaptiveDialog<void>(
-                  context: context,
-                  builder: (_) {
-                    return const RegisterDialog();
-                  });
+                context: context,
+                builder: (_) {
+                  return const RegisterDialog();
+                },
+              );
             },
           ),
         ],
@@ -69,7 +73,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           },
         ),
       ),
-      body: SafeArea(
+      body: authUiModelAsync.when(
+        data: (AuthUiModel authUiModel) => SafeArea(
           minimum: const EdgeInsets.symmetric(horizontal: 24),
           child: CustomScrollView(
             slivers: <Widget>[
@@ -80,40 +85,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: <Widget>[
                     const Spacer(),
                     Center(
-                        child: Image.asset(
-                      Assets.logo,
-                      height: 90,
-                      width: 90,
-                    )),
+                      child: Image.asset(Assets.logo, height: 90, width: 90),
+                    ),
                     const Spacer(),
                     Center(
-                      child: Text('Welcome to the app',
-                          style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.primary)),
+                      child: Text(
+                        'Welcome to the app',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
                     ),
                     const Gap(10),
-                    const Text('You can login with your email and password',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w400,
-                        )),
+                    const Text(
+                      'You can login with your email and password',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                     const Spacer(),
-                    const Text('Login',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w500,
-                        )),
+                    const Text(
+                      'Login',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     const Gap(10),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      autofillHints: const <String>[
-                        AutofillHints.email,
-                      ],
+                      autofillHints: const <String>[AutofillHints.email],
                       autovalidateMode: AutovalidateMode.onUnfocus,
                       validator: (String? value) {
                         if (value == null || value.isEmpty) {
@@ -129,30 +136,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         return null;
                       },
                       decoration: const InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                        hintText: 'Enter your email',
-                        hintStyle: TextStyle(
-                          color: Colors.black54,
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 15,
                         ),
+                        hintText: 'Enter your email',
+                        hintStyle: TextStyle(color: Colors.black54),
                         border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10))),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
                       ),
                     ),
                     const Gap(15),
-                    const Text('Password',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w500)),
+                    const Text(
+                      'Password',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     const Gap(10),
                     TextFormField(
                       controller: _passwordController,
-                      obscureText: !authUiModel.showPassword,
+                      obscureText: !authUiModelAsync.value!.showPassword,
                       enableSuggestions: false,
                       autocorrect: false,
-                      autofillHints: const <String>[
-                        AutofillHints.password,
-                      ],
+                      autofillHints: const <String>[AutofillHints.password],
                       textInputAction: TextInputAction.done,
                       keyboardType: TextInputType.visiblePassword,
                       // validator: (String? value) {
@@ -165,54 +174,60 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       autovalidateMode: AutovalidateMode.onUserInteraction,
                       onFieldSubmitted: (String value) {
                         FocusScope.of(context).unfocus();
-                        ref.read(loginControllerProvider.notifier).login(
+                        ref
+                            .read(loginControllerProvider.notifier)
+                            .login(
                               email: _emailController.text,
                               password: _passwordController.text,
                             );
                       },
                       decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 15),
-                          border: const OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10))),
-                          hintText: 'Enter your password',
-                          hintStyle: const TextStyle(
-                            color: Colors.black54,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 15,
+                        ),
+                        border: const OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        hintText: 'Enter your password',
+                        hintStyle: const TextStyle(color: Colors.black54),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            authUiModel.showPassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                           ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              authUiModel.showPassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () => ref
-                                .read(loginControllerProvider.notifier)
-                                .updateShowPassword(!authUiModel.showPassword),
-                          )),
+                          onPressed: () => ref
+                              .read(loginControllerProvider.notifier)
+                              .updateShowPassword(showPassword: !authUiModel.showPassword),
+                        ),
+                      ),
                     ),
                     const Gap(10),
                     Row(
                       children: <Widget>[
                         SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              value: authUiModel.rememberMe,
-                              onChanged: (bool? value) {
-                                ref
-                                    .read(loginControllerProvider.notifier)
-                                    .updateRememberMe(value ?? false);
-                              },
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                            )),
+                          height: 20,
+                          width: 20,
+                          child: Checkbox(
+                            value: authUiModel.rememberMe,
+                            onChanged: (bool? value) {
+                              ref
+                                  .read(loginControllerProvider.notifier)
+                                  .updateRememberMe(rememberMe: value ?? false);
+                            },
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
                         const Gap(5),
-                        const Text('Remember me',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w400,
-                            )),
+                        const Text(
+                          'Remember me',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
                         const Spacer(),
                         TextButton(
                           style: TextButton.styleFrom(
@@ -222,9 +237,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             padding: const EdgeInsets.all(0),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text('Create an account',
-                              style: TextStyle(
-                                  decoration: TextDecoration.underline)),
+                          child: const Text(
+                            'Create an account',
+                            style: TextStyle(
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
                           onPressed: () async {
                             await showAdaptiveDialog<void>(
                               context: context,
@@ -257,29 +275,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               password: _passwordController.text,
                             )
                             .catchError((dynamic error, StackTrace stackTrace) {
-                          // Handle error here
-                          if (context.mounted) {
-                            // Show error message to the user
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(error.toString()),
-                              ),
-                            );
-                          }
-                          return const LoginResponse(token: '');
-                        }).then(
-                          (LoginResponse loginResponse) {
-                            // Check for token and also context.mounted
-                            // to avoid context access after dispose
-                            if (loginResponse.token.isNotEmpty &&
-                                context.mounted) {
-                              // Handle successful login
-                              context.push(SGRoute.home.route);
-                            }
-                          },
-                        );
+                              // Handle error here
+                              if (context.mounted) {
+                                // Show error message to the user
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(error.toString())),
+                                );
+                              }
+                              return const LoginResponse(token: '');
+                            })
+                            .then((LoginResponse loginResponse) {
+                              // Check for token and also context.mounted
+                              // to avoid context access after dispose
+                              if (loginResponse.token.isNotEmpty &&
+                                  context.mounted) {
+                                // Handle successful login
+                                context.push(SGRoute.home.route);
+                              }
+                            });
                       },
-                      child: authUiModel.isLoading
+                      child: authUiModelAsync.isLoading
                           ? const CircularProgressIndicator()
                           : const Text('Login'),
                     ),
@@ -288,7 +303,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
             ],
-          )),
+          ),
+        ),
+        error: (Object error, StackTrace stackTrace) {
+          return Center(
+            child: Text('Error: $error'),
+          );
+        },
+        loading: () {
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
 }

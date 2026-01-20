@@ -6,9 +6,7 @@ import 'package:ionicons/ionicons.dart';
 import '../../../../../config/theme/theme_logic.dart';
 
 class ThemeWidget extends ConsumerWidget {
-  const ThemeWidget({
-    super.key,
-  });
+  const ThemeWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,10 +16,9 @@ class ThemeWidget extends ConsumerWidget {
           padding: const EdgeInsets.all(15),
           child: Text(
             tr('toggle_theme'),
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium!
-                .apply(fontWeightDelta: 2),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium!.apply(fontWeightDelta: 2),
           ),
         ),
         const Spacer(),
@@ -34,9 +31,7 @@ class ThemeWidget extends ConsumerWidget {
               value: ThemeMode.light,
             ),
             ButtonSegment<ThemeMode>(
-              icon: Icon(
-                Ionicons.phone_portrait_outline,
-              ),
+              icon: Icon(Ionicons.phone_portrait_outline),
               value: ThemeMode.system,
             ),
             ButtonSegment<ThemeMode>(

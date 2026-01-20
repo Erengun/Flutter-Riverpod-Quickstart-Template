@@ -6,7 +6,6 @@ import 'package:android_id/android_id.dart';
 import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -21,11 +20,13 @@ Future<List<int>> _deviceKey() async {
     return sha256.convert(utf8.encode('web-device-🔥salt')).bytes;
   }
   final String? rawId = Platform.isAndroid
-      ? await const AndroidId().getId()          // android_id pkg
-      : await DeviceInfoPlugin().iosInfo
-          .then((IosDeviceInfo v) => v.identifierForVendor);   // device_info_plus
+      ? await const AndroidId()
+            .getId() // android_id pkg
+      : await DeviceInfoPlugin().iosInfo.then(
+          (IosDeviceInfo v) => v.identifierForVendor,
+        ); // device_info_plus
   final Uint8List bytes = utf8.encode('$rawId-🔥salt');
-  return sha256.convert(bytes).bytes;            // crypto pkg
+  return sha256.convert(bytes).bytes; // crypto pkg
 }
 
 /// 2️⃣ Open the encrypted box.
@@ -33,18 +34,16 @@ Future<List<int>> _deviceKey() async {
 /// plain `@riverpod` auto-disposes when no-longer-used.
 @riverpod
 Future<Box<LoginCredentials>> userBox(Ref ref) async {
-  await Hive.initFlutter();               // hive_ce_flutter
+  await Hive.initFlutter(); // hive_ce_flutter
   final List<int> key = await _deviceKey();
   return Hive.openBox<LoginCredentials>(
     'userBox',
-    encryptionCipher: HiveAesCipher(key),        // AES-256-CBC
-  );                                            
+    encryptionCipher: HiveAesCipher(key), // AES-256-CBC
+  );
 }
 
 @riverpod
 Future<Box<String>> themeBox(Ref ref) async {
-  await Hive.initFlutter();               // hive_ce_flutter
-  return Hive.openBox<String>(
-    'themeBox',
-  );                                          
+  await Hive.initFlutter(); // hive_ce_flutter
+  return Hive.openBox<String>('themeBox');
 }

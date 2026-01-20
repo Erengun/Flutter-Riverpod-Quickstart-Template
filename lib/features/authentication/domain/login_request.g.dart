@@ -13,7 +13,4 @@ _LoginCredentials _$LoginCredentialsFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$LoginCredentialsToJson(_LoginCredentials instance) =>
-    <String, dynamic>{
-      'email': instance.email,
-      'password': instance.password,
-    };
+    <String, dynamic>{'email': instance.email, 'password': instance.password};

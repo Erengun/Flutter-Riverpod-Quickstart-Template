@@ -6,25 +6,53 @@ part of 'authentication_repository.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authenticationRepositoryHash() =>
-    r'0b9b9340ac018db0ed8286fc368bca027c4d75df';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [authenticationRepository].
 @ProviderFor(authenticationRepository)
-final authenticationRepositoryProvider =
-    AutoDisposeProvider<AuthenticationRepository>.internal(
-  authenticationRepository,
-  name: r'authenticationRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$authenticationRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final authenticationRepositoryProvider = AuthenticationRepositoryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AuthenticationRepositoryRef
-    = AutoDisposeProviderRef<AuthenticationRepository>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class AuthenticationRepositoryProvider
+    extends
+        $FunctionalProvider<
+          AuthenticationRepository,
+          AuthenticationRepository,
+          AuthenticationRepository
+        >
+    with $Provider<AuthenticationRepository> {
+  AuthenticationRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'authenticationRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$authenticationRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AuthenticationRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AuthenticationRepository create(Ref ref) {
+    return authenticationRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AuthenticationRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AuthenticationRepository>(value),
+    );
+  }
+}
+
+String _$authenticationRepositoryHash() =>
+    r'c4688a5f8ac34766509237d02d5ada5ae0f9ede3';

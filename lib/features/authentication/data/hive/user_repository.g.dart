@@ -6,22 +6,50 @@ part of 'user_repository.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userRepositoryHash() => r'3cd8beabf8a79c5527882a82b8452adfae942135';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [userRepository].
-@ProviderFor(userRepository)
-final userRepositoryProvider = AutoDisposeProvider<UserRepository>.internal(
-  userRepository,
-  name: r'userRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$userRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+@ProviderFor(UserRepository)
+final userRepositoryProvider = UserRepositoryProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef UserRepositoryRef = AutoDisposeProviderRef<UserRepository>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class UserRepositoryProvider
+    extends $AsyncNotifierProvider<UserRepository, LoginCredentials?> {
+  UserRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'userRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userRepositoryHash();
+
+  @$internal
+  @override
+  UserRepository create() => UserRepository();
+}
+
+String _$userRepositoryHash() => r'b897639ccaee1621e267479909e060a0d90566c5';
+
+abstract class _$UserRepository extends $AsyncNotifier<LoginCredentials?> {
+  FutureOr<LoginCredentials?> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref as $Ref<AsyncValue<LoginCredentials?>, LoginCredentials?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<LoginCredentials?>, LoginCredentials?>,
+              AsyncValue<LoginCredentials?>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

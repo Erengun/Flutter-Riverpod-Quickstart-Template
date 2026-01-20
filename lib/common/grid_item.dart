@@ -4,12 +4,13 @@ import '../utils/url_utils.dart';
 
 class GridItem extends StatelessWidget {
   /// Named parameters are preferred, they make the code easier to understand.
-  const GridItem(
-      {super.key,
-      required this.title,
-      required this.icon,
-      required this.url,
-      this.version});
+  const GridItem({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.url,
+    this.version,
+  });
 
   final String title;
   final IconData icon;
@@ -23,11 +24,13 @@ class GridItem extends StatelessWidget {
       shadowColor: Theme.of(context).colorScheme.shadow,
       color: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12))),
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
       child: ListTile(
         onTap: () => openUrl(url),
         shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12))),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
         title: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
@@ -36,10 +39,10 @@ class GridItem extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium!
-                  .apply(fontWeightDelta: 2, fontSizeDelta: -2),
+              style: Theme.of(context).textTheme.titleMedium!.apply(
+                fontWeightDelta: 2,
+                fontSizeDelta: -2,
+              ),
             ),
             if (version != null)
               Padding(
