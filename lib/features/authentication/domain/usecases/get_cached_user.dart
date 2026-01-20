@@ -8,4 +8,4 @@ part 'get_cached_user.g.dart';
 typedef GetCachedUser = Future<LoginCredentials?> Function();
 @riverpod
 GetCachedUser getCachedUser(Ref ref) =>
-    () => ref.read(userRepositoryProvider).getCachedUser();
+    () => ref.read(userRepositoryProvider.notifier).getCachedUser();

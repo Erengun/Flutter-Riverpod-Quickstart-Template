@@ -13,7 +13,7 @@ part of 'login_controller.dart';
 final loginControllerProvider = LoginControllerProvider._();
 
 final class LoginControllerProvider
-    extends $NotifierProvider<LoginController, AuthUiModel> {
+    extends $AsyncNotifierProvider<LoginController, AuthUiModel> {
   LoginControllerProvider._()
     : super(
         from: null,
@@ -31,29 +31,21 @@ final class LoginControllerProvider
   @$internal
   @override
   LoginController create() => LoginController();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(AuthUiModel value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<AuthUiModel>(value),
-    );
-  }
 }
 
-String _$loginControllerHash() => r'9fb5ce40bca8865e767ec35c64c8ee389b107912';
+String _$loginControllerHash() => r'497ccc7833081f218c26d73c5285c931348bd279';
 
-abstract class _$LoginController extends $Notifier<AuthUiModel> {
-  AuthUiModel build();
+abstract class _$LoginController extends $AsyncNotifier<AuthUiModel> {
+  FutureOr<AuthUiModel> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AuthUiModel, AuthUiModel>;
+    final ref = this.ref as $Ref<AsyncValue<AuthUiModel>, AuthUiModel>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AuthUiModel, AuthUiModel>,
-              AuthUiModel,
+              AnyNotifier<AsyncValue<AuthUiModel>, AuthUiModel>,
+              AsyncValue<AuthUiModel>,
               Object?,
               Object?
             >;

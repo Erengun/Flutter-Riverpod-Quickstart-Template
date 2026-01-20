@@ -9,19 +9,18 @@ part of 'user_repository.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(userRepository)
+@ProviderFor(UserRepository)
 final userRepositoryProvider = UserRepositoryProvider._();
 
 final class UserRepositoryProvider
-    extends $FunctionalProvider<UserRepository, UserRepository, UserRepository>
-    with $Provider<UserRepository> {
+    extends $AsyncNotifierProvider<UserRepository, LoginCredentials?> {
   UserRepositoryProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
         name: r'userRepositoryProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -31,21 +30,26 @@ final class UserRepositoryProvider
 
   @$internal
   @override
-  $ProviderElement<UserRepository> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  UserRepository create(Ref ref) {
-    return userRepository(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(UserRepository value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<UserRepository>(value),
-    );
-  }
+  UserRepository create() => UserRepository();
 }
 
-String _$userRepositoryHash() => r'3cd8beabf8a79c5527882a82b8452adfae942135';
+String _$userRepositoryHash() => r'b897639ccaee1621e267479909e060a0d90566c5';
+
+abstract class _$UserRepository extends $AsyncNotifier<LoginCredentials?> {
+  FutureOr<LoginCredentials?> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref as $Ref<AsyncValue<LoginCredentials?>, LoginCredentials?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<LoginCredentials?>, LoginCredentials?>,
+              AsyncValue<LoginCredentials?>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

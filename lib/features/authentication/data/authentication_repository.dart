@@ -23,11 +23,9 @@ abstract class AuthenticationRepository {
 /// A class that implements the [AuthenticationRepository] using HTTP requests.
 class HttpAuthRepository implements AuthenticationRepository {
   /// Creates an instance of [HttpAuthRepository].
-  HttpAuthRepository(this.ref);
-  final Ref ref;
-
-  /// The Dio instance used for making HTTP requests.
-  Dio get dio => ref.read(networkRepositoryProvider);
+  HttpAuthRepository(this.dio, this._setToken);
+  final Dio dio;
+  final void Function(String) _setToken;
 
   @override
   Future<LoginResponse> login(String email, String password) async {
@@ -42,9 +40,7 @@ class HttpAuthRepository implements AuthenticationRepository {
       final LoginResponse loginResponse = LoginResponse.fromJson(
         response.data as Map<String, dynamic>,
       );
-      ref
-          .read(networkRepositoryProvider.notifier)
-          .setToken(loginResponse.token);
+      _setToken(loginResponse.token);
       return loginResponse;
     } catch (e) {
       if (e is DioException) {
@@ -93,7 +89,11 @@ class HttpAuthRepository implements AuthenticationRepository {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 AuthenticationRepository authenticationRepository(Ref ref) {
-  return HttpAuthRepository(ref);
+  /// Passing directly ref is a bad practice.
+  /// Its hard to test and maintain. Dependency injection should be preferred.
+  return HttpAuthRepository(ref.read(networkRepositoryProvider), (
+    String token,
+  ) => ref.read(networkRepositoryProvider.notifier).setToken(token));
 }

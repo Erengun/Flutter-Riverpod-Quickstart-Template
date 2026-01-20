@@ -6,26 +6,31 @@ import 'local_user_ds.dart';
 
 part 'user_repository.g.dart';
 
-abstract interface class UserRepository {
-  Future<void> cacheUser(LoginCredentials user);
-  Future<LoginCredentials?> getCachedUser();
-  Future<void> logout();
-}
 
-@riverpod
-UserRepository userRepository(Ref ref) =>
-    _UserRepoImpl(ref.read(localUserDatasourceProvider));
-
-class _UserRepoImpl implements UserRepository {
-  _UserRepoImpl(this._ds);
-  final LocalUserDatasource _ds;
-
+@Riverpod(keepAlive: true)
+class UserRepository extends _$UserRepository {
   @override
-  Future<void> cacheUser(LoginCredentials user) => _ds.save(user);
+  FutureOr<LoginCredentials?> build() async {
+    final LoginCredentials? user = await getCachedUser();
+    if (user != null) {
+      ref.keepAlive();
+    }
+    return user;
+  }
 
-  @override
-  Future<LoginCredentials?> getCachedUser() => _ds.fetch();
+  Future<void> cacheUser(LoginCredentials user) {
+    final LocalUserDatasource ds = ref.read(localUserDatasourceProvider);
+    return ds.save(user);
+  }
 
-  @override
-  Future<void> logout() => _ds.clear();
+  Future<LoginCredentials?> getCachedUser() {
+    final LocalUserDatasource ds = ref.read(localUserDatasourceProvider);
+    return ds.fetch();
+  }
+
+  Future<void> logout() {
+    final LocalUserDatasource ds = ref.read(localUserDatasourceProvider);
+    return ds.clear();
+  }
+
 }
