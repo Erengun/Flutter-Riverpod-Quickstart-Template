@@ -1,7 +1,6 @@
 // ignore_for_file: prefer_function_declarations_over_variables
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -26,17 +25,18 @@ enum SGRoute {
 
 @riverpod
 GoRouter goRouter(Ref ref) => GoRouter(
-      initialLocation: SGRoute.login.route,
-      routes: <GoRoute>[
-        GoRoute(
-            path: SGRoute.login.route,
-            builder: (BuildContext context, GoRouterState state) {
-              return const LoginScreen();
-            }).fade(),
-        GoRoute(
-          path: SGRoute.home.route,
-          builder: (BuildContext context, GoRouterState state) =>
-              const HomeScreen(),
-        ).fade(),
-      ],
-    );
+  initialLocation: SGRoute.login.route,
+  routes: <GoRoute>[
+    GoRoute(
+      path: SGRoute.login.route,
+      builder: (BuildContext context, GoRouterState state) {
+        return const LoginScreen();
+      },
+    ).fade(),
+    GoRoute(
+      path: SGRoute.home.route,
+      builder: (BuildContext context, GoRouterState state) =>
+          const HomeScreen(),
+    ).fade(),
+  ],
+);

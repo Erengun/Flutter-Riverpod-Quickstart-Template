@@ -5,11 +5,12 @@ import '../../../../../utils/context_extensions.dart';
 import '../../../../../utils/url_utils.dart';
 
 class SocialTile extends StatelessWidget {
-  const SocialTile(
-      {required this.title,
-      required this.url,
-      required this.leadingIcon,
-      super.key});
+  const SocialTile({
+    required this.title,
+    required this.url,
+    required this.leadingIcon,
+    super.key,
+  });
   final String title;
   final Uri url;
   final Icon leadingIcon;
@@ -20,10 +21,12 @@ class SocialTile extends StatelessWidget {
       elevation: 2,
       child: ListTile(
         enableFeedback: true,
-        title: Text(title,
-            style: context.textTheme.titleMedium!.copyWith(
-              color: context.colorScheme.onSurface,
-            )),
+        title: Text(
+          title,
+          style: context.textTheme.titleMedium!.copyWith(
+            color: context.colorScheme.onSurface,
+          ),
+        ),
         contentPadding: const EdgeInsets.all(4),
         trailing: Icon(
           Ionicons.arrow_forward,
@@ -31,12 +34,11 @@ class SocialTile extends StatelessWidget {
         ),
         tileColor: context.colorScheme.surface,
         selectedTileColor: context.colorScheme.onSurface,
-        leading: Container(
-          child: leadingIcon,
-        ),
+        leading: Container(child: leadingIcon),
         onTap: () => openUrl(url),
         shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12))),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
       ),
     );
   }

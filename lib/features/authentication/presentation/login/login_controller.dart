@@ -14,18 +14,18 @@ part 'login_controller.g.dart';
 class LoginController extends _$LoginController {
   @override
   AuthUiModel build() {
-    final Future<LoginCredentials?> userLoginFuture =
-        ref.read(userRepositoryProvider).getCachedUser();
-    userLoginFuture.then((LoginCredentials? cachedUser) {
-      if (cachedUser != null) {
-        state = state.copyWith(
-          user: cachedUser,
-          rememberMe: true,
-        );
-      }
-    }).catchError((dynamic error) {
-      // Handle error if needed
-    });
+    final Future<LoginCredentials?> userLoginFuture = ref
+        .read(userRepositoryProvider)
+        .getCachedUser();
+    userLoginFuture
+        .then((LoginCredentials? cachedUser) {
+          if (cachedUser != null) {
+            state = state.copyWith(user: cachedUser, rememberMe: true);
+          }
+        })
+        .catchError((dynamic error) {
+          // Handle error if needed
+        });
     return const AuthUiModel();
   }
 
@@ -44,8 +44,10 @@ class LoginController extends _$LoginController {
     state = state.copyWith(isLoading: isLoading);
   }
 
-  Future<LoginResponse> login(
-      {required String email, required String password}) async {
+  Future<LoginResponse> login({
+    required String email,
+    required String password,
+  }) async {
     final LoginCredentials user = LoginCredentials(
       email: email,
       password: password,
@@ -56,24 +58,22 @@ class LoginController extends _$LoginController {
     updateLoading(true);
     final LoginResponse loginResponse = await ref
         .read(authenticationRepositoryProvider)
-        .login(
-          user.email,
-          user.password,
-        )
+        .login(user.email, user.password)
         .catchError((dynamic error) {
-      updateLoading(false);
-      throw Exception('Login failed: $error');
-    });
+          updateLoading(false);
+          throw Exception('Login failed: $error');
+        });
     if (loginResponse.token.isNotEmpty) {
       if (state.rememberMe) {
         state = state.copyWith(
-          user:
-              state.user?.copyWith(email: user.email, password: user.password),
+          user: state.user?.copyWith(
+            email: user.email,
+            password: user.password,
+          ),
         );
-        await ref
-            .read(userRepositoryProvider)
-            .cacheUser(user)
-            .catchError((dynamic error) {
+        await ref.read(userRepositoryProvider).cacheUser(user).catchError((
+          dynamic error,
+        ) {
           Logger().e('Failed to cache user: $error');
         });
       }
@@ -89,11 +89,9 @@ class LoginController extends _$LoginController {
     if (email.isEmpty || password.isEmpty) {
       throw Exception('Email and password cannot be empty');
     }
-    final RegisterResponse registerResponse =
-        await ref.read(authenticationRepositoryProvider).register(
-              email,
-              password,
-            );
+    final RegisterResponse registerResponse = await ref
+        .read(authenticationRepositoryProvider)
+        .register(email, password);
     if (registerResponse.token.isNotEmpty) {
       // Handle successful registration
       state = state.copyWith(
@@ -105,8 +103,8 @@ class LoginController extends _$LoginController {
             .read(userRepositoryProvider)
             .cacheUser(state.user!)
             .catchError((dynamic error) {
-          throw Exception('Failed to cache user: $error');
-        });
+              throw Exception('Failed to cache user: $error');
+            });
       }
     } else {
       throw Exception('Registration failed');

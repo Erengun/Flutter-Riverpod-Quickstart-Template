@@ -45,18 +45,23 @@ class NetworkRepository extends _$NetworkRepository {
     ref.cacheFor(const Duration(days: 1));
   }
 
-  Future<Response<T>> get<T>(String path,
-      {Map<String, dynamic>? queryParameters, String? baseUrl}) async {
+  Future<Response<T>> get<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    String? baseUrl,
+  }) async {
     if (baseUrl != null) {
       state.options.baseUrl = baseUrl;
     }
     return state.get(path, queryParameters: queryParameters);
   }
 
-  Future<Response<T>> post<T>(String path,
-      {dynamic data,
-      Map<String, dynamic>? queryParameters,
-      String? baseUrl}) async {
+  Future<Response<T>> post<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    String? baseUrl,
+  }) async {
     if (baseUrl != null) {
       state.options.baseUrl = baseUrl;
     }

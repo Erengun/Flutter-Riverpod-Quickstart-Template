@@ -18,11 +18,10 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.logout_outlined,
-              color: context.colorScheme.primary),
+          icon: Icon(Icons.logout_outlined, color: context.colorScheme.primary),
           onPressed: () {
             context.pop();
-          }
+          },
         ),
       ),
       backgroundColor: context.colorScheme.surface,
@@ -46,29 +45,37 @@ class HomeScreen extends ConsumerWidget {
               switch (index) {
                 case 0:
                   return SocialTile(
-                    leadingIcon: Icon(Ionicons.logo_github,
-                        color: context.colorScheme.primary),
+                    leadingIcon: Icon(
+                      Ionicons.logo_github,
+                      color: context.colorScheme.primary,
+                    ),
                     title: 'Github',
                     url: Uri.parse('https://github.com/erengun'),
                   );
                 case 1:
                   return SocialTile(
-                    leadingIcon: Icon(Ionicons.logo_linkedin,
-                        color: context.colorScheme.primary),
+                    leadingIcon: Icon(
+                      Ionicons.logo_linkedin,
+                      color: context.colorScheme.primary,
+                    ),
                     title: 'Linkedin',
                     url: Uri.parse('https://www.linkedin.com/in/erengun'),
                   );
                 case 2:
                   return SocialTile(
-                    leadingIcon: Icon(Ionicons.logo_medium,
-                        color: context.colorScheme.primary),
+                    leadingIcon: Icon(
+                      Ionicons.logo_medium,
+                      color: context.colorScheme.primary,
+                    ),
                     title: 'Medium',
                     url: Uri.parse('https://erengun.medium.com/'),
                   );
                 case 3:
                   return SocialTile(
-                    leadingIcon: Icon(Ionicons.globe_outline,
-                        color: context.colorScheme.primary),
+                    leadingIcon: Icon(
+                      Ionicons.globe_outline,
+                      color: context.colorScheme.primary,
+                    ),
                     title: 'Website',
                     url: Uri.parse('https://erengun.dev'),
                   );
@@ -76,7 +83,7 @@ class HomeScreen extends ConsumerWidget {
                   return const SizedBox.shrink();
               }
             },
-          )
+          ),
         ],
       ),
     );

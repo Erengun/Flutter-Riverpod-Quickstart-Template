@@ -35,17 +35,18 @@ void main() {
     });
 
     test('throws exception when credentials are empty', () async {
-      final LoginController controller = container.read(loginControllerProvider.notifier);
-      expect(
-        () => controller.login(email: '', password: ''),
-        throwsException,
+      final LoginController controller = container.read(
+        loginControllerProvider.notifier,
       );
+      expect(() => controller.login(email: '', password: ''), throwsException);
     });
   });
 
   group('register', () {
     test('successful registration updates state correctly', () async {
-      final LoginController controller = container.read(loginControllerProvider.notifier);
+      final LoginController controller = container.read(
+        loginControllerProvider.notifier,
+      );
 
       await controller.register(
         email: 'eve.holt@reqres.in',
@@ -56,7 +57,9 @@ void main() {
     });
 
     test('throws exception when credentials are empty', () async {
-      final LoginController controller = container.read(loginControllerProvider.notifier);
+      final LoginController controller = container.read(
+        loginControllerProvider.notifier,
+      );
 
       expect(
         () => controller.register(email: '', password: ''),

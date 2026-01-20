@@ -11,5 +11,8 @@ class Endpoints {
   //! This is just for testing purposes
   //! and should not be used in production
   // https://reqres.in/signup
-  static const String apiKey = String.fromEnvironment('API_KEY', defaultValue: 'reqres-free-v1');
+  static const String apiKey = String.fromEnvironment(
+    'API_KEY',
+    defaultValue: 'reqres-free-v1',
+  );
 }

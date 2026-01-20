@@ -38,9 +38,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
         width: size.width * 0.8,
         height: size.height * 0.5,
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,10 +56,12 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
               ],
             ),
             const Gap(20),
-            Text('Username',
-                style: context.textTheme.titleMedium?.copyWith(
-                  color: context.colorScheme.primary,
-                )),
+            Text(
+              'Username',
+              style: context.textTheme.titleMedium?.copyWith(
+                color: context.colorScheme.primary,
+              ),
+            ),
             const Gap(10),
             TextField(
               controller: _emailController,
@@ -69,17 +69,17 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
                 hintText: 'Enter your username',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: context.colorScheme.primary,
-                  ),
+                  borderSide: BorderSide(color: context.colorScheme.primary),
                 ),
               ),
             ),
             const Gap(20),
-            Text('Password',
-                style: context.textTheme.titleMedium?.copyWith(
-                  color: context.colorScheme.primary,
-                )),
+            Text(
+              'Password',
+              style: context.textTheme.titleMedium?.copyWith(
+                color: context.colorScheme.primary,
+              ),
+            ),
             const Gap(10),
             TextField(
               controller: _passwordController,
@@ -88,9 +88,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
                 hintText: 'Enter your password',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: context.colorScheme.primary,
-                  ),
+                  borderSide: BorderSide(color: context.colorScheme.primary),
                 ),
               ),
             ),
@@ -118,19 +116,18 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
                           password: _passwordController.text,
                         )
                         .then((RegisterResponse value) {
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                      }
-                    }).catchError((dynamic error) {
-                      // Handle error
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(error.toString()),
-                          ),
-                        );
-                      }
-                    });
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        })
+                        .catchError((dynamic error) {
+                          // Handle error
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(error.toString())),
+                            );
+                          }
+                        });
                   },
                   child: Text(
                     'Register',

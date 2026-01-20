@@ -14,8 +14,9 @@ class EmptyAppBar extends StatelessWidget implements PreferredSizeWidget {
         statusBarBrightness: brightness,
         systemStatusBarContrastEnforced: false,
         statusBarColor: Theme.of(context).colorScheme.surface,
-        statusBarIconBrightness:
-            brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness: brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
       ),
       backgroundColor: Colors.transparent,
       excludeHeaderSemantics: true,

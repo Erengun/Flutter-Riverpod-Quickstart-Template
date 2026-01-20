@@ -19,6 +19,7 @@ class MyApp extends ConsumerWidget {
     final GoRouter router = ref.watch(goRouterProvider);
     return MaterialApp.router(
       routerConfig: router,
+
       /// Localization is not available for the title.
       title: 'Flutter Production Boilerplate',
 
@@ -54,7 +55,7 @@ class MyApp extends ConsumerWidget {
         // To use the Playground font, add GoogleFonts package and uncomment
         // fontFamily: GoogleFonts.notoSans().fontFamily,
       ),
-      
+
       themeMode: currentTheme.themeMode,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: context.localizationDelegates,

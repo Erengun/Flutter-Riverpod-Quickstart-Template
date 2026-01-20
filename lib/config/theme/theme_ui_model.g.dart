@@ -8,14 +8,13 @@ part of 'theme_ui_model.dart';
 
 _ThemeUiModel _$ThemeUiModelFromJson(Map<String, dynamic> json) =>
     _ThemeUiModel(
-      themeMode: $enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']) ??
+      themeMode:
+          $enumDecodeNullable(_$ThemeModeEnumMap, json['themeMode']) ??
           ThemeMode.system,
     );
 
 Map<String, dynamic> _$ThemeUiModelToJson(_ThemeUiModel instance) =>
-    <String, dynamic>{
-      'themeMode': _$ThemeModeEnumMap[instance.themeMode]!,
-    };
+    <String, dynamic>{'themeMode': _$ThemeModeEnumMap[instance.themeMode]!};
 
 const _$ThemeModeEnumMap = {
   ThemeMode.system: 'system',

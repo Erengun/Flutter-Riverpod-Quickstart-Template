@@ -6,21 +6,57 @@ part of 'login_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$loginControllerHash() => r'f5cb5132992f8276ede5ff32c4d7b15425cdd3cd';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [LoginController].
 @ProviderFor(LoginController)
-final loginControllerProvider =
-    AutoDisposeNotifierProvider<LoginController, AuthUiModel>.internal(
-  LoginController.new,
-  name: r'loginControllerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$loginControllerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final loginControllerProvider = LoginControllerProvider._();
 
-typedef _$LoginController = AutoDisposeNotifier<AuthUiModel>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class LoginControllerProvider
+    extends $NotifierProvider<LoginController, AuthUiModel> {
+  LoginControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'loginControllerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$loginControllerHash();
+
+  @$internal
+  @override
+  LoginController create() => LoginController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AuthUiModel value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AuthUiModel>(value),
+    );
+  }
+}
+
+String _$loginControllerHash() => r'9fb5ce40bca8865e767ec35c64c8ee389b107912';
+
+abstract class _$LoginController extends $Notifier<AuthUiModel> {
+  AuthUiModel build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AuthUiModel, AuthUiModel>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AuthUiModel, AuthUiModel>,
+              AuthUiModel,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

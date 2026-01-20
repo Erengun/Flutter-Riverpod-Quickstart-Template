@@ -6,9 +6,8 @@ part 'theme_ui_model.g.dart';
 
 @freezed
 abstract class ThemeUiModel with _$ThemeUiModel {
-  const factory ThemeUiModel({
-    @Default(ThemeMode.system) ThemeMode themeMode,
-  }) = _ThemeUiModel;
+  const factory ThemeUiModel({@Default(ThemeMode.system) ThemeMode themeMode}) =
+      _ThemeUiModel;
 
   factory ThemeUiModel.fromJson(Map<String, dynamic> json) =>
       _$ThemeUiModelFromJson(json);
