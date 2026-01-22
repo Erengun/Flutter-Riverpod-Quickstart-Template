@@ -10,12 +10,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stack_trace/stack_trace.dart' as stack_trace;
 
 import 'constants/strings.dart';
+import 'flavors/app_flavor.dart';
 import 'hive/hive.dart';
 import 'my_app.dart';
 
 /// Try using const constructors as much as possible!
 
-void main() async {
+Future<void> main() async {
+  FlavorConfig.setFlavor(AppFlavor.prod);
+  await bootstrap();
+}
+
+Future<void> bootstrap() async {
   /// Initialize packages
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();

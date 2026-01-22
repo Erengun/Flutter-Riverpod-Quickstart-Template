@@ -1,0 +1,5 @@
+#include "Release.xcconfig"
+BUNDLE_ID = com.example.temp.staging
+APP_DISPLAY_NAME = Temp Staging
+APP_NAME = TempStaging
+FLAVOR = staging

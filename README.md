@@ -88,8 +88,35 @@ lib/
 
 5. **Run the app:**
     ```bash
-    flutter run
+    flutter run --flavor prod -t lib/main_prod.dart
     ```
+
+---
+
+## Flavors (app names & package IDs)
+
+This template ships with dev, staging, and prod flavors for Android and iOS.
+
+### Run commands
+
+- Dev:
+    ```bash
+    flutter run --flavor dev -t lib/main_dev.dart
+    ```
+- Staging:
+    ```bash
+    flutter run --flavor staging -t lib/main_staging.dart
+    ```
+- Prod:
+    ```bash
+    flutter run --flavor prod -t lib/main_prod.dart
+    ```
+
+### Customize names and IDs
+
+- Android flavor names and applicationId suffixes: [android/app/build.gradle.kts](android/app/build.gradle.kts)
+- iOS bundle IDs and display names: [ios/Flutter/Debug-dev.xcconfig](ios/Flutter/Debug-dev.xcconfig) (and the other flavor xcconfig files)
+- Dart-side flavor labels: [lib/flavors/app_flavor.dart](lib/flavors/app_flavor.dart)
 
 ---
 
