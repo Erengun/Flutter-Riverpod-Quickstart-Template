@@ -5,3 +5,16 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      firebase-dependencies:
+        patterns:
+          - "firebase_*"
+      riverpod-dependencies:
+        patterns:
+          # Riverpod Core and Tools
+          - "*riverpod*" 
+          # Freezed and Json Serialization (for data models)
+          - "freezed*" 
+          - "*json_annotation*"
+          - "*build_runner*" # build_runner is the core tool that runs the others
+          - "json_serializable"
