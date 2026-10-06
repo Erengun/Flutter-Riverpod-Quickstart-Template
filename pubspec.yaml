@@ -34,7 +34,7 @@ dependencies:
   flutter_displaymode: ^0.7.0
   easy_localization: ^3.0.7
   ionicons: ^0.2.2
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^2.0.0
   flutter_riverpod: ^3.3.2
   riverpod: ^3.3.2
   dio: ^5.9.0
