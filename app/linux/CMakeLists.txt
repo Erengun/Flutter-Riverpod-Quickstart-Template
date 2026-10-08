@@ -5,7 +5,8 @@ project(runner LANGUAGES CXX)
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "temp")
-# The unique GTK application identifier for this application. See:
+# The unique GTK application identifier for this application. This is the only
+# identity line a new app edits on Linux; the window title uses BINARY_NAME. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 set(APPLICATION_ID "com.example.temp")
 
