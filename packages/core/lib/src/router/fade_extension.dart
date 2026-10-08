@@ -1,7 +1,7 @@
 // ignore_for_file: strict_raw_type, always_specify_types
 
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:material_ui/material_ui.dart';
 
 class FadeTransitionPage extends CustomTransitionPage {
   FadeTransitionPage({required LocalKey super.key, required super.child})
@@ -19,7 +19,7 @@ class FadeTransitionPage extends CustomTransitionPage {
 }
 
 /// Extension for GoRouter to add fade transition
-extension GoRouteExtension on GoRoute {
+extension FadeGoRouteExtension on GoRoute {
   /// Add fade transition to the route page
   GoRoute fade() {
     return GoRoute(

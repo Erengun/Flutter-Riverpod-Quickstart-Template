@@ -15,8 +15,10 @@
 *.iws
 .idea/
 
-# Visual Studio Code related
-.vscode/
+# Visual Studio Code related (shared launch configs and extension list are committed)
+.vscode/*
+!.vscode/launch.json
+!.vscode/extensions.json
 
 # Flutter/Dart/Pub related
 **/doc/api/
@@ -26,7 +28,7 @@
 .packages
 .pub-cache/
 .pub/
-/build/
+build/
 
 # Android related
 **/gradle-wrapper.jar
@@ -61,6 +63,7 @@
 **/ios/Flutter/app.zip
 **/ios/Flutter/flutter_assets/
 **/ios/Flutter/flutter_export_environment.sh
+app/ios/Flutter/Signing.xcconfig
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
 
@@ -82,3 +85,9 @@ yarn.lock
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 # Local commit conventions (kept out of the public repo)
 commit_style.md
+
+# Local agent and tooling files
+CLAUDE.local.md
+.claude/worktrees/
+.claude/settings.local.json
+graphify-out/

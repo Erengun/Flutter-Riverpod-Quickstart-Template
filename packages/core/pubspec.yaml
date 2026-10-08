@@ -1,0 +1,17 @@
+name: core
+description: Infrastructure every app built from the template gets.
+publish_to: none
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  go_router: ^18.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
