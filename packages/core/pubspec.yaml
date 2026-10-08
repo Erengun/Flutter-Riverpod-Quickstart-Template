@@ -11,6 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
   go_router: ^18.0.2
+  flutter_riverpod: ^3.4.3
+  stack_trace: ^1.11.0
+  material_ui: ^1.6.0
 
 dev_dependencies:
   flutter_test:

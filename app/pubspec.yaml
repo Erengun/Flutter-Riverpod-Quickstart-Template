@@ -51,7 +51,6 @@ dependencies:
   flex_color_scheme: ^9.0.0
   url_launcher: ^6.1.11
   intl: ^0.20.2
-  stack_trace: ^1.11.0
   google_fonts: ^9.0.0
   android_id: ^0.5.1
   hive_ce: ^2.11.1
@@ -86,6 +85,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # A plain `flutter run` / `flutter build` without --flavor uses dev, never prod.
+  default-flavor: dev
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

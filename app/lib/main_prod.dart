@@ -1,7 +1,16 @@
-import 'flavors/app_flavor.dart';
-import 'main.dart' as app;
+import 'package:core/core.dart';
+
+import 'app/config.dart';
+import 'app/modules.dart';
+import 'app/setup.dart';
+import 'app/theme.dart';
 
 Future<void> main() async {
-  FlavorConfig.setFlavor(AppFlavor.prod);
-  await app.bootstrap();
+  await setUpApp();
+  await bootstrap(
+    prodConfig,
+    app: buildAppRoot(),
+    theme: buildAppTheme(),
+    modules: buildAppModules(),
+  );
 }

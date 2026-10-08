@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 The repo is a Dart pub workspace. The root `pubspec.yaml` is workspace-only (`publish_to: none`, `workspace:` list, Melos config under `melos:`) and holds no code. One `pubspec.lock` and one `.dart_tool/` live at the root.
 - `app/`: the whole app (pubspec, `lib/`, `test/`, `assets/`, platform folders). App paths below are relative to `app/`.
-- `packages/core/` (package `core`): infrastructure every app gets. It depends on nothing else in the repo. Today it holds the router transition extensions; import it via `package:core/core.dart`.
+- `packages/core/` (package `core`): infrastructure every app gets. It depends on nothing else in the repo. It holds `bootstrap`, per-flavor config, the Module contract, the `ErrorReporter` / `Analytics` / `RemoteFlags` interfaces and the router transition extensions; import it via `package:core/core.dart`.
 - Every package has its own `test/` and an `analysis_options.yaml` that includes the root one (plus its own `exclude:` globs, since excludes resolve relative to the file that declares them).
 - New packages go in `packages/` and must be added to the root `workspace:` list; each member's pubspec has `resolution: workspace`. The app depends on `core` by `path: ../packages/core`.
 
@@ -34,7 +34,11 @@ Gitignored and never committed: `CLAUDE.local.md`, `.claude/worktrees/`, `.claud
 
 ## Architecture
 
-**Entry / flavors.** `app/lib/main_dev.dart` / `main_staging.dart` / `main_prod.dart` call `FlavorConfig.setFlavor(...)` (`lib/flavors/app_flavor.dart`) then `bootstrap()` in `lib/main.dart`, which initializes EasyLocalization, Hive (`lib/hive/hive.dart`), orientation, and wraps `MyApp` in `ProviderScope` + `EasyLocalization`. Native flavor names/IDs live in `android/app/build.gradle.kts` and `ios/Flutter/{Debug,Profile,Release}-<flavor>.xcconfig`; keep them in sync with `FlavorConfig`.
+**Entry / flavors.** Each of `app/lib/main_dev.dart` / `main_staging.dart` / `main_prod.dart` runs the app-owned `setUpApp()` (`lib/app/setup.dart`: EasyLocalization, Hive, orientation) and then calls Core's `bootstrap(<flavor>Config, app:, theme:, splash:, modules:)` with its config from `lib/app/config.dart`, the theme from `lib/app/theme.dart` and the Modules from `lib/app/modules.dart`. Bare `lib/main.dart` is dev, and the app pubspec sets `flutter: default-flavor: dev`, so a plain `flutter run` / `flutter build` never points at prod. On Android and iOS `bootstrap` throws `FlavorMismatchError` before `runApp` when the native `--flavor` differs from the entrypoint, in every build mode; elsewhere the entrypoint alone decides. No `--dart-define`: edit the configs instead. Native flavor names/IDs live in `android/app/build.gradle.kts` and `ios/Flutter/{Debug,Profile,Release}-<flavor>.xcconfig`; keep them in sync with Core's `Flavor { dev, staging, prod }`.
+
+**Config.** Core's `AppConfig` holds only per-flavor values: `flavor`, `apiBaseUrl`, the demo `apiKey` and `storeLinks` (force-update store ids/links; empty means no check). Read it with `ref.watch(appConfigProvider)`; the provider throws unless `bootstrap` overrides it, so tests use `appConfigProvider.overrideWithValue(...)`. A Module's or Feature's own per-flavor values (a DSN, a second base URL) stay in that Module or Feature and are picked by `config.flavor`. Nothing compiled into the app is secret.
+
+**Modules.** A Module implements Core's `KonteynerModule` (`name`, `platforms`, `Future<ModuleContributions> init(AppConfig config)`) and is listed in `lib/app/modules.dart`. `bootstrap` starts them in order through `startModules`: a Module is skipped on platforms outside `platforms`; a throwing `init` is logged, keeps the defaults and is reported once every Module has started; two Modules contributing the same interface stop startup with `ModuleConflictError`. Contributions become `ProviderScope` overrides of `errorReporterProvider`, `analyticsProvider` and `remoteFlagsProvider`, whose defaults are the no-op `NoopErrorReporter` / `NoopAnalytics` / `NoopRemoteFlags`. Modules never write overrides themselves.
 
 **State management.** Riverpod 3 with code generation (`@riverpod` / `@Riverpod(keepAlive: true)` + `part '*.g.dart'`). Generated provider names are `<name>Provider` (e.g. `NetworkRepository` → `networkRepositoryProvider`). Immutable models and UI state use Freezed.
 
@@ -43,13 +47,13 @@ Gitignored and never committed: `CLAUDE.local.md`, `.claude/worktrees/`, `.claud
 - `data/`: repositories. An abstract interface plus implementation exposed through a provider (e.g. `AuthenticationRepository` / `HttpAuthRepository` via `authenticationRepositoryProvider`), so tests can override them.
 - `presentation/`: screens plus an async notifier controller holding a Freezed UI model (e.g. `LoginController` → `AuthUiModel`).
 
-**Networking.** `lib/data/repository/network_repository.dart` is a keepAlive notifier whose state is the shared `Dio` (base URL/API key from `lib/constants/endpoints.dart`, log + retry + memory-cache interceptors). Auth tokens are set via `networkRepositoryProvider.notifier.setToken`. The default backend is reqres.in (test credentials in README).
+**Networking.** `lib/data/repository/network_repository.dart` is a keepAlive notifier whose state is the shared `Dio` (base URL and `x-api-key` from `appConfigProvider`, log + retry + memory-cache interceptors). Endpoint paths live in their Feature (e.g. the auth paths in `authentication_repository.dart`). Auth tokens are set via `networkRepositoryProvider.notifier.setToken`. The default backend is reqres.in (test credentials in README).
 
 **Local storage.** Hive CE. Adapters are declared in `lib/hive/hive_adapters.dart` via `@GenerateAdapters([AdapterSpec<T>(), ...])`; add new persisted types there and rerun build_runner (`hive_registrar.g.dart` registers them). Boxes are opened through providers in `lib/features/authentication/data/hive/hive_box_providers.dart`; the user box is AES-encrypted with a key derived from the device ID. Access goes box provider → datasource (`local_user_ds.dart`) → `UserRepository` notifier.
 
 **Routing.** `lib/router/app_router.dart`: `goRouterProvider` builds a `GoRouter`; routes are named by the `SGRoute` enum (`SGRoute.home.route` → `/home`). Transitions come from the `.fade()` / `.slide()` extensions on `GoRoute` in Core (`FadeGoRouteExtension` / `SlideGoRouteExtension` in `packages/core/lib/src/router/`), both exported by `package:core/core.dart`.
 
-**Theming / i18n.** FlexColorScheme light/dark in `lib/my_app.dart`; theme mode persisted by `themeLogicProvider` (`lib/config/theme/`). Strings are EasyLocalization JSON in `assets/translations/{en,tr}.json`; add new locales there and to `supportedLocales` in `lib/main.dart`.
+**Theming / i18n.** FlexColorScheme light/dark in `lib/app/theme.dart`, passed to `bootstrap` and read by `MyApp` through `konteynerThemeProvider`; theme mode persisted by `themeLogicProvider` (`lib/config/theme/`). Strings are EasyLocalization JSON in `assets/translations/{en,tr}.json`; add new locales there and to `supportedLocales` in `lib/app/setup.dart`.
 
 ## Testing pattern
 

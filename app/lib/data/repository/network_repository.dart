@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
+import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../constants/endpoints.dart';
 import '../../utils/cachefor_extension.dart';
 
 part 'network_repository.g.dart';
@@ -18,15 +18,16 @@ part 'network_repository.g.dart';
 class NetworkRepository extends _$NetworkRepository {
   @override
   Dio build() {
-    final Dio dio = Dio(BaseOptions(baseUrl: Endpoints.baseUrl));
+    final AppConfig config = ref.watch(appConfigProvider);
+    final Dio dio = Dio(BaseOptions(baseUrl: config.apiBaseUrl));
     // Accept: application/json"
     dio.options.headers['Accept'] = 'application/json';
 
     // Content-Type: application/json
     dio.options.headers['Content-Type'] = 'application/json';
 
-    // set api key
-    dio.options.headers['x-api-key'] = Endpoints.apiKey;
+    // The demo backend's key; never secret in a client app.
+    dio.options.headers['x-api-key'] = config.apiKey;
 
     /// Add Logger for debugging
     dio.interceptors
