@@ -52,24 +52,35 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) =>
-      _check(node, node.libraryImport?.uri);
+      _checkDirective(node, node.libraryImport?.uri);
 
   @override
   void visitExportDirective(ExportDirective node) =>
-      _check(node, node.libraryExport?.uri);
+      _checkDirective(node, node.libraryExport?.uri);
 
-  void _check(UriBasedDirective node, DirectiveUri? target) {
-    if (target is! DirectiveUriWithSource) return;
+  /// Checks the directive's default URI and every conditional URI
+  /// (`if (dart.library.io) '...'`), reporting on the URI that crosses.
+  void _checkDirective(NamespaceDirective node, DirectiveUri? target) {
     final Uri? current = context.currentUnit?.unit.declaredFragment?.source.uri;
     if (current == null) return;
-
     final _Feature? from = _Feature.of(current);
     if (from == null) return;
+
+    // [target] is the selected URI, which is the default URI unless declared
+    // variables (`-D`) pick a configuration.
+    _check(from, node.uri, target);
+    for (final Configuration configuration in node.configurations) {
+      _check(from, configuration.uri, configuration.resolvedUri);
+    }
+  }
+
+  void _check(_Feature from, StringLiteral uriNode, DirectiveUri? target) {
+    if (target is! DirectiveUriWithSource) return;
     final _Feature? to = _Feature.of(target.source.uri);
     if (to == null) return;
 
     if (from.package == to.package && from.name != to.name) {
-      rule.reportAtNode(node.uri, arguments: <Object>[from.name, to.name]);
+      rule.reportAtNode(uriNode, arguments: <Object>[from.name, to.name]);
     }
   }
 }

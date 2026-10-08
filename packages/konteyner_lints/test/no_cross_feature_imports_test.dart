@@ -73,6 +73,27 @@ Extra? e;
     await assertDiagnosticsInFile(path, <ExpectedDiagnostic>[lint(7, 27)]);
   }
 
+  Future<void> test_conditionalImportFromAnotherFeature() async {
+    newFile('$_features/orders/orders_stub.dart', 'class Login {}');
+    const String content = '''
+import '../orders_stub.dart' if (dart.library.io) '../../login/login.dart';
+Login? l;
+''';
+    final String path = '$_features/orders/data/orders_io.dart';
+    newFile(path, content);
+    await assertDiagnosticsInFile(path, <ExpectedDiagnostic>[lint(50, 24)]);
+  }
+
+  Future<void> test_conditionalExportFromAnotherFeature() async {
+    newFile('$_features/orders/orders_stub.dart', 'class Login {}');
+    const String content = '''
+export 'orders_stub.dart' if (dart.library.html) '../login/login.dart';
+''';
+    final String path = '$_features/orders/orders.dart';
+    newFile(path, content);
+    await assertDiagnosticsInFile(path, <ExpectedDiagnostic>[lint(49, 21)]);
+  }
+
   // Allowed
 
   Future<void> test_importFromSameFeature() async {
@@ -83,6 +104,17 @@ LoginRepository? r;
 Login? l;
 ''';
     final String path = '$_features/login/presentation/login_screen.dart';
+    newFile(path, content);
+    await assertNoDiagnosticsInFile(path);
+  }
+
+  Future<void> test_conditionalImportWithinSameFeature() async {
+    newFile('$_features/login/login_io.dart', 'class Login {}');
+    const String content = '''
+import 'login.dart' if (dart.library.io) 'login_io.dart';
+Login? l;
+''';
+    final String path = '$_features/login/uses_login.dart';
     newFile(path, content);
     await assertNoDiagnosticsInFile(path);
   }
