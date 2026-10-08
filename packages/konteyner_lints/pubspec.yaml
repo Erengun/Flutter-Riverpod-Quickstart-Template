@@ -1,0 +1,21 @@
+name: konteyner_lints
+description: Analyzer plugin with the template's architecture rules, such as no_cross_feature_imports.
+publish_to: none
+version: 0.1.0
+
+# Not a workspace member: analyzer plugins resolve their own dependencies.
+# The root analysis_options.yaml references this package by path.
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  # analysis_server_plugin is still 0.x and can break on SDK bumps, so it is
+  # pinned. Bump it together with the analyzer version it requires.
+  analysis_server_plugin: 0.3.24
+  analyzer: 14.5.0
+
+dev_dependencies:
+  analyzer_testing: any
+  test: any
+  test_reflective_loader: any

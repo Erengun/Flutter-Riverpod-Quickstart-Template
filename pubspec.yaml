@@ -20,8 +20,18 @@ melos:
 
     test:
       description: Run flutter test in every package that has a test folder.
-      run: melos exec --concurrency=1 --dir-exists=test -- flutter test
+      run: melos exec --concurrency=1 --dir-exists=test -- flutter test && melos run test:lints
 
     analyze:
       description: Run flutter analyze and dart analyze in every package.
-      run: melos exec --concurrency=1 -- "flutter analyze --no-pub --fatal-infos --fatal-warnings && dart analyze --fatal-infos --fatal-warnings"
+      run: melos exec --concurrency=1 -- "flutter analyze --no-pub --fatal-infos --fatal-warnings && dart analyze --fatal-infos --fatal-warnings" && melos run analyze:lints
+
+    # The analyzer plugins in packages/konteyner_lints and packages/app_lints
+    # are not workspace members, so melos exec skips them. These scripts cover them.
+    test:lints:
+      description: Run the analyzer rule tests in packages/konteyner_lints.
+      run: cd packages/konteyner_lints && dart pub get && dart test
+
+    analyze:lints:
+      description: Run dart analyze in the analyzer plugin packages.
+      run: (cd packages/konteyner_lints && dart pub get && dart analyze --fatal-infos --fatal-warnings) && (cd packages/app_lints && dart pub get && dart analyze --fatal-infos --fatal-warnings)
