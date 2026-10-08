@@ -80,3 +80,5 @@ yarn.lock
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+# Local commit conventions (kept out of the public repo)
+commit_style.md
