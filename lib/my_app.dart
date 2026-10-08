@@ -59,16 +59,26 @@ class MyApp extends ConsumerWidget {
 
       themeMode: currentTheme.themeMode,
       debugShowCheckedModeBanner: false,
-      // easy_localization only ships flutter_localizations delegates, which
-      // material_ui widgets cannot see; add material_ui's own delegates too.
-      localizationsDelegates: <LocalizationsDelegate<Object?>>[
-        ...context.localizationDelegates,
-        ...GlobalMaterialLocalizations.delegates,
-      ],
+      localizationsDelegates: appLocalizationsDelegates(
+        context.localizationDelegates,
+      ),
       supportedLocales: context.supportedLocales,
       locale: context.locale,
     );
   }
+}
+
+/// Localization delegates for the app.
+///
+/// easy_localization only ships flutter_localizations delegates, which
+/// material_ui widgets cannot see, so material_ui's own delegates are added.
+List<LocalizationsDelegate<Object?>> appLocalizationsDelegates(
+  Iterable<LocalizationsDelegate<Object?>> baseDelegates,
+) {
+  return <LocalizationsDelegate<Object?>>[
+    ...baseDelegates,
+    ...GlobalMaterialLocalizations.delegates,
+  ];
 }
 
 Future<void> setPreferredOrientations() {
