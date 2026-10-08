@@ -1,10 +1,30 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'package:flutter_riverpod_template/my_app.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
-  // To-Do: write tests
+  testWidgets(
+    'app delegates resolve material_ui MaterialLocalizations for tr',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('tr'),
+          supportedLocales: const <Locale>[Locale('en'), Locale('tr')],
+          localizationsDelegates: appLocalizationsDelegates(
+            const <LocalizationsDelegate<Object?>>[],
+          ),
+          home: const SizedBox.shrink(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final BuildContext context = tester.element(find.byType(SizedBox));
+      final MaterialLocalizations localizations = MaterialLocalizations.of(
+        context,
+      );
+
+      expect(localizations, isA<GlobalMaterialLocalizations>());
+      expect(localizations.okButtonLabel, 'Tamam');
+    },
+  );
 }

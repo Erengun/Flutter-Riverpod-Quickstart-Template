@@ -26,7 +26,7 @@ final class LocalUserDatasourceProvider
         argument: null,
         retry: null,
         name: r'localUserDatasourceProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -55,4 +55,4 @@ final class LocalUserDatasourceProvider
 }
 
 String _$localUserDatasourceHash() =>
-    r'11290a8f4dbe788cdf239a7e913247806690e25e';
+    r'f3d168d0ec90befc92c4d6b8a32e04999f503161';

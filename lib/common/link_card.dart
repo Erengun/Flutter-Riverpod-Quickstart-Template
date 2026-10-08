@@ -1,6 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LinkCard extends StatelessWidget {
@@ -30,7 +30,7 @@ class LinkCard extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
         trailing: Icon(
-          Ionicons.open_outline,
+          Ionicons.openOutline,
           color: Theme.of(context).textTheme.titleMedium!.color,
         ),
         title: Row(

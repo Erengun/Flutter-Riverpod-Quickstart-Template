@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../../utils/context_extensions.dart';
 import '../../../../../utils/url_utils.dart';
@@ -29,7 +29,7 @@ class SocialTile extends StatelessWidget {
         ),
         contentPadding: const EdgeInsets.all(4),
         trailing: Icon(
-          Ionicons.arrow_forward,
+          Ionicons.arrowForward,
           color: context.colorScheme.primary,
         ),
         tileColor: context.colorScheme.surface,

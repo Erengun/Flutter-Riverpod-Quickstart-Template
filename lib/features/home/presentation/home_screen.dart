@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../utils/context_extensions.dart';
 import 'widgets/header.dart';
@@ -46,7 +46,7 @@ class HomeScreen extends ConsumerWidget {
                 case 0:
                   return SocialTile(
                     leadingIcon: Icon(
-                      Ionicons.logo_github,
+                      Ionicons.logoGithub,
                       color: context.colorScheme.primary,
                     ),
                     title: 'Github',
@@ -55,7 +55,7 @@ class HomeScreen extends ConsumerWidget {
                 case 1:
                   return SocialTile(
                     leadingIcon: Icon(
-                      Ionicons.logo_linkedin,
+                      Ionicons.logoLinkedin,
                       color: context.colorScheme.primary,
                     ),
                     title: 'Linkedin',
@@ -64,7 +64,7 @@ class HomeScreen extends ConsumerWidget {
                 case 2:
                   return SocialTile(
                     leadingIcon: Icon(
-                      Ionicons.logo_medium,
+                      Ionicons.logoMedium,
                       color: context.colorScheme.primary,
                     ),
                     title: 'Medium',
@@ -73,7 +73,7 @@ class HomeScreen extends ConsumerWidget {
                 case 3:
                   return SocialTile(
                     leadingIcon: Icon(
-                      Ionicons.globe_outline,
+                      Ionicons.globeOutline,
                       color: context.colorScheme.primary,
                     ),
                     title: 'Website',

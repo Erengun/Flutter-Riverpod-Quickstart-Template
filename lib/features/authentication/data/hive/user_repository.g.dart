@@ -39,7 +39,7 @@ abstract class _$UserRepository extends $AsyncNotifier<LoginCredentials?> {
   FutureOr<LoginCredentials?> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<LoginCredentials?>, LoginCredentials?>;
     final element =
@@ -50,6 +50,6 @@ abstract class _$UserRepository extends $AsyncNotifier<LoginCredentials?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
