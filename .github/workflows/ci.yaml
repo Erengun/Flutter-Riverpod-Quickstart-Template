@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A new push to a PR cancels that PR's older runs. Each push to main gets its
+# own group (ref + sha), so no main run is cancelled.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || format('{0}-{1}', github.ref, github.sha) }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Runner labels come from repository variables (LINUX_RUNNER, MACOS_RUNNER),
+# so a copy of the template can switch runners in its settings without
+# editing this file. No job needs secrets.
+
+jobs:
+  check:
+    name: check
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+
+      - name: Generate code
+        run: melos run gen
+
+      # Only generated paths are checked: a newer stable Flutter may change
+      # pubspec.lock, and an unrelated PR must not fail for that. Untracked
+      # files count too, so a generated file that was never committed fails.
+      - name: Generated files are up to date
+        run: |
+          changes="$(git status --porcelain -- '*.g.dart' '*.freezed.dart')"
+          if [ -n "$changes" ]; then
+            echo "$changes"
+            git diff -- '*.g.dart' '*.freezed.dart'
+            echo "::error::Generated files are out of date. Run 'melos run gen' and commit the result."
+            exit 1
+          fi
+
+      - name: Analyze
+        run: melos run analyze
+
+      - name: Test
+        run: melos run test
+
+      # Coverage is collected for information only and never fails the job.
+      - name: Upload coverage
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: '**/coverage/lcov.info'
+          if-no-files-found: ignore
+
+  build-android:
+    name: build-android
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+
+      # Unsigned prod release (debug keystore), so R8 and tree-shaking
+      # problems show up before a real release.
+      - name: Build APK (prod, release)
+        run: flutter build apk --release --flavor prod -t lib/main_prod.dart
+
+  build-ios:
+    name: build-ios
+    runs-on: ${{ vars.MACOS_RUNNER || 'macos-latest' }}
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+
+      - name: Build iOS (prod, release, no codesign)
+        run: flutter build ios --release --no-codesign --flavor prod -t lib/main_prod.dart
+
+      # Flutter quietly falls back to CocoaPods when a plugin lacks Swift
+      # Package Manager support, and writes a Podfile. Fail when that happens.
+      - name: No CocoaPods fallback
+        run: |
+          if [ -f ios/Podfile ]; then
+            echo "::error::app/ios/Podfile appeared: a plugin needs CocoaPods. Only Swift Package Manager is supported."
+            exit 1
+          fi
+
+  build-web:
+    name: build-web
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+
+      - name: Build web (prod, release)
+        run: flutter build web --release -t lib/main_prod.dart

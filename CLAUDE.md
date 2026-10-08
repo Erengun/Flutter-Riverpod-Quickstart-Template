@@ -19,7 +19,13 @@ Run from the repo root unless noted. Melos 7 is a root dev dependency, so call i
 - Analyze every package (matches CI): `dart run melos run analyze` (runs `flutter analyze --no-pub --fatal-infos --fatal-warnings` and `dart analyze --fatal-infos --fatal-warnings` per package).
 - Run (flavors), from `app/`: `flutter run --flavor dev -t lib/main_dev.dart` (also `staging` / `lib/main_staging.dart`, `prod` / `lib/main_prod.dart`). VS Code launch configs for all three flavors are committed in `.vscode/launch.json`.
 
-CI (`.github/workflows/lint.yaml`) runs pub get → `melos run gen` → `melos run test` → `melos run analyze`, so any lint info in any package fails the build.
+Flutter must be `>=3.47.4` (root pubspec `environment`); CI always uses the latest stable.
+
+CI (`.github/workflows/ci.yaml`, every PR to `main` and every push to `main`; all jobs are required checks and need no secrets). Shared setup is the composite action `.github/actions/setup` (Flutter stable with caching, `flutter pub get`, Melos at the version in the root `pubspec.lock`); each job checks out first, then uses it.
+- `check`: `melos run gen`, then fails if any `*.g.dart` / `*.freezed.dart` file changed or is untracked (so always commit regenerated files), then `melos run analyze` (any lint info fails), then `melos run test` (`--coverage`; the coverage artifact never blocks). No format check.
+- `build-android`, `build-ios` (`--no-codesign`), `build-web`: unsigned prod release builds from `app/` with `-t lib/main_prod.dart` (plus `--flavor prod` on Android/iOS). `build-ios` fails if `app/ios/Podfile` appears: every iOS plugin must support Swift Package Manager.
+- Runner labels come from repo variables `LINUX_RUNNER` / `MACOS_RUNNER` (defaults `ubuntu-latest` / `macos-latest`). A new push to a PR cancels its older runs.
+- Dependabot (`.github/dependabot.yml`) updates pub (root, `app/`, `packages/*`), GitHub Actions and Bundler weekly. New packages under `packages/` are picked up by the glob.
 
 ## Lint rules
 
