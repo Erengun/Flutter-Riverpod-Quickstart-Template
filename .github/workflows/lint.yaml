@@ -23,11 +23,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Melos scripts call `melos exec`, so the CLI must be on PATH.
+      # Keep this version in sync with the root pubspec.lock.
+      - name: Install Melos
+        run: |
+          dart pub global activate melos 7.8.2
+          echo "$PUB_CACHE/bin" >> "$GITHUB_PATH"
+
       - name: Run Build Runner
-        run: dart run melos run gen
+        run: melos run gen
 
       - name: Run tests
-        run: dart run melos run test
+        run: melos run test
 
       - name: Run Analyze
-        run: dart run melos run analyze
+        run: melos run analyze
