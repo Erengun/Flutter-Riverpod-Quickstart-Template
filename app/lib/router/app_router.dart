@@ -1,12 +1,12 @@
 // ignore_for_file: prefer_function_declarations_over_variables
 
+import 'package:core/core.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../features/authentication/presentation/login/login_screen.dart';
 import '../features/home/presentation/home_screen.dart';
-import 'fade_extension.dart';
 
 part 'app_router.g.dart';
 

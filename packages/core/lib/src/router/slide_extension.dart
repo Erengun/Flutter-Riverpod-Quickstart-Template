@@ -1,7 +1,7 @@
 // ignore_for_file: strict_raw_type, always_specify_types
 
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:material_ui/material_ui.dart';
 
 class SlideTransitionPage extends CustomTransitionPage {
   SlideTransitionPage({required LocalKey super.key, required super.child})
@@ -25,7 +25,7 @@ class SlideTransitionPage extends CustomTransitionPage {
 }
 
 /// Extension for GoRouter to add slide transition
-extension GoRouteExtension on GoRoute {
+extension SlideGoRouteExtension on GoRoute {
   /// Add slide transition to the route page
   GoRoute slide() {
     return GoRoute(

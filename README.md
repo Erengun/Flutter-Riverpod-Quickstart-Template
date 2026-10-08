@@ -40,8 +40,10 @@ A production-ready Flutter template built with the latest packages and best prac
 
 ## Project Structure
 
+The repo is a Dart pub workspace: the app lives in `app/`, shared infrastructure in `packages/core/`, and Melos scripts at the root run across every package.
+
 ```
-lib/
+app/lib/
 ├── common/            # Shared widgets and components
 ├── config/            # App configuration (theme etc.)
 ├── constants/         # App-wide constants (endpoints, assets)
@@ -76,9 +78,9 @@ lib/
     flutter pub get
     ```
 
-3. **Generate code:**
+3. **Generate code (every package):**
     ```bash
-    dart run build_runner build --delete-conflicting-outputs
+    dart run melos run gen
     ```
 
 4. **Setup environment:**
@@ -88,6 +90,7 @@ lib/
 
 5. **Run the app:**
     ```bash
+    cd app
     flutter run --flavor prod -t lib/main_prod.dart
     ```
 
@@ -98,6 +101,8 @@ lib/
 This template ships with dev, staging, and prod flavors for Android and iOS.
 
 ### Run commands
+
+Run these from `app/`, or use the dev/staging/prod configs in `.vscode/launch.json`.
 
 - Dev:
     ```bash
@@ -114,9 +119,9 @@ This template ships with dev, staging, and prod flavors for Android and iOS.
 
 ### Customize names and IDs
 
-- Android flavor names and applicationId suffixes: [android/app/build.gradle.kts](android/app/build.gradle.kts)
-- iOS bundle IDs and display names: [ios/Flutter/Debug-dev.xcconfig](ios/Flutter/Debug-dev.xcconfig) (and the other flavor xcconfig files)
-- Dart-side flavor labels: [lib/flavors/app_flavor.dart](lib/flavors/app_flavor.dart)
+- Android flavor names and applicationId suffixes: [app/android/app/build.gradle.kts](app/android/app/build.gradle.kts)
+- iOS bundle IDs and display names: [app/ios/Flutter/Debug-dev.xcconfig](app/ios/Flutter/Debug-dev.xcconfig) (and the other flavor xcconfig files)
+- Dart-side flavor labels: [app/lib/flavors/app_flavor.dart](app/lib/flavors/app_flavor.dart)
 
 ---
 
@@ -166,10 +171,10 @@ class LoginController extends _$LoginController {
 
 ## Testing
 
-- Integrated tests for auth controller logic (`test/features/login_controller_test.dart`)
-- Run tests with:
+- Integrated tests for auth controller logic (`app/test/features/login_controller_test.dart`)
+- Run tests in every package with:
     ```bash
-    flutter test
+    dart run melos run test
     ```
 
 ---

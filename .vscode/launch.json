@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "dev",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/app",
+      "program": "${workspaceFolder}/app/lib/main_dev.dart",
+      "args": ["--flavor", "dev"]
+    },
+    {
+      "name": "staging",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/app",
+      "program": "${workspaceFolder}/app/lib/main_staging.dart",
+      "args": ["--flavor", "staging"]
+    },
+    {
+      "name": "prod",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/app",
+      "program": "${workspaceFolder}/app/lib/main_prod.dart",
+      "args": ["--flavor", "prod"]
+    }
+  ]
+}
