@@ -1,13 +1,22 @@
 include: lint_rules.yaml
+
+plugins:
+  riverpod_lint: ^3.1.9
+
 analyzer:
   language:
     strict-casts: true
     strict-inference: true
     strict-raw-types: true
-  plugins:
-    - riverpod_lint
-  exclude: 
-    [build/**, lib/**.freezed.dart, lib/**.g.dart]
+  exclude:
+    - build/**
+    - lib/**.freezed.dart
+    - lib/**.g.dart
+    - android/**
+    - ios/**
+    - web/**
+    - macos/**
+    - linux/**
   errors:
     # Otherwise cause the import of all_lint_rules to warn because of some rules conflicts.
     # We explicitly enabled even conflicting rules and are fixing the conflict
@@ -34,8 +43,6 @@ linter:
     unnecessary_final: false
     # I dont find this useful, and it conflicts with `prefer_final_locals`
     omit_local_variable_types: false
-    # Conflicts with build method of widgets
-    prefer_final_parameters: false
     # Not for this project, which is a library.
     public_member_api_docs: false
 

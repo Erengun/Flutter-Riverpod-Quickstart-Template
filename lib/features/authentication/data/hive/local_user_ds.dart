@@ -7,7 +7,7 @@ import 'hive_box_providers.dart';
 
 part 'local_user_ds.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 LocalUserDatasource localUserDatasource(Ref ref) => LocalUserDatasource._(ref);
 
 class LocalUserDatasource {

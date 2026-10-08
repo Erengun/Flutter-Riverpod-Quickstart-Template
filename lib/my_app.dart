@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'config/theme/theme_logic.dart';
 import 'config/theme/theme_ui_model.dart';
@@ -59,11 +59,26 @@ class MyApp extends ConsumerWidget {
 
       themeMode: currentTheme.themeMode,
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: context.localizationDelegates,
+      localizationsDelegates: appLocalizationsDelegates(
+        context.localizationDelegates,
+      ),
       supportedLocales: context.supportedLocales,
       locale: context.locale,
     );
   }
+}
+
+/// Localization delegates for the app.
+///
+/// easy_localization only ships flutter_localizations delegates, which
+/// material_ui widgets cannot see, so material_ui's own delegates are added.
+List<LocalizationsDelegate<Object?>> appLocalizationsDelegates(
+  Iterable<LocalizationsDelegate<Object?>> baseDelegates,
+) {
+  return <LocalizationsDelegate<Object?>>[
+    ...baseDelegates,
+    ...GlobalMaterialLocalizations.delegates,
+  ];
 }
 
 Future<void> setPreferredOrientations() {

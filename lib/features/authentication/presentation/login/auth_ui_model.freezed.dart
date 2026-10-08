@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'auth_ui_model.dart';
@@ -9,6 +9,7 @@ part of 'auth_ui_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $AuthUiModelCopyWith<AuthUiModel> get copyWith => _$AuthUiModelCopyWithImpl<Auth
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthUiModel&&(identical(other.user, user) || other.user == user)&&(identical(other.rememberMe, rememberMe) || other.rememberMe == rememberMe)&&(identical(other.showPassword, showPassword) || other.showPassword == showPassword));
+  final _this = this as AuthUiModel;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthUiModel&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.rememberMe, _this.rememberMe) || other.rememberMe == _this.rememberMe)&&(identical(other.showPassword, _this.showPassword) || other.showPassword == _this.showPassword));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,user,rememberMe,showPassword);
+int get hashCode {
+  final _this = this as AuthUiModel;
+  return Object.hash(runtimeType,_this.user,_this.rememberMe,_this.showPassword);
+}
 
 @override
 String toString() {
-  return 'AuthUiModel(user: $user, rememberMe: $rememberMe, showPassword: $showPassword)';
+  final _this = this as AuthUiModel;
+  return 'AuthUiModel(user: ${_this.user}, rememberMe: ${_this.rememberMe}, showPassword: ${_this.showPassword})';
 }
 
 
@@ -66,7 +72,7 @@ class _$AuthUiModelCopyWithImpl<$Res>
 /// Create a copy of AuthUiModel
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? user = freezed,Object? rememberMe = null,Object? showPassword = null,}) {
-  return _then(_self.copyWith(
+  return _then(AuthUiModel(
 user: freezed == user ? _self.user : user // ignore: cast_nullable_to_non_nullable
 as LoginCredentials?,rememberMe: null == rememberMe ? _self.rememberMe : rememberMe // ignore: cast_nullable_to_non_nullable
 as bool,showPassword: null == showPassword ? _self.showPassword : showPassword // ignore: cast_nullable_to_non_nullable
@@ -243,16 +249,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthUiModel&&(identical(other.user, user) || other.user == user)&&(identical(other.rememberMe, rememberMe) || other.rememberMe == rememberMe)&&(identical(other.showPassword, showPassword) || other.showPassword == showPassword));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthUiModel&&(identical(other.user, user) || other.user == user)&&(identical(other.rememberMe, rememberMe) || other.rememberMe == rememberMe)&&(identical(other.showPassword, showPassword) || other.showPassword == showPassword));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,user,rememberMe,showPassword);
+int get hashCode {
+    return Object.hash(runtimeType,user,rememberMe,showPassword);
+}
 
 @override
 String toString() {
-  return 'AuthUiModel(user: $user, rememberMe: $rememberMe, showPassword: $showPassword)';
+    return 'AuthUiModel(user: $user, rememberMe: $rememberMe, showPassword: $showPassword)';
 }
 
 

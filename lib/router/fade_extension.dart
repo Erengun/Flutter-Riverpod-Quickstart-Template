@@ -1,7 +1,7 @@
 // ignore_for_file: strict_raw_type, always_specify_types
 
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 class FadeTransitionPage extends CustomTransitionPage {
   FadeTransitionPage({required LocalKey super.key, required super.child})

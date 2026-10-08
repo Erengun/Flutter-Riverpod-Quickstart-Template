@@ -39,7 +39,7 @@ abstract class _$LoginController extends $AsyncNotifier<AuthUiModel> {
   FutureOr<AuthUiModel> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<AuthUiModel>, AuthUiModel>;
     final element =
         ref.element
@@ -49,6 +49,6 @@ abstract class _$LoginController extends $AsyncNotifier<AuthUiModel> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

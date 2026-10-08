@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'theme_ui_model.dart';
@@ -9,6 +9,7 @@ part of 'theme_ui_model.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $ThemeUiModelCopyWith<ThemeUiModel> get copyWith => _$ThemeUiModelCopyWithImpl<T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThemeUiModel&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode));
+  final _this = this as ThemeUiModel;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThemeUiModel&&(identical(other.themeMode, _this.themeMode) || other.themeMode == _this.themeMode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,themeMode);
+int get hashCode {
+  final _this = this as ThemeUiModel;
+  return Object.hash(runtimeType,_this.themeMode);
+}
 
 @override
 String toString() {
-  return 'ThemeUiModel(themeMode: $themeMode)';
+  final _this = this as ThemeUiModel;
+  return 'ThemeUiModel(themeMode: ${_this.themeMode})';
 }
 
 
@@ -66,7 +72,7 @@ class _$ThemeUiModelCopyWithImpl<$Res>
 /// Create a copy of ThemeUiModel
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? themeMode = null,}) {
-  return _then(_self.copyWith(
+  return _then(ThemeUiModel(
 themeMode: null == themeMode ? _self.themeMode : themeMode // ignore: cast_nullable_to_non_nullable
 as ThemeMode,
   ));
@@ -227,16 +233,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThemeUiModel&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThemeUiModel&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,themeMode);
+int get hashCode {
+    return Object.hash(runtimeType,themeMode);
+}
 
 @override
 String toString() {
-  return 'ThemeUiModel(themeMode: $themeMode)';
+    return 'ThemeUiModel(themeMode: $themeMode)';
 }
 
 

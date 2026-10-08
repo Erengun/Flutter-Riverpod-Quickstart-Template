@@ -47,7 +47,7 @@ abstract class _$ThemeLogic extends $Notifier<ThemeUiModel> {
   ThemeUiModel build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<ThemeUiModel, ThemeUiModel>;
     final element =
         ref.element
@@ -57,6 +57,6 @@ abstract class _$ThemeLogic extends $Notifier<ThemeUiModel> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../../../../config/theme/theme_logic.dart';
 
@@ -27,15 +27,15 @@ class ThemeWidget extends ConsumerWidget {
           selected: <ThemeMode>{ref.watch(themeLogicProvider).themeMode},
           segments: const <ButtonSegment<ThemeMode>>[
             ButtonSegment<ThemeMode>(
-              icon: Icon(Ionicons.sunny_outline),
+              icon: Icon(Ionicons.sunnyOutline),
               value: ThemeMode.light,
             ),
             ButtonSegment<ThemeMode>(
-              icon: Icon(Ionicons.phone_portrait_outline),
+              icon: Icon(Ionicons.phonePortraitOutline),
               value: ThemeMode.system,
             ),
             ButtonSegment<ThemeMode>(
-              icon: Icon(Ionicons.moon_outline),
+              icon: Icon(Ionicons.moonOutline),
               value: ThemeMode.dark,
             ),
           ],

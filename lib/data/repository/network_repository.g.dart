@@ -60,7 +60,7 @@ abstract class _$NetworkRepository extends $Notifier<Dio> {
   Dio build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<Dio, Dio>;
     final element =
         ref.element
@@ -70,6 +70,6 @@ abstract class _$NetworkRepository extends $Notifier<Dio> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
