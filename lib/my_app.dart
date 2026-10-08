@@ -59,7 +59,12 @@ class MyApp extends ConsumerWidget {
 
       themeMode: currentTheme.themeMode,
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: context.localizationDelegates,
+      // easy_localization only ships flutter_localizations delegates, which
+      // material_ui widgets cannot see; add material_ui's own delegates too.
+      localizationsDelegates: <LocalizationsDelegate<Object?>>[
+        ...context.localizationDelegates,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
       supportedLocales: context.supportedLocales,
       locale: context.locale,
     );
