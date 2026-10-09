@@ -1,0 +1,37 @@
+{
+  "@@locale": "en",
+  "authRememberMe": "Remember me",
+  "@authRememberMe": {
+    "description": "Login form checkbox. It only pre-fills the form next time."
+  },
+  "authSessionExpired": "Your session has expired. Please sign in again.",
+  "@authSessionExpired": {
+    "description": "Shown once on the login screen after a forced sign-out."
+  },
+  "errorConnection": "No internet connection. Check your connection and try again.",
+  "errorNoPermission": "You don't have permission to do this.",
+  "errorNotFound": "What you're looking for couldn't be found.",
+  "errorServer": "Something went wrong on our side. Please try again later.",
+  "errorSomethingWentWrong": "Something went wrong. Please try again.",
+  "errorTimeout": "The request took too long. Please try again.",
+  "noPermissionBody": "You don't have permission to view this page.",
+  "noPermissionTitle": "No access",
+  "pageBackHome": "Back to home",
+  "@pageBackHome": {
+    "description": "Button on the no-permission and under-construction pages."
+  },
+  "underConstructionBody": "This page isn't ready yet. Please check back later.",
+  "underConstructionTitle": "Coming soon",
+  "updateBodyOptional": "A new version is available. Would you like to update now?",
+  "@updateBodyOptional": {
+    "description": "Update dialog body for a soft update the user may skip."
+  },
+  "updateBodyRequired": "A new version is required to keep using the app. Please update now.",
+  "@updateBodyRequired": {
+    "description": "Update dialog body for a hard update the user can't skip."
+  },
+  "updateButtonIgnore": "Ignore",
+  "updateButtonLater": "Later",
+  "updateButtonUpdate": "Update",
+  "updateTitle": "Update available"
+}

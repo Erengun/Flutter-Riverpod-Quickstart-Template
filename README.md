@@ -14,7 +14,7 @@ A production-ready Flutter template built with the latest packages and best prac
 - 🔒 Built-in authentication pack with secure storage (Hive CE + AES-256)
 - 🌐 Type-safe API integration with Dio 5.8+
 - 📱 Responsive UI with adaptive widgets
-- 🌍 Internationalization ready with Easy Localization
+- 🌍 Internationalization with Flutter's gen-l10n (ARB files, English and Turkish)
 - 💾 Secure local storage with Hive CE
 - 🧪 Pre-configured unit testing for authentication and controller logic
 - ⚡ Modern navigation with GoRouter 14.8+

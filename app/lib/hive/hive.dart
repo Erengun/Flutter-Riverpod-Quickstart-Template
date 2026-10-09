@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:core/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,5 +14,5 @@ Future<void> initHive() async {
       ..init(directory.path)
       ..registerAdapters();
   }
-  await Hive.openBox<String>('prefs');
+  await Hive.openBox<String>(prefsBoxName);
 }

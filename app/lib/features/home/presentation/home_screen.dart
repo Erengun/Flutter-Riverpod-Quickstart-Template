@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../../utils/context_extensions.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../utils/context_extensions.dart';
 import 'widgets/header.dart';
 import 'widgets/language_tile.dart';
 import 'widgets/social_tile_widget.dart';
@@ -29,7 +30,7 @@ class HomeScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          const Header(text: 'intro'),
+          Header(text: AppLocalizations.of(context).homeIntro),
           const Divider(),
           const ThemeWidget(),
           const LanguageTile(),
