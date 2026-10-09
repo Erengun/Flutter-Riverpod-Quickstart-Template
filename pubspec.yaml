@@ -9,6 +9,7 @@ environment:
 workspace:
   - app
   - packages/core
+  - packages/sentry_module
 
 dev_dependencies:
   melos: ^7.8.1
