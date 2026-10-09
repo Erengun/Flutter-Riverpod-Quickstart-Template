@@ -20,3 +20,4 @@ export 'src/reporting/uncaught_errors.dart';
 export 'src/router/fade_extension.dart';
 export 'src/router/navigation_breadcrumb_observer.dart';
 export 'src/router/slide_extension.dart';
+export 'src/theme/konteyner_tokens.dart';

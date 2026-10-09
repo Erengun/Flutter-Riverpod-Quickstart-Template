@@ -2,6 +2,7 @@ import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 
 import 'src/no_cross_feature_imports.dart';
+import 'src/tokens_only_in_theme.dart';
 
 /// Entry point the analysis server loads for this plugin.
 final KonteynerLintsPlugin plugin = KonteynerLintsPlugin();
@@ -14,6 +15,8 @@ class KonteynerLintsPlugin extends Plugin {
   @override
   void register(PluginRegistry registry) {
     // Warning rules are on by default in every package that enables the plugin.
-    registry.registerWarningRule(NoCrossFeatureImports());
+    registry
+      ..registerWarningRule(NoCrossFeatureImports())
+      ..registerWarningRule(TokensOnlyInTheme());
   }
 }

@@ -100,18 +100,16 @@ flutter:
 
   assets:
     - assets/img/
+    # Fonts for google_fonts (runtime fetching is off) and their OFL license.
+    - assets/fonts/
 
   fonts:
-    - family: Nunito
+    - family: Roboto
       fonts:
-        - asset: assets/fonts/Nunito-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Nunito-Medium.ttf
+        - asset: assets/fonts/Roboto-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Roboto-Regular.ttf
           weight: 400
-        - asset: assets/fonts/Nunito-Light.ttf
-          weight: 300
 
   # To add assets to your application, add an assets section, like this:
   # assets:
