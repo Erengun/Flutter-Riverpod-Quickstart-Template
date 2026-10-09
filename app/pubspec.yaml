@@ -59,9 +59,8 @@ dependencies:
   device_info_plus: ^12.4.0
   crypto: ^3.0.6
   hive_ce_flutter: ^2.3.0
-  dio_smart_retry: ^7.0.1
-  dio_cache_interceptor: ^4.0.5
   material_ui: ^1.6.0
+  retrofit: ^4.10.0
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +79,7 @@ dev_dependencies:
   riverpod_lint: ^3.1.9
   freezed: ^4.0.2
   hive_ce_generator: ^1.11.3
+  retrofit_generator: ^10.2.0
   # Force update tests mock these plugins, which upgrader uses.
   package_info_plus: ^9.0.1
   shared_preferences: ^2.5.3

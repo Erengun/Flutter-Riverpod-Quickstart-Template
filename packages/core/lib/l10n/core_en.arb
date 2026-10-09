@@ -11,6 +11,10 @@
   "errorConnection": "No internet connection. Check your connection and try again.",
   "errorNoPermission": "You don't have permission to do this.",
   "errorNotFound": "What you're looking for couldn't be found.",
+  "errorRetry": "Try again",
+  "@errorRetry": {
+    "description": "Button on the full-screen error that runs the failed request again."
+  },
   "errorServer": "Something went wrong on our side. Please try again later.",
   "errorSomethingWentWrong": "Something went wrong. Please try again.",
   "errorTimeout": "The request took too long. Please try again.",
