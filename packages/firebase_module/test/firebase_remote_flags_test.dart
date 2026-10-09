@@ -157,6 +157,25 @@ void main() {
       expect(await seen, 2);
     });
 
+    test('a real-time update that activates nothing does not emit', () async {
+      await flags.start();
+      final List<void> events = <void>[];
+      final StreamSubscription<void> sub = flags.onChanged.listen(events.add);
+
+      remote.updates.add(RemoteConfigUpdate(<String>{'count'}));
+      await pumpEventQueue();
+
+      expect(remote.activations, 2);
+      expect(events, isEmpty);
+
+      remote.fetched = <String, String>{'count': '3'};
+      remote.updates.add(RemoteConfigUpdate(<String>{'count'}));
+      await pumpEventQueue();
+
+      expect(events, hasLength(1));
+      await sub.cancel();
+    });
+
     test('a failing real-time listener is logged, not thrown', () async {
       await flags.start();
 

@@ -58,8 +58,9 @@ class FirebaseRemoteFlags implements RemoteFlags {
   }
 
   Future<void> _onConfigUpdated(RemoteConfigUpdate update) async {
+    final bool changed;
     try {
-      await _config.activate();
+      changed = await _config.activate();
     } catch (error, stackTrace) {
       _log.warning(
         'Could not activate a Remote Config update.',
@@ -68,7 +69,7 @@ class FirebaseRemoteFlags implements RemoteFlags {
       );
       return;
     }
-    _changes.add(null);
+    if (changed) _changes.add(null);
   }
 
   /// Stops the real-time listener. Used by tests.
