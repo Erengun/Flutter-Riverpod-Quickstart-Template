@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:material_ui/material_ui.dart';
@@ -120,11 +121,18 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
                             Navigator.pop(context);
                           }
                         })
-                        .catchError((dynamic error) {
-                          // Handle error
+                        .catchError((Object error) {
+                          // An ApiException's message, or Core's generic one.
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(error.toString())),
+                              SnackBar(
+                                content: Text(
+                                  apiErrorMessage(
+                                    error,
+                                    CoreLocalizations.of(context),
+                                  ),
+                                ),
+                              ),
                             );
                           }
                         });

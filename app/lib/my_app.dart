@@ -16,6 +16,11 @@ class MyApp extends ConsumerWidget {
     final KonteynerTheme theme = ref.watch(konteynerThemeProvider);
     return MaterialApp.router(
       routerConfig: router,
+      // Force update: a dialog above the router, on its root navigator.
+      builder: (BuildContext context, Widget? child) => KonteynerUpdateGate(
+        navigatorKey: router.configuration.navigatorKey,
+        child: child ?? const SizedBox.shrink(),
+      ),
       onGenerateTitle: (BuildContext context) =>
           AppLocalizations.of(context).appTitle,
       theme: theme.light,

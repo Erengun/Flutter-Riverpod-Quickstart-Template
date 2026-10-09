@@ -128,6 +128,12 @@ abstract class CoreLocalizations {
   /// **'What you\'re looking for couldn\'t be found.'**
   String get errorNotFound;
 
+  /// Button on the full-screen error that runs the failed request again.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get errorRetry;
+
   /// No description provided for @errorServer.
   ///
   /// In en, this message translates to:

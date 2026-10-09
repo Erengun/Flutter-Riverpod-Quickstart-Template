@@ -1,102 +1,52 @@
-import 'package:dio/dio.dart';
+import 'package:core/core.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../data/repository/network_repository.dart';
 import '../domain/login_request.dart';
 import '../domain/login_response.dart';
 import '../domain/register_response.dart';
+import 'auth_api.dart';
 
 part 'authentication_repository.g.dart';
 
-/// The reqres demo backend's auth paths, relative to `AppConfig.apiBaseUrl`.
-const String _loginPath = 'api/login';
-const String _registerPath = 'api/register';
-
-/// An abstract class that defines the authentication methods.
+/// The authentication calls the app makes. Tests override
+/// [authenticationRepositoryProvider] with a fake.
 abstract class AuthenticationRepository {
   /// Authenticates a user with the given [email] and [password].
-  /// Returns a [LoginResponse] containing the authentication details.
+  /// Throws an [ApiException] when the call fails.
   Future<LoginResponse> login(String email, String password);
 
   /// Registers a new user with the given [email] and [password].
-  /// Returns a [RegisterResponse] containing the registration details.
+  /// Throws an [ApiException] when the call fails.
   Future<RegisterResponse> register(String email, String password);
 }
 
-/// A class that implements the [AuthenticationRepository] using HTTP requests.
+/// [AuthenticationRepository] over the retrofit [AuthApi]. Each call goes
+/// through Core's [ApiCall], which maps and reports failures.
 class HttpAuthRepository implements AuthenticationRepository {
-  /// Creates an instance of [HttpAuthRepository].
-  HttpAuthRepository(this.dio, this._setToken);
-  final Dio dio;
-  final void Function(String) _setToken;
+  HttpAuthRepository(this._api, this._apiCall);
+
+  final AuthApi _api;
+  final ApiCall _apiCall;
 
   @override
-  Future<LoginResponse> login(String email, String password) async {
-    try {
-      final Response<dynamic> response = await dio.post(
-        _loginPath,
-        data: LoginCredentials(email: email, password: password),
-      );
-      if (response.statusCode != 200) {
-        throw Exception('Failed to login');
-      }
-      final LoginResponse loginResponse = LoginResponse.fromJson(
-        response.data as Map<String, dynamic>,
-      );
-      _setToken(loginResponse.token);
-      return loginResponse;
-    } catch (e) {
-      if (e is DioException) {
-        if (e.response?.statusCode == 401) {
-          throw Exception('Invalid credentials');
-        }
-        if (e.response?.statusCode == 400) {
-          throw Exception('User not found');
-        } else {
-          throw Exception('Login failed');
-        }
-      }
-
-      /// Handle other exceptions as needed. Or you can create a custom exception class.
-      /// For example, you can create a class called `AuthenticationException` and throw it here.
-      /// throw AuthenticationException.invalidCredentials();
-      /// Or you can just log the error and rethrow it.
-      rethrow;
-    }
+  Future<LoginResponse> login(String email, String password) {
+    return _apiCall(
+      () => _api.login(LoginCredentials(email: email, password: password)),
+    );
   }
 
   @override
-  Future<RegisterResponse> register(String email, String password) async {
-    try {
-      final Response<dynamic> response = await dio.post(
-        _registerPath,
-        data: LoginCredentials(email: email, password: password),
-      );
-      if (response.statusCode != 200) {
-        throw Exception('Failed to register');
-      }
-      return RegisterResponse.fromJson(response.data as Map<String, dynamic>);
-    } catch (e) {
-      if (e is DioException) {
-        if (e.response?.statusCode == 409) {
-          throw Exception('User already exists');
-        }
-      }
-
-      /// Handle other exceptions as needed. Or you can create a custom exception class.
-      /// For example, you can create a class called `AuthenticationException` and throw it here.
-      /// throw AuthenticationException.userAlreadyExists();
-      /// Or you can just log the error and rethrow it.
-      rethrow;
-    }
+  Future<RegisterResponse> register(String email, String password) {
+    return _apiCall(
+      () => _api.register(LoginCredentials(email: email, password: password)),
+    );
   }
 }
 
 @Riverpod(keepAlive: true)
 AuthenticationRepository authenticationRepository(Ref ref) {
-  /// Passing directly ref is a bad practice.
-  /// Its hard to test and maintain. Dependency injection should be preferred.
-  return HttpAuthRepository(ref.read(networkRepositoryProvider), (
-    String token,
-  ) => ref.read(networkRepositoryProvider.notifier).setToken(token));
+  return HttpAuthRepository(
+    ref.watch(authApiProvider),
+    ref.watch(apiCallProvider),
+  );
 }

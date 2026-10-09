@@ -27,6 +27,9 @@ class CoreLocalizationsTr extends CoreLocalizations {
   String get errorNotFound => 'Aradığınız içerik bulunamadı.';
 
   @override
+  String get errorRetry => 'Tekrar dene';
+
+  @override
   String get errorServer =>
       'Sunucuda bir sorun oluştu. Lütfen daha sonra tekrar deneyin.';
 
