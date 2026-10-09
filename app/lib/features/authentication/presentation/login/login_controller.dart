@@ -25,14 +25,21 @@ class LoginController extends _$LoginController {
     if (rememberMe) {
       ref.keepAlive();
     }
-    state = AsyncData<AuthUiModel>(state.value!.copyWith(rememberMe: rememberMe));
+    state = AsyncData<AuthUiModel>(
+      state.value!.copyWith(rememberMe: rememberMe),
+    );
   }
 
   void updateShowPassword({required bool showPassword}) {
-    state = AsyncData<AuthUiModel>(state.value!.copyWith(showPassword: showPassword));
+    state = AsyncData<AuthUiModel>(
+      state.value!.copyWith(showPassword: showPassword),
+    );
   }
 
-  Future<LoginResponse> login({
+  /// Signs in. Returns `null` when the call failed: the state is then an
+  /// `AsyncError` holding the `ApiException` (the form values are kept), and
+  /// the screen shows it through `ref.listenApiErrors`.
+  Future<LoginResponse?> login({
     required String email,
     required String password,
   }) async {
@@ -43,12 +50,18 @@ class LoginController extends _$LoginController {
     if (user.email.isEmpty || user.password.isEmpty) {
       throw Exception('Email and password cannot be empty');
     }
-    final LoginResponse loginResponse = await ref
-        .read(authenticationRepositoryProvider)
-        .login(user.email, user.password)
-        .catchError((dynamic error) {
-          throw Exception('Login failed: $error');
-        });
+    state = const AsyncLoading<AuthUiModel>();
+    final LoginResponse loginResponse;
+    try {
+      loginResponse = await ref
+          .read(authenticationRepositoryProvider)
+          .login(user.email, user.password);
+    } catch (error, stackTrace) {
+      if (ref.mounted) state = AsyncError<AuthUiModel>(error, stackTrace);
+      return null;
+    }
+    if (!ref.mounted) return loginResponse;
+    state = AsyncData<AuthUiModel>(state.value!);
     if (loginResponse.token.isNotEmpty) {
       if (state.value!.rememberMe) {
         state = AsyncData<AuthUiModel>(

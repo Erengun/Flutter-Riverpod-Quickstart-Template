@@ -27,6 +27,9 @@ class CoreLocalizationsEn extends CoreLocalizations {
   String get errorNotFound => 'What you\'re looking for couldn\'t be found.';
 
   @override
+  String get errorRetry => 'Try again';
+
+  @override
   String get errorServer =>
       'Something went wrong on our side. Please try again later.';
 
