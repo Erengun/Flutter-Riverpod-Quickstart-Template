@@ -25,6 +25,13 @@ class FakeAuthRepository implements AuthenticationRepository {
   }
 }
 
+class _RejectingAuthRepository extends FakeAuthRepository {
+  @override
+  Future<LoginResponse> login(String email, String password) async {
+    throw const ApiServerException(400, message: 'user not found');
+  }
+}
+
 class FakeUserRepository extends UserRepository {
   @override
   FutureOr<LoginCredentials?> build() => null;
@@ -64,17 +71,23 @@ void main() {
   late LoginController controller;
 
   setUp(() {
-    container = ProviderContainer(
-      overrides: <Override>[
-        authenticationRepositoryProvider.overrideWithValue(FakeAuthRepository()),
-        userRepositoryProvider.overrideWith(FakeUserRepository.new),
-      ],
-    )
-    // Listen to the provider to keep it alive during the test
-    ..listen<AsyncValue<AuthUiModel>>(
-      loginControllerProvider,
-      (AsyncValue<AuthUiModel>? previous, AsyncValue<AuthUiModel> next) {},
-    );
+    container =
+        ProviderContainer(
+            overrides: <Override>[
+              authenticationRepositoryProvider.overrideWithValue(
+                FakeAuthRepository(),
+              ),
+              userRepositoryProvider.overrideWith(FakeUserRepository.new),
+            ],
+          )
+          // Listen to the provider to keep it alive during the test
+          ..listen<AsyncValue<AuthUiModel>>(
+            loginControllerProvider,
+            (
+              AsyncValue<AuthUiModel>? previous,
+              AsyncValue<AuthUiModel> next,
+            ) {},
+          );
     controller = container.read(loginControllerProvider.notifier);
   });
 
@@ -108,6 +121,38 @@ void main() {
       expect(() => controller.login(email: '', password: ''), throwsException);
     });
 
+    test('a failed login is an AsyncError that keeps the form', () async {
+      final ProviderContainer rejecting = ProviderContainer(
+        overrides: <Override>[
+          authenticationRepositoryProvider.overrideWithValue(
+            _RejectingAuthRepository(),
+          ),
+          userRepositoryProvider.overrideWith(FakeUserRepository.new),
+        ],
+      );
+      addTearDown(rejecting.dispose);
+      rejecting.listen<AsyncValue<AuthUiModel>>(
+        loginControllerProvider,
+        (AsyncValue<AuthUiModel>? previous, AsyncValue<AuthUiModel> next) {},
+      );
+      await rejecting.read(loginControllerProvider.future);
+      final LoginController rejectingController = rejecting.read(
+        loginControllerProvider.notifier,
+      )..updateShowPassword(showPassword: true);
+
+      final LoginResponse? response = await rejectingController.login(
+        email: 'eve.holt@reqres.in',
+        password: 'wrong',
+      );
+
+      expect(response, isNull);
+      final AsyncValue<AuthUiModel> state = rejecting.read(
+        loginControllerProvider,
+      );
+      expect(state.error, isA<ApiServerException>());
+      expect(state.value?.showPassword, isTrue);
+    });
+
     test('a failed cache is reported and login still succeeds', () async {
       final _RecordingReporter reporter = _RecordingReporter();
       final ProviderContainer failing = ProviderContainer(
@@ -129,12 +174,12 @@ void main() {
         loginControllerProvider.notifier,
       )..updateRememberMe(rememberMe: true);
 
-      final LoginResponse response = await failingController.login(
+      final LoginResponse? response = await failingController.login(
         email: 'eve.holt@reqres.in',
         password: 'cityslicka',
       );
 
-      expect(response.token, 'fake_token');
+      expect(response?.token, 'fake_token');
       expect(reporter.errors.single, isA<StateError>());
     });
   });
