@@ -96,6 +96,8 @@ flutter:
   assets:
     - assets/translations/
     - assets/img/
+    # Fonts for google_fonts (runtime fetching is off) and their OFL license.
+    - assets/fonts/
 
   fonts:
     - family: Nunito

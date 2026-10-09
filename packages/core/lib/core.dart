@@ -12,3 +12,4 @@ export 'src/reporting/error_reporter.dart';
 export 'src/reporting/remote_flags.dart';
 export 'src/router/fade_extension.dart';
 export 'src/router/slide_extension.dart';
+export 'src/theme/konteyner_tokens.dart';
