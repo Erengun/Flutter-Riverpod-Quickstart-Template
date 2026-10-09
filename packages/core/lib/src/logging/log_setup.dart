@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
 import '../config/app_config.dart';
@@ -78,9 +79,21 @@ BreadcrumbLevel breadcrumbLevelFor(Level level) {
   return BreadcrumbLevel.debug;
 }
 
+/// Whether `bootstrap` replaces `debugPrint` with a no-op: only in release
+/// builds of prod. dev and staging keep the real `debugPrint` in every build
+/// mode, so staging release builds still reach the platform log.
+bool shouldSilenceDebugPrint({
+  required bool isRelease,
+  required Flavor flavor,
+}) {
+  return isRelease && flavor == Flavor.prod;
+}
+
 /// Core's console printer: one line per record, then the error and stack
-/// trace when present. Uses `print` so staging release builds still reach
-/// the platform log (`debugPrint` is silenced in release builds).
+/// trace when present. Writes through `debugPrint`, which throttles long
+/// output so the platform log does not drop lines. prod never reaches it
+/// (its [LogPolicy] has no console), and `bootstrap` silences `debugPrint`
+/// in prod release builds (see [shouldSilenceDebugPrint]).
 void printLogRecord(LogRecord record) {
   final StringBuffer line = StringBuffer(
     '[${record.level.name}] ${record.loggerName}: ${record.message}',
@@ -89,6 +102,5 @@ void printLogRecord(LogRecord record) {
   if (error != null) line.write('\n$error');
   final StackTrace? stackTrace = record.stackTrace;
   if (stackTrace != null) line.write('\n$stackTrace');
-  // ignore: avoid_print
-  print(line);
+  debugPrint(line.toString());
 }

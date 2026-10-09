@@ -58,7 +58,7 @@ Gitignored and never committed: `CLAUDE.local.md`, `.claude/worktrees/`, `.claud
 
 **Logging and error reporting.** Three channels: a log (developer line), a breadcrumb (short note attached to the next report) and an error report (sent through `ErrorReporter.report`).
 - Log through named loggers from the `logging` package, one per Feature or area: `static final Logger _log = Logger('auth');`. Nothing wraps `logging`; `bootstrap` attaches the only root-logger listener (`configureLogging` in `packages/core/lib/src/logging/log_setup.dart`). Outside Core's console printer, never use `print`, `debugPrint` or `dart:developer` `log`.
-- Levels per flavor (`LogPolicy.forFlavor`): dev keeps `ALL` and prints, staging keeps `INFO` and prints, prod keeps `INFO` with no console.
+- Levels per flavor (`LogPolicy.forFlavor`): dev keeps `ALL` and prints, staging keeps `INFO` and prints, prod keeps `INFO` with no console. The console printer writes through `debugPrint`, which `bootstrap` silences only in prod release builds.
 - Kept records at `INFO` and above become breadcrumbs (category = logger name). A record carrying an error never does. Feature and app code logs; it never calls `addBreadcrumb` directly (Core infrastructure that needs structured `data` may).
 - Never log headers, bodies, query values, tokens, passwords or personal data: every log line may reach the error tracker.
 - To record an exception, call `ref.read(errorReporterProvider).report(error, stackTrace)`, not `log.warning(msg, error)`. A log record with an error attached is Core's own echo of a report or an uncaught error.
