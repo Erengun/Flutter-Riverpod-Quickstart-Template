@@ -1,0 +1,8 @@
+include: ../../analysis_options.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    # Written by `flutterfire configure` (see the firebase:configure:<flavor>
+    # Melos scripts); not held to the strict lint set.
+    - lib/src/options/**

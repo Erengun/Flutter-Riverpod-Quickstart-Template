@@ -128,6 +128,62 @@ Run these from `app/`, or use the dev/staging/prod configs in `.vscode/launch.js
 
 ---
 
+## Firebase Module
+
+[packages/firebase_module](packages/firebase_module) provides Firebase Analytics and Remote Config through Core's `Analytics` and `RemoteFlags`. It runs on Android, iOS and web; on macOS, Windows and Linux Core skips it. Crash reporting is not part of it.
+
+**As shipped, Firebase is not configured.** The options files in `packages/firebase_module/lib/src/options/` are placeholders, so the Module's `init` throws `Firebase not configured for <flavor>`, Core logs that once, and the app runs on the no-op `Analytics` and `RemoteFlags`. There are no Firebase native files in `app/`.
+
+Remote Config fetches at most every 12 hours (5 minutes on dev). Reads never wait on the network: they use the last cached values, a refresh runs in the background, and the real-time listener activates updates as they arrive, then fires `RemoteFlags.onChanged`. When a fetch fails, the cached values (or the fallbacks) stay.
+
+### Set up Firebase
+
+Each flavor uses its own Firebase project. Two flavors can share one by passing the same `--project`.
+
+1. Install the [Firebase CLI](https://firebase.google.com/docs/cli) and `dart pub global activate flutterfire_cli`, then `firebase login`.
+2. Create the Firebase projects, then edit `--project`, `--android-package-name` and `--ios-bundle-id` in the `firebase:configure:<flavor>` scripts in the root [pubspec.yaml](pubspec.yaml). Ids must match `app/android/gradle.properties` and the iOS xcconfig files.
+3. Run, once per flavor:
+    ```bash
+    melos run firebase:configure:dev
+    melos run firebase:configure:staging
+    melos run firebase:configure:prod
+    ```
+   Each script runs `flutterfire configure` in `app/` once per iOS build configuration (`Debug-<flavor>`, `Profile-<flavor>`, `Release-<flavor>`). It writes the Dart options file over the placeholder, `app/android/app/src/<flavor>/google-services.json`, `app/ios/flavors/<flavor>/GoogleService-Info.plist` and `app/firebase.json`, adds the google-services Gradle plugin, and adds a "FlutterFire: bundle-service-file" build phase to the Runner target.
+4. Commit every generated file. Firebase options are identifiers, not secrets; restrict the API keys in Google Cloud instead.
+5. Install `flutterfire` on every Mac that builds iOS (CI included): the Xcode build phase calls it. Add SHA fingerprints for each Android app, and link each flavor's web app to Google Analytics.
+
+### iOS advertising id
+
+Analytics is linked without the advertising id (IDFA). Under Swift Package Manager, `firebase_analytics` decides this from the `FIREBASE_ANALYTICS_WITHOUT_ADID` environment variable while packages resolve, so it has to be set wherever iOS is built:
+
+- CI: the `build-ios` job in [.github/workflows/ci.yaml](.github/workflows/ci.yaml) sets it.
+- Locally: `export FIREBASE_ANALYTICS_WITHOUT_ADID=true` in your shell profile before `flutter build ios` / `flutter run`. Xcode opened from the Dock does not see your shell; run `launchctl setenv FIREBASE_ANALYTICS_WITHOUT_ADID true` and restart Xcode.
+- After changing it, clear the resolved packages (`flutter clean`, then delete Xcode's DerivedData for the app) so the package resolves again.
+
+Apps that run ads remove the variable everywhere, then also need App Tracking Transparency and a privacy manifest entry.
+
+### Remove the Module
+
+Delete all of these:
+
+- `packages/firebase_module/` (options files included)
+- `- packages/firebase_module` in the root `pubspec.yaml` workspace list
+- the `firebase_module` dependency in `app/pubspec.yaml`
+- the `FirebaseModule()` entry and its import in `app/lib/app/modules.dart`
+- the `firebase:configure:*` scripts in the root `pubspec.yaml`
+- `FIREBASE_ANALYTICS_WITHOUT_ADID` in `.github/workflows/ci.yaml` (and in your shell or `launchctl`)
+
+Once Firebase has been configured, also delete:
+
+- `app/firebase.json`
+- the `com.google.gms.google-services` lines in `app/android/settings.gradle.kts` and `app/android/app/build.gradle.kts`
+- `app/android/app/src/{dev,staging,prod}/google-services.json`
+- `app/ios/flavors/{dev,staging,prod}/GoogleService-Info.plist`
+- the "FlutterFire: bundle-service-file" build phase on the Runner target (remove it in Xcode)
+- the `flutterfire` install step in CI, if you added one
+
+---
+
 ## Authentication Module
 
 The template includes a complete authentication system with secure credential storage and error handling.

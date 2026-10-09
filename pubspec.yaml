@@ -9,6 +9,7 @@ environment:
 workspace:
   - app
   - packages/core
+  - packages/firebase_module
 
 dev_dependencies:
   melos: ^7.8.1
@@ -36,3 +37,33 @@ melos:
     analyze:lints:
       description: Run dart analyze in the analyzer plugin packages.
       run: (cd packages/konteyner_lints && dart pub get && dart analyze --fatal-infos --fatal-warnings) && (cd packages/app_lints && dart pub get && dart analyze --fatal-infos --fatal-warnings)
+
+    # Firebase (packages/firebase_module): one script per flavor, run in app/.
+    # Each runs `flutterfire configure` once per iOS build configuration
+    # (Debug, Profile, Release); every run also writes the Dart options file,
+    # google-services.json and the web app. Edit --project and the ids to
+    # match your app. Needs the Firebase CLI and flutterfire_cli. Delete these
+    # scripts when you remove the Module.
+    firebase:configure:dev:
+      description: Configure Firebase for the dev flavor (Android, iOS, web).
+      run: >-
+        cd app &&
+        flutterfire configure --yes --project=my-app-dev --platforms=android,ios,web --android-package-name=com.example.temp.dev --ios-bundle-id=com.example.temp.dev --out=../packages/firebase_module/lib/src/options/firebase_options_dev.dart --android-out=android/app/src/dev/google-services.json --ios-out=ios/flavors/dev/GoogleService-Info.plist --ios-build-config=Debug-dev &&
+        flutterfire configure --yes --project=my-app-dev --platforms=android,ios,web --android-package-name=com.example.temp.dev --ios-bundle-id=com.example.temp.dev --out=../packages/firebase_module/lib/src/options/firebase_options_dev.dart --android-out=android/app/src/dev/google-services.json --ios-out=ios/flavors/dev/GoogleService-Info.plist --ios-build-config=Profile-dev &&
+        flutterfire configure --yes --project=my-app-dev --platforms=android,ios,web --android-package-name=com.example.temp.dev --ios-bundle-id=com.example.temp.dev --out=../packages/firebase_module/lib/src/options/firebase_options_dev.dart --android-out=android/app/src/dev/google-services.json --ios-out=ios/flavors/dev/GoogleService-Info.plist --ios-build-config=Release-dev
+
+    firebase:configure:staging:
+      description: Configure Firebase for the staging flavor (Android, iOS, web).
+      run: >-
+        cd app &&
+        flutterfire configure --yes --project=my-app-staging --platforms=android,ios,web --android-package-name=com.example.temp.staging --ios-bundle-id=com.example.temp.staging --out=../packages/firebase_module/lib/src/options/firebase_options_staging.dart --android-out=android/app/src/staging/google-services.json --ios-out=ios/flavors/staging/GoogleService-Info.plist --ios-build-config=Debug-staging &&
+        flutterfire configure --yes --project=my-app-staging --platforms=android,ios,web --android-package-name=com.example.temp.staging --ios-bundle-id=com.example.temp.staging --out=../packages/firebase_module/lib/src/options/firebase_options_staging.dart --android-out=android/app/src/staging/google-services.json --ios-out=ios/flavors/staging/GoogleService-Info.plist --ios-build-config=Profile-staging &&
+        flutterfire configure --yes --project=my-app-staging --platforms=android,ios,web --android-package-name=com.example.temp.staging --ios-bundle-id=com.example.temp.staging --out=../packages/firebase_module/lib/src/options/firebase_options_staging.dart --android-out=android/app/src/staging/google-services.json --ios-out=ios/flavors/staging/GoogleService-Info.plist --ios-build-config=Release-staging
+
+    firebase:configure:prod:
+      description: Configure Firebase for the prod flavor (Android, iOS, web).
+      run: >-
+        cd app &&
+        flutterfire configure --yes --project=my-app-prod --platforms=android,ios,web --android-package-name=com.example.temp --ios-bundle-id=com.example.temp --out=../packages/firebase_module/lib/src/options/firebase_options_prod.dart --android-out=android/app/src/prod/google-services.json --ios-out=ios/flavors/prod/GoogleService-Info.plist --ios-build-config=Debug-prod &&
+        flutterfire configure --yes --project=my-app-prod --platforms=android,ios,web --android-package-name=com.example.temp --ios-bundle-id=com.example.temp --out=../packages/firebase_module/lib/src/options/firebase_options_prod.dart --android-out=android/app/src/prod/google-services.json --ios-out=ios/flavors/prod/GoogleService-Info.plist --ios-build-config=Profile-prod &&
+        flutterfire configure --yes --project=my-app-prod --platforms=android,ios,web --android-package-name=com.example.temp --ios-bundle-id=com.example.temp --out=../packages/firebase_module/lib/src/options/firebase_options_prod.dart --android-out=android/app/src/prod/google-services.json --ios-out=ios/flavors/prod/GoogleService-Info.plist --ios-build-config=Release-prod
