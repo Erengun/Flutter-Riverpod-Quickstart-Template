@@ -1,6 +1,11 @@
 {
   "@@locale": "tr",
   "appTitle": "Flutter Production Boilerplate",
+  "demoAreaBody": "Bu sayfayı görebiliyorsunuz çünkü yetkileriniz \"{area}\" alanını içeriyor.",
+  "demoPermissionsTitle": "Yetki örneği",
+  "demoProfileTitle": "Profil",
+  "demoReportsTitle": "Raporlar",
+  "demoSettingsTitle": "Ayarlar",
   "homeBottomNavFirst": "Ana Sayfa",
   "homeBottomNavSecond": "Ayarlar",
   "homeInfo": "Hakkında",

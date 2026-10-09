@@ -6,13 +6,19 @@ import 'session.dart';
 /// Where the router sends the user for [session], or `null` to stay on
 /// [location] (the path being opened). For go_router's `redirect`.
 ///
-/// - While the session loads at startup: [splashPath].
+/// - While the session loads at startup: [splashPath]. With [uri], the
+///   location being opened goes along as `?from=`, so a deep link survives
+///   the load.
 /// - Signed out: [loginPath], unless [location] is the login page or in
 ///   [publicPaths]. A session that failed to load counts as signed out.
 ///   When the session [expired] (`sessionExpiredProvider`), the full
 ///   [uri] goes along as `?from=`, so signing in brings the user back.
-/// - Signed in: [homePath] from the splash, and from the login page unless
-///   its [uri] carries a `from` path inside the app.
+/// - Signed in: from the splash, the `from` path inside the app its [uri]
+///   carries, else [homePath]. While [holdOnSplash] is true (the app passes
+///   "permissions not known yet"), a splash with such a `from` stays put
+///   instead, so `permissionRedirect` can hold a guarded route there.
+///   From the login page: [homePath], unless its [uri] carries a `from`
+///   path inside the app.
 ///
 /// [uri] is the full location being opened (go_router's `state.uri`).
 String? sessionRedirect(
@@ -24,9 +30,11 @@ String? sessionRedirect(
   Set<String> publicPaths = const <String>{},
   Uri? uri,
   bool expired = false,
+  bool holdOnSplash = false,
 }) {
   if (!session.hasValue && !session.hasError) {
-    return location == splashPath ? null : splashPath;
+    if (location == splashPath) return null;
+    return uri == null ? splashPath : splashWithFrom(splashPath, uri);
   }
   final bool signedIn = !session.hasError && session.value != null;
   if (!signedIn) {
@@ -39,14 +47,28 @@ String? sessionRedirect(
     }
     return loginPath;
   }
-  if (location == splashPath) return homePath;
-  if (location == loginPath) {
+  if (location == splashPath || location == loginPath) {
     final String? from = uri?.queryParameters['from'];
-    return _isReturnLocation(from, splashPath: splashPath, loginPath: loginPath)
-        ? from
-        : homePath;
+    if (!_isReturnLocation(
+      from,
+      splashPath: splashPath,
+      loginPath: loginPath,
+    )) {
+      return homePath;
+    }
+    return location == splashPath && holdOnSplash ? null : from;
   }
   return null;
+}
+
+/// [splashPath] carrying [uri] as `?from=`, unless [uri] is the splash
+/// itself. `sessionRedirect` continues there once the splash is done.
+String splashWithFrom(String splashPath, Uri uri) {
+  if (uri.path == splashPath) return splashPath;
+  return Uri(
+    path: splashPath,
+    queryParameters: <String, String>{'from': uri.toString()},
+  ).toString();
 }
 
 // A path inside the app (not another host, not login or splash again).

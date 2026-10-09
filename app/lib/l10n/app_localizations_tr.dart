@@ -13,6 +13,23 @@ class AppLocalizationsTr extends AppLocalizations {
   String get appTitle => 'Flutter Production Boilerplate';
 
   @override
+  String demoAreaBody(String area) {
+    return 'Bu sayfayı görebiliyorsunuz çünkü yetkileriniz \"$area\" alanını içeriyor.';
+  }
+
+  @override
+  String get demoPermissionsTitle => 'Yetki örneği';
+
+  @override
+  String get demoProfileTitle => 'Profil';
+
+  @override
+  String get demoReportsTitle => 'Raporlar';
+
+  @override
+  String get demoSettingsTitle => 'Ayarlar';
+
+  @override
   String get homeBottomNavFirst => 'Ana Sayfa';
 
   @override

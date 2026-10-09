@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:logging/logging.dart';
 
+import '../permissions/permissions.dart';
 import '../reporting/error_reporter.dart';
 import '../storage/encrypted_box.dart';
 
@@ -59,16 +60,25 @@ typedef LogoutHook = Future<void> Function(Session session);
 /// send them again.
 typedef RefreshHook = Future<Session> Function(Session session);
 
+/// Fetches the user's permissions (a nested tree, a flat list, token
+/// claims, ...) and flattens this app's branch into [Permissions]. Called at
+/// login before the [Session] is saved, so the request must carry the token
+/// from the [Session] it receives itself.
+typedef LoadPermissionsHook = Future<Permissions> Function(Session session);
+
 /// The backend-specific calls the auth Feature gives Core. Every hook is
 /// optional.
 @immutable
 class SessionHooks {
-  const SessionHooks({this.logout, this.refresh});
+  const SessionHooks({this.logout, this.refresh, this.loadPermissions});
 
   final LogoutHook? logout;
 
   /// Without it, or without a refresh token, a 401 signs the user out.
   final RefreshHook? refresh;
+
+  /// Without it every Permission area is granted.
+  final LoadPermissionsHook? loadPermissions;
 }
 
 /// Whether the user was signed out because the session expired (a rejected

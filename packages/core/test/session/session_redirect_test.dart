@@ -58,7 +58,12 @@ void main() {
   });
 
   group('return location', () {
-    String? at(AsyncValue<Session?> session, String location, {bool? expired}) {
+    String? at(
+      AsyncValue<Session?> session,
+      String location, {
+      bool? expired,
+      bool holdOnSplash = false,
+    }) {
       final Uri uri = Uri.parse(location);
       return sessionRedirect(
         session,
@@ -68,8 +73,15 @@ void main() {
         homePath: '/home',
         uri: uri,
         expired: expired ?? false,
+        holdOnSplash: holdOnSplash,
       );
     }
+
+    /// The splash carrying [from], as the redirects build it.
+    String splashFrom(String from) => Uri(
+      path: '/splash',
+      queryParameters: <String, String>{'from': from},
+    ).toString();
 
     test('an expired session keeps where the user was', () {
       expect(
@@ -112,6 +124,60 @@ void main() {
           queryParameters: <String, String>{'from': from},
         ).toString();
         expect(at(signedIn, location), '/home', reason: from);
+      }
+    });
+
+    test('a deep link opened while the session loads waits on the splash', () {
+      expect(
+        at(loading, '/orders/7?tab=items'),
+        '/splash?from=%2Forders%2F7%3Ftab%3Ditems',
+      );
+      expect(at(loading, splashFrom('/orders')), isNull);
+      expect(at(loading, '/splash'), isNull);
+    });
+
+    test('the splash continues to from once signed in', () {
+      expect(
+        at(signedIn, splashFrom('/orders/7?tab=items')),
+        '/orders/7?tab=items',
+      );
+      expect(at(signedIn, '/splash'), '/home');
+    });
+
+    test('holdOnSplash keeps a pending from on the splash', () {
+      expect(at(signedIn, splashFrom('/orders'), holdOnSplash: true), isNull);
+      // Without a from there is nothing to wait for.
+      expect(at(signedIn, '/splash', holdOnSplash: true), '/home');
+      // Only the splash holds; other pages are left to the next guard.
+      expect(at(signedIn, '/orders', holdOnSplash: true), isNull);
+      expect(
+        at(signedIn, '/login?from=%2Forders', holdOnSplash: true),
+        '/orders',
+      );
+    });
+
+    test('a signed-out user on a splash with a from goes to plain login', () {
+      expect(at(signedOut, splashFrom('/orders')), '/login');
+      expect(at(signedOut, splashFrom('/orders'), expired: true), '/login');
+    });
+
+    test('the splash ignores a from outside the app, even while holding', () {
+      for (final String from in <String>[
+        'https://evil.example',
+        '//evil.example/x',
+        r'/\evil.example',
+        r'/orders\..\x',
+        'orders',
+        '/login',
+        '/splash',
+        '',
+      ]) {
+        expect(at(signedIn, splashFrom(from)), '/home', reason: from);
+        expect(
+          at(signedIn, splashFrom(from), holdOnSplash: true),
+          '/home',
+          reason: from,
+        );
       }
     });
   });

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../permissions/permissions_service.dart';
 import '../reporting/error_reporter.dart';
 import 'api_exception.dart';
 import 'base_response.dart';
@@ -22,6 +23,8 @@ final Provider<ApiCall> apiCallProvider = Provider<ApiCall>(
   (Ref ref) => ApiCall(
     ref.watch(errorReporterProvider),
     requestIdHeader: ref.watch(requestIdHeaderProvider),
+    onForbidden: () =>
+        ref.read(permissionsServiceProvider).reloadAfterForbidden(),
   ),
   name: 'apiCallProvider',
 );
@@ -75,12 +78,20 @@ class _ApiParseErrorLogger implements ParseErrorLogger {
 ///   `errorMessage` / `requestId`. Never bodies, headers or query values.
 /// - Every other kind becomes a breadcrumb only.
 class ApiCall {
-  ApiCall(this._reporter, {this.requestIdHeader = 'X-Request-Id'});
+  ApiCall(
+    this._reporter, {
+    this.requestIdHeader = 'X-Request-Id',
+    this.onForbidden,
+  });
 
   final ErrorReporter _reporter;
 
   /// The response header holding the backend's request id.
   final String requestIdHeader;
+
+  /// Called for each [ApiForbiddenException]. [apiCallProvider] passes the
+  /// permission service's reload (at most once per launch).
+  final void Function()? onForbidden;
 
   final Set<String> _reported = <String>{};
   final Expando<bool> _handled = Expando<bool>('handled');
@@ -94,6 +105,7 @@ class ApiCall {
       if (_handled[mapped] == null) {
         _handled[mapped] = true;
         _record(mapped, stackTrace);
+        if (mapped is ApiForbiddenException) onForbidden?.call();
       }
       Error.throwWithStackTrace(mapped, stackTrace);
     }

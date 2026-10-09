@@ -44,8 +44,8 @@ class LoginController extends _$LoginController {
     );
   }
 
-  /// Signs in and starts the [Session]; the router then leaves the login
-  /// page. With remember me ticked the credentials are saved to pre-fill
+  /// Signs in, loads the permissions and only then starts the [Session];
+  /// the router then leaves the login page. With remember me ticked the credentials are saved to pre-fill
   /// the form next time, otherwise any saved ones are deleted.
   ///
   /// Returns `null` when the call failed: the state is then an `AsyncError`
@@ -67,6 +67,7 @@ class LoginController extends _$LoginController {
     // reported below, when it is awaited.
     final bool rememberMe = state.value?.rememberMe ?? false;
     final SessionNotifier session = ref.read(sessionProvider.notifier);
+    final PermissionsService permissions = ref.read(permissionsServiceProvider);
     final ErrorReporter reporter = ref.read(errorReporterProvider);
     final Future<CredentialsStore> store = ref.read(
       credentialsStoreProvider.future,
@@ -101,7 +102,11 @@ class LoginController extends _$LoginController {
 
     try {
       // reqres returns no user id; pass `userId:` when the backend does.
-      await session.signIn(Session(accessToken: loginResponse.token));
+      final Session signedIn = Session(accessToken: loginResponse.token);
+      // Login completes only once the permissions have loaded; with
+      // nothing saved, a failed load fails the login (fail-closed).
+      await permissions.loadForSignIn(signedIn);
+      await session.signIn(signedIn);
     } catch (error, stackTrace) {
       if (ref.mounted) state = AsyncError<AuthUiModel>(error, stackTrace);
       return null;

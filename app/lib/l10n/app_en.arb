@@ -1,6 +1,20 @@
 {
   "@@locale": "en",
   "appTitle": "Flutter Production Boilerplate",
+  "demoAreaBody": "You can see this page because your permissions include the \"{area}\" area.",
+  "@demoAreaBody": {
+    "description": "Body of the permission demo screens.",
+    "placeholders": {
+      "area": {
+        "type": "String",
+        "example": "profile"
+      }
+    }
+  },
+  "demoPermissionsTitle": "Permission demo",
+  "demoProfileTitle": "Profile",
+  "demoReportsTitle": "Reports",
+  "demoSettingsTitle": "Settings",
   "homeBottomNavFirst": "Home",
   "homeBottomNavSecond": "Info",
   "homeInfo": "Info",

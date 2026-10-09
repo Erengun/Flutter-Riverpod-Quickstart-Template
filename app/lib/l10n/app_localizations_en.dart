@@ -13,6 +13,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Flutter Production Boilerplate';
 
   @override
+  String demoAreaBody(String area) {
+    return 'You can see this page because your permissions include the \"$area\" area.';
+  }
+
+  @override
+  String get demoPermissionsTitle => 'Permission demo';
+
+  @override
+  String get demoProfileTitle => 'Profile';
+
+  @override
+  String get demoReportsTitle => 'Reports';
+
+  @override
+  String get demoSettingsTitle => 'Settings';
+
+  @override
   String get homeBottomNavFirst => 'Home';
 
   @override
