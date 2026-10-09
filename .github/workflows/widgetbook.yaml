@@ -33,6 +33,9 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The job only builds and uploads; it never needs the git token.
+          persist-credentials: false
       - uses: ./.github/actions/setup
 
       - id: pages
