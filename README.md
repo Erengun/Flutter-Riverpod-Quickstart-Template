@@ -119,7 +119,10 @@ Run these from `app/`, or use the dev/staging/prod configs in `.vscode/launch.js
 
 ### Customize names and IDs
 
-- Android flavor names and applicationId suffixes: [app/android/app/build.gradle.kts](app/android/app/build.gradle.kts)
+- Android application id, flavor suffixes and app names: the `app.*` keys in [app/android/gradle.properties](app/android/gradle.properties) (the Kotlin namespace stays as it is)
+- Web app name: `name` in [app/web/manifest.json](app/web/manifest.json)
+- Windows app name: `APP_NAME` in [app/windows/CMakeLists.txt](app/windows/CMakeLists.txt)
+- Linux application id: `APPLICATION_ID` in [app/linux/CMakeLists.txt](app/linux/CMakeLists.txt)
 - iOS bundle IDs and display names: [app/ios/Flutter/Debug-dev.xcconfig](app/ios/Flutter/Debug-dev.xcconfig) (and the other flavor xcconfig files)
 - Per-flavor backend URL and settings: [app/lib/app/config.dart](app/lib/app/config.dart). A plain `flutter run` without `--flavor` uses dev.
 

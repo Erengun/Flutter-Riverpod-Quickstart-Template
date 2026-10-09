@@ -1,0 +1,89 @@
+# Desktop builds (macOS, Windows, Linux) are build-only platforms. They run
+# after merge, weekly and on demand instead of on every PR, because macOS and
+# Windows runner minutes are expensive.
+#
+# GitHub turns off scheduled workflows after 60 days with no repo activity, and
+# a failed scheduled run only emails whoever last edited this file.
+#
+# Runner labels come from repo variables (MACOS_RUNNER, WINDOWS_RUNNER,
+# LINUX_RUNNER) so a copy of the template can switch runners in its settings
+# without editing this file.
+name: Desktop
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  build-macos:
+    runs-on: ${{ vars.MACOS_RUNNER || 'macos-latest' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - run: flutter pub get
+
+      - run: flutter build macos --release -t lib/main_prod.dart
+
+      # Flutter quietly falls back to CocoaPods (and writes a Podfile) when a
+      # plugin lacks Swift Package Manager support. Fail instead.
+      - name: Fail if a Podfile appears
+        run: |
+          if [ -f macos/Podfile ]; then
+            echo "::error::macos/Podfile appeared: a plugin needs CocoaPods. The template uses Swift Package Manager only."
+            exit 1
+          fi
+
+  build-windows:
+    runs-on: ${{ vars.WINDOWS_RUNNER || 'windows-latest' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - run: flutter pub get
+
+      - run: flutter build windows --release -t lib/main_prod.dart
+
+  build-linux:
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          pub-cache: true
+
+      - run: flutter pub get
+
+      - run: flutter build linux --release -t lib/main_prod.dart
