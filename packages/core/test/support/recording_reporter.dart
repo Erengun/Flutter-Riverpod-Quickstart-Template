@@ -8,6 +8,7 @@ class RecordedReport {
     required this.fatal,
     required this.groupKey,
     required this.tags,
+    this.extra = const <String, Object?>{},
   });
 
   final Object error;
@@ -15,15 +16,22 @@ class RecordedReport {
   final bool fatal;
   final String? groupKey;
   final Map<String, String> tags;
+  final Map<String, Object?> extra;
 }
 
 /// One call to [RecordingReporter.addBreadcrumb].
 class RecordedBreadcrumb {
-  const RecordedBreadcrumb(this.message, {this.category, required this.level});
+  const RecordedBreadcrumb(
+    this.message, {
+    this.category,
+    required this.level,
+    this.data = const <String, Object?>{},
+  });
 
   final String message;
   final String? category;
   final BreadcrumbLevel level;
+  final Map<String, Object?> data;
 }
 
 /// An [ErrorReporter] that records every call.
@@ -48,6 +56,7 @@ class RecordingReporter implements ErrorReporter {
         fatal: fatal,
         groupKey: groupKey,
         tags: tags,
+        extra: extra,
       ),
     );
   }
@@ -60,7 +69,7 @@ class RecordingReporter implements ErrorReporter {
     Map<String, Object?> data = const <String, Object?>{},
   }) {
     breadcrumbs.add(
-      RecordedBreadcrumb(message, category: category, level: level),
+      RecordedBreadcrumb(message, category: category, level: level, data: data),
     );
   }
 

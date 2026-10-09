@@ -6,10 +6,6 @@ import 'package:logging/logging.dart';
 
 import '../support/recording_reporter.dart';
 
-class _HandledApiError extends ApiException {
-  const _HandledApiError();
-}
-
 final Provider<int> _failing = Provider<int>(
   (Ref ref) => throw StateError('build failed'),
   name: 'failingProvider',
@@ -21,7 +17,7 @@ final Provider<int> _otherFailing = Provider<int>(
 );
 
 final Provider<int> _apiFailing = Provider<int>(
-  (Ref ref) => throw const _HandledApiError(),
+  (Ref ref) => throw const ApiServerException(500),
   name: 'apiFailingProvider',
 );
 

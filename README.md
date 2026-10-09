@@ -12,7 +12,7 @@ A production-ready Flutter template built with the latest packages and best prac
 - 🏗️ Clean Architecture with Domain-Driven Design
 - 🎯 Riverpod 2.6+ with code generation
 - 🔒 Built-in authentication pack with secure storage (Hive CE + AES-256)
-- 🌐 Type-safe API integration with Dio 5.8+
+- 🌐 Type-safe API integration with retrofit clients on one shared Dio
 - 📱 Responsive UI with adaptive widgets
 - 🌍 Internationalization with Flutter's gen-l10n (ARB files, English and Turkish)
 - 💾 Secure local storage with Hive CE
@@ -26,7 +26,7 @@ A production-ready Flutter template built with the latest packages and best prac
 
 **Core Libraries:**
 - State Management: Riverpod 2.6.1, Freezed 3.0.6 (immutable state)
-- Network Layer: Dio 5.8.0, FPDart 1.1.0 for functional error handling
+- Network Layer: Dio 5 + retrofit, with a sealed `ApiException` and translated error messages
 - Local Storage: Hive CE 2.11.1 with AES-256 encryption
 - UI & Navigation: GoRouter 14.8.0, Google Fonts 6.2.1, Material 3
 
@@ -46,7 +46,7 @@ The repo is a Dart pub workspace: the app lives in `app/`, shared infrastructure
 app/lib/
 ├── common/            # Shared widgets and components
 ├── config/            # App configuration (theme etc.)
-├── constants/         # App-wide constants (endpoints, assets)
+├── constants/         # App-wide constants (assets)
 ├── core/              # Core functionality, network layer
 ├── features/          # Feature modules (authentication, home, ...)
 │   └── authentication/
@@ -134,10 +134,10 @@ The template includes a complete authentication system with secure credential st
 
 ### How it works
 
-- **Login & Registration:** Uses Dio to POST to `/api/login` and `/api/register` endpoints.
+- **Login & Registration:** A retrofit client (`AuthApi`) POSTs to `api/login` and `api/register` through Core's shared Dio.
 - **Credential Caching:** Credentials are securely cached in Hive CE using AES-256 encryption, with key derived per-device.
 - **State Management:** All authentication UI and logic is managed via Riverpod notifiers and state classes.
-- **Error Handling:** All network and validation errors are surfaced in the UI.
+- **Error Handling:** Network failures become an `ApiException` and show as a translated snackbar.
 - **Loading State:** UI reflects loading and error states for a smooth UX.
 
 ### Test Credentials

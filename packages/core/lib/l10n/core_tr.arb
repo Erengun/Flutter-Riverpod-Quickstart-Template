@@ -5,6 +5,7 @@
   "errorConnection": "İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin.",
   "errorNoPermission": "Bu işlem için yetkiniz yok.",
   "errorNotFound": "Aradığınız içerik bulunamadı.",
+  "errorRetry": "Tekrar dene",
   "errorServer": "Sunucuda bir sorun oluştu. Lütfen daha sonra tekrar deneyin.",
   "errorSomethingWentWrong": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
   "errorTimeout": "İstek zaman aşımına uğradı. Lütfen tekrar deneyin.",

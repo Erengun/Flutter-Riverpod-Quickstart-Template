@@ -1,3 +1,4 @@
+import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -40,6 +41,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final AsyncValue<AuthUiModel> authUiModelAsync = ref.watch(
       loginControllerProvider,
     ); // Access the state
+    // Failed logins become an AsyncError; Core shows their message.
+    ref.listenApiErrors(loginControllerProvider, context);
     ref.listen(loginControllerProvider, (
       AsyncValue<AuthUiModel>? previous,
       AsyncValue<AuthUiModel> next,
@@ -74,6 +77,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       ),
       body: authUiModelAsync.when(
+        // A failed login keeps the form: listenApiErrors shows a snackbar.
+        skipError: true,
+        skipLoadingOnReload: true,
         data: (AuthUiModel authUiModel) => SafeArea(
           minimum: const EdgeInsets.symmetric(horizontal: 24),
           child: CustomScrollView(
@@ -199,7 +205,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           onPressed: () => ref
                               .read(loginControllerProvider.notifier)
-                              .updateShowPassword(showPassword: !authUiModel.showPassword),
+                              .updateShowPassword(
+                                showPassword: !authUiModel.showPassword,
+                              ),
                         ),
                       ),
                     ),
@@ -275,19 +283,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               password: _passwordController.text,
                             )
                             .catchError((dynamic error, StackTrace stackTrace) {
-                              // Handle error here
+                              // Only the empty-credentials check throws here;
+                              // API failures go to the state instead.
                               if (context.mounted) {
                                 // Show error message to the user
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(content: Text(error.toString())),
                                 );
                               }
-                              return const LoginResponse(token: '');
+                              return null;
                             })
-                            .then((LoginResponse loginResponse) {
+                            .then((LoginResponse? loginResponse) {
                               // Check for token and also context.mounted
                               // to avoid context access after dispose
-                              if (loginResponse.token.isNotEmpty &&
+                              if (loginResponse != null &&
+                                  loginResponse.token.isNotEmpty &&
                                   context.mounted) {
                                 // Handle successful login
                                 context.push(SGRoute.home.route);
@@ -306,8 +316,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
         error: (Object error, StackTrace stackTrace) {
-          return Center(
-            child: Text('Error: $error'),
+          return ApiErrorView(
+            error: error,
+            onRetry: () => ref.invalidate(loginControllerProvider),
           );
         },
         loading: () {
