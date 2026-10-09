@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor/dio_cache_interceptor.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../utils/cachefor_extension.dart';
@@ -16,6 +16,8 @@ part 'network_repository.g.dart';
 /// providing a clean interface for the rest of the application to interact with network data.
 @Riverpod(keepAlive: true)
 class NetworkRepository extends _$NetworkRepository {
+  static final Logger _log = Logger('network');
+
   @override
   Dio build() {
     final AppConfig config = ref.watch(appConfigProvider);
@@ -35,11 +37,9 @@ class NetworkRepository extends _$NetworkRepository {
         LogInterceptor(
           responseBody: true,
           requestBody: true,
-          logPrint: (Object object) {
-            /// Prefer using developer.log for better logging in Flutter
-            /// and secure logging practices.
-            developer.log(object.toString());
-          },
+          // FINE: kept on dev only. Never raise it to INFO, or request and
+          // response bodies would become breadcrumbs.
+          logPrint: (Object object) => _log.fine(object.toString()),
         ),
       )
       ..add(RetryInterceptor(dio: dio)) // dio_smart_retry

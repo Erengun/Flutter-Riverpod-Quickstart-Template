@@ -56,6 +56,18 @@ void main() {
     expect(find.byType(SlideTransition), findsWidgets);
   });
 
+  test('fade and slide keep the route name', () {
+    GoRoute named() => GoRoute(
+      path: '/home',
+      name: 'home',
+      builder: (BuildContext context, GoRouterState state) =>
+          const SizedBox.shrink(),
+    );
+
+    expect(named().fade().name, 'home');
+    expect(named().slide().name, 'home');
+  });
+
   testWidgets('fade and slide can be used in the same file', (
     WidgetTester tester,
   ) async {

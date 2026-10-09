@@ -115,7 +115,12 @@ void main() {
     );
     final ProviderContainer container = _containerFor(started);
 
-    expect(container.read(errorReporterProvider), isA<NoopErrorReporter>());
+    expect(started.errorReporter, isA<NoopErrorReporter>());
+    expect(
+      container.read(errorReporterProvider),
+      same(started.reportDispatcher),
+    );
+    expect(started.reportDispatcher.isAttached, isTrue);
     expect(container.read(analyticsProvider), isA<NoopAnalytics>());
     expect(container.read(remoteFlagsProvider), isA<NoopRemoteFlags>());
     expect(started.failures, isEmpty);
@@ -137,7 +142,13 @@ void main() {
       );
       final ProviderContainer container = _containerFor(started);
 
-      expect(container.read(errorReporterProvider), same(reporter));
+      expect(started.errorReporter, same(reporter));
+      expect(
+        container.read(errorReporterProvider),
+        same(started.reportDispatcher),
+      );
+      container.read(errorReporterProvider).report(StateError('later'), null);
+      expect(reporter.reports, hasLength(1));
       expect(module.receivedConfig, same(_config));
     },
   );
@@ -186,7 +197,7 @@ void main() {
     final ProviderContainer container = _containerFor(started);
 
     expect(container.read(analyticsProvider), isA<NoopAnalytics>());
-    expect(container.read(errorReporterProvider), same(reporter));
+    expect(started.errorReporter, same(reporter));
     expect(started.failures, hasLength(1));
     expect(started.failures.single.moduleName, 'broken');
     expect(started.failures.single.error, same(failure));
@@ -232,6 +243,31 @@ void main() {
           .toList(),
       <String>['first', 'second'],
     );
+  });
+
+  test('failures go through the given dispatcher, buffered until every '
+      'Module has started', () async {
+    final _FakeReporter reporter = _FakeReporter();
+    final ReportDispatcher reports = ReportDispatcher();
+    final _FakeModule broken = _FakeModule(
+      'broken',
+      error: StateError('init failed'),
+    );
+    final _FakeModule reporting = _FakeModule(
+      'reporting',
+      contributions: ModuleContributions(errorReporter: reporter),
+    );
+
+    final StartedModules started = await startModules(
+      <KonteynerModule>[broken, reporting],
+      _config,
+      platform: KonteynerPlatform.android,
+      reports: reports,
+    );
+
+    expect(started.reportDispatcher, same(reports));
+    expect(reports.isAttached, isTrue);
+    expect(reporter.reports, hasLength(1));
   });
 
   test('two Modules providing one interface stop startup', () async {
