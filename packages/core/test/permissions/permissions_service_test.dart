@@ -38,11 +38,22 @@ class _Loader {
   }
 }
 
-/// Lets scheduled reloads and box writes finish.
+/// Lets scheduled microtasks run (a launch reload starts in one). Only for
+/// checking that nothing more happened: a reload that saves writes a file,
+/// which can take longer than any fixed number of event-loop turns.
 Future<void> _settle() async {
   for (int i = 0; i < 10; i++) {
     await Future<void>.delayed(Duration.zero);
   }
+}
+
+/// Waits until the running reload has landed, box write included.
+Future<void> _reloaded(ProviderContainer container) async {
+  await _settle();
+  final Future<void>? reloading = container
+      .read(permissionsServiceProvider)
+      .reloading;
+  if (reloading != null) await reloading;
 }
 
 DioException _forbidden() {
@@ -209,7 +220,7 @@ void main() {
       expect(container.read(permissionsProvider), _saved);
 
       reload.complete(_fresh);
-      await _settle();
+      await _reloaded(container);
       expect(container.read(permissionsProvider), _fresh);
       expect(Permissions.decode(box.get(permissionsKey)!), _fresh);
 
@@ -231,7 +242,7 @@ void main() {
       );
       await container.read(sessionProvider.future);
       container.read(permissionsProvider);
-      await _settle();
+      await _reloaded(container);
 
       expect(loader.calls, hasLength(1));
       expect(container.read(permissionsProvider), _saved);
@@ -253,7 +264,7 @@ void main() {
 
       expect(container.read(permissionsProvider), isNull);
       reload.complete(_fresh);
-      await _settle();
+      await _reloaded(container);
       expect(container.read(permissionsProvider), _fresh);
     });
 
@@ -268,7 +279,7 @@ void main() {
       );
       await container.read(sessionProvider.future);
       container.read(permissionsProvider);
-      await _settle();
+      await _reloaded(container);
 
       expect(container.read(permissionsProvider), Permissions.none);
       // ApiCall already handled it.
@@ -288,11 +299,13 @@ void main() {
       );
       await container.read(sessionProvider.future);
       container.read(permissionsProvider);
-      await _settle();
+      // The launch reload, box write included, ends before the 403;
+      // otherwise the 403 would join it.
+      await _reloaded(container);
       expect(loader.calls, hasLength(1));
 
       await forbiddenCall(container);
-      await _settle();
+      await _reloaded(container);
       expect(loader.calls, hasLength(2));
       expect(container.read(permissionsProvider), _fresh);
 
@@ -321,7 +334,7 @@ void main() {
       expect(loader.calls, hasLength(1));
 
       reload.complete(_fresh);
-      await _settle();
+      await _reloaded(container);
       expect(container.read(permissionsProvider), _fresh);
     });
 
@@ -348,7 +361,7 @@ void main() {
       );
       await container.read(sessionProvider.future);
       container.read(permissionsProvider);
-      await _settle();
+      await _reloaded(container);
 
       await container.read(sessionProvider.notifier).logout();
 
@@ -371,10 +384,60 @@ void main() {
 
       await container.read(sessionProvider.notifier).logout();
       reload.complete(_fresh);
-      await _settle();
+      await _reloaded(container);
 
       expect(box.get(permissionsKey), isNull);
       expect(container.read(permissionsProvider), Permissions.none);
+    });
+  });
+
+  group('the container is disposed while a reload runs', () {
+    /// Starts the launch reload with a hook waiting on [reply], then
+    /// disposes the container (the app closing, a test ending) while the
+    /// hook is still waiting.
+    Future<PermissionsService> disposeMidReload(
+      Completer<Permissions> reply,
+    ) async {
+      await saveSignedIn(permissions: _saved);
+      final _Loader loader = _Loader(<FutureOr<Permissions> Function()>[
+        () => reply.future,
+      ]);
+      final ProviderContainer container = createContainer(
+        loadPermissions: loader.call,
+      );
+      await container.read(sessionProvider.future);
+      container.read(permissionsProvider);
+      await _settle();
+      expect(loader.calls, hasLength(1));
+      final PermissionsService service = container.read(
+        permissionsServiceProvider,
+      );
+
+      container.dispose();
+      return service;
+    }
+
+    test('a reload that lands afterwards stops quietly', () async {
+      final Completer<Permissions> reply = Completer<Permissions>();
+      final PermissionsService service = await disposeMidReload(reply);
+
+      reply.complete(_fresh);
+      // Finishes without using the disposed Ref (or throwing).
+      await service.reloading!;
+
+      expect(Permissions.decode(box.get(permissionsKey)!), _saved);
+    });
+
+    test('a reload that fails afterwards stops quietly', () async {
+      final Completer<Permissions> reply = Completer<Permissions>();
+      final PermissionsService service = await disposeMidReload(reply);
+
+      reply.completeError(StateError('broken loader'));
+      // Finishes without using the disposed Ref (or throwing).
+      await service.reloading!;
+
+      expect(reporter.reports, isEmpty);
+      expect(Permissions.decode(box.get(permissionsKey)!), _saved);
     });
   });
 }
