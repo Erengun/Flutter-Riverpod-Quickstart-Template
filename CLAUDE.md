@@ -19,7 +19,13 @@ Run from the repo root unless noted. Melos 7 is a root dev dependency, so call i
 - Analyze every package (matches CI): `dart run melos run analyze` (runs `flutter analyze --no-pub --fatal-infos --fatal-warnings` and `dart analyze --fatal-infos --fatal-warnings` per package).
 - Run (flavors), from `app/`: `flutter run --flavor dev -t lib/main_dev.dart` (also `staging` / `lib/main_staging.dart`, `prod` / `lib/main_prod.dart`). VS Code launch configs for all three flavors are committed in `.vscode/launch.json`.
 
-CI (`.github/workflows/lint.yaml`) runs pub get → `melos run gen` → `melos run test` → `melos run analyze`, so any lint info in any package fails the build.
+Flutter must be `>=3.47.4` (root pubspec `environment`); CI always uses the latest stable.
+
+CI (`.github/workflows/ci.yaml`, every PR to `main` and every push to `main`; no job needs secrets). All four jobs are meant to be required checks, but the workflow does not enforce that: a repo admin turns it on in branch protection for `main` ("Use this template" does not copy that setting). Shared setup is the composite action `.github/actions/setup` (Flutter stable with caching, `flutter pub get`, Melos at the version in the root `pubspec.lock`); each job checks out first, then uses it.
+- `check`: `melos run gen`, then fails if any `*.g.dart` / `*.freezed.dart` file changed or is untracked (so always commit regenerated files), then `melos run analyze` (any lint info fails), then `melos run test` (`--coverage`; the coverage artifact never blocks). No format check.
+- `build-android`, `build-ios` (`--no-codesign`), `build-web`: unsigned prod release builds from `app/` with `-t lib/main_prod.dart` (plus `--flavor prod` on Android/iOS). `build-ios` fails if `app/ios/Podfile` appears: every iOS plugin must support Swift Package Manager.
+- Runner labels come from repo variables `LINUX_RUNNER` / `MACOS_RUNNER` (defaults `ubuntu-latest` / `macos-latest`). A new push to a PR cancels its older runs.
+- Dependabot (`.github/dependabot.yml`) updates pub (root, `app/`, `packages/*`), GitHub Actions and Bundler weekly. New packages under `packages/` are picked up by the glob.
 
 ## Lint rules
 
@@ -40,7 +46,7 @@ Gitignored and never committed: `CLAUDE.local.md`, `.claude/worktrees/`, `.claud
 
 ## Architecture
 
-**Entry / flavors.** `app/lib/main_dev.dart` / `main_staging.dart` / `main_prod.dart` call `FlavorConfig.setFlavor(...)` (`lib/flavors/app_flavor.dart`) then `bootstrap()` in `lib/main.dart`, which initializes EasyLocalization, Hive (`lib/hive/hive.dart`), orientation, and wraps `MyApp` in `ProviderScope` + `EasyLocalization`. Native flavor names/IDs live in `android/app/build.gradle.kts` and `ios/Flutter/{Debug,Profile,Release}-<flavor>.xcconfig`; keep them in sync with `FlavorConfig`.
+**Entry / flavors.** `app/lib/main_dev.dart` / `main_staging.dart` / `main_prod.dart` call `FlavorConfig.setFlavor(...)` (`lib/flavors/app_flavor.dart`) then `bootstrap()` in `lib/main.dart`, which initializes EasyLocalization, Hive (`lib/hive/hive.dart`), orientation, and wraps `MyApp` in `ProviderScope` + `EasyLocalization`. Native flavor names/IDs live in `android/gradle.properties` (`app.*` keys, read by `android/app/build.gradle.kts`) and `ios/Flutter/{Debug,Profile,Release}-<flavor>.xcconfig`; keep them in sync with `FlavorConfig`.
 
 **State management.** Riverpod 3 with code generation (`@riverpod` / `@Riverpod(keepAlive: true)` + `part '*.g.dart'`). Generated provider names are `<name>Provider` (e.g. `NetworkRepository` → `networkRepositoryProvider`). Immutable models and UI state use Freezed.
 

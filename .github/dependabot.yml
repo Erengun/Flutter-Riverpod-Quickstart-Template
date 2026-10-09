@@ -1,8 +1,14 @@
 version: 2
 enable-beta-ecosystems: true
 updates:
+  # Pub workspace: one pubspec.lock at the root resolves every member. The
+  # member directories are listed too in case Dependabot only reads the
+  # pubspec.yaml in each listed directory.
   - package-ecosystem: "pub"
-    directory: "/"
+    directories:
+      - "/"
+      - "/app"
+      - "/packages/*"
     schedule:
       interval: "weekly"
     groups:
@@ -12,9 +18,23 @@ updates:
       riverpod-dependencies:
         patterns:
           # Riverpod Core and Tools
-          - "*riverpod*" 
+          - "*riverpod*"
           # Freezed and Json Serialization (for data models)
-          - "freezed*" 
+          - "freezed*"
           - "*json_annotation*"
           - "*build_runner*" # build_runner is the core tool that runs the others
           - "json_serializable"
+
+  # Workflows and the local composite action in .github/actions/.
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/"
+      - "/.github/actions/*"
+    schedule:
+      interval: "weekly"
+
+  # Root Gemfile (fastlane) used by the release workflow.
+  - package-ecosystem: "bundler"
+    directory: "/"
+    schedule:
+      interval: "weekly"

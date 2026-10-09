@@ -4,6 +4,7 @@ publish_to: none
 
 environment:
   sdk: ^3.13.0
+  flutter: ">=3.47.4"
 
 workspace:
   - app
@@ -20,7 +21,7 @@ melos:
 
     test:
       description: Run flutter test in every package that has a test folder.
-      run: melos exec --concurrency=1 --dir-exists=test -- flutter test && melos run test:lints
+      run: melos exec --concurrency=1 --dir-exists=test -- flutter test --coverage && melos run test:lints
 
     analyze:
       description: Run flutter analyze and dart analyze in every package.
