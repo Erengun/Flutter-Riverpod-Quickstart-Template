@@ -1,15 +1,16 @@
-import 'dart:async';
-
 import 'package:core/core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/authentication_repository.dart';
-import 'package:flutter_riverpod_template/features/authentication/data/hive/user_repository.dart';
+import 'package:flutter_riverpod_template/features/authentication/data/credentials_store.dart';
 import 'package:flutter_riverpod_template/features/authentication/domain/login_request.dart';
 import 'package:flutter_riverpod_template/features/authentication/domain/login_response.dart';
 import 'package:flutter_riverpod_template/features/authentication/domain/register_response.dart';
 import 'package:flutter_riverpod_template/features/authentication/presentation/login/auth_ui_model.dart';
 import 'package:flutter_riverpod_template/features/authentication/presentation/login/login_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:riverpod/src/framework.dart';
+
+import '../support/storage.dart';
 
 class FakeAuthRepository implements AuthenticationRepository {
   @override
@@ -32,20 +33,11 @@ class _RejectingAuthRepository extends FakeAuthRepository {
   }
 }
 
-class FakeUserRepository extends UserRepository {
-  @override
-  FutureOr<LoginCredentials?> build() => null;
+class _FailingCredentialsStore extends CredentialsStore {
+  const _FailingCredentialsStore(super.box);
 
   @override
-  Future<void> cacheUser(LoginCredentials user) async {}
-
-  @override
-  Future<LoginCredentials?> getCachedUser() async => null;
-}
-
-class _FailingCacheUserRepository extends FakeUserRepository {
-  @override
-  Future<void> cacheUser(LoginCredentials user) async {
+  Future<void> save(LoginCredentials credentials) async {
     throw StateError('disk full');
   }
 }
@@ -66,141 +58,225 @@ class _RecordingReporter extends NoopErrorReporter {
   }
 }
 
+const LoginCredentials _eve = LoginCredentials(
+  email: 'eve.holt@reqres.in',
+  password: 'cityslicka',
+);
+
 void main() {
-  late ProviderContainer container;
-  late LoginController controller;
+  late TestStorage storage;
 
-  setUp(() {
-    container =
-        ProviderContainer(
-            overrides: <Override>[
-              authenticationRepositoryProvider.overrideWithValue(
-                FakeAuthRepository(),
-              ),
-              userRepositoryProvider.overrideWith(FakeUserRepository.new),
-            ],
-          )
-          // Listen to the provider to keep it alive during the test
-          ..listen<AsyncValue<AuthUiModel>>(
-            loginControllerProvider,
-            (
-              AsyncValue<AuthUiModel>? previous,
-              AsyncValue<AuthUiModel> next,
-            ) {},
-          );
-    controller = container.read(loginControllerProvider.notifier);
+  setUp(() async {
+    storage = await TestStorage.open();
   });
 
-  tearDown(() {
-    container.dispose();
-  });
+  tearDown(() => storage.close());
 
-  test('initial state is correct', () async {
+  /// A container whose login controller stays alive, after its first load.
+  Future<ProviderContainer> createContainer({
+    AuthenticationRepository? repository,
+    List<Override> more = const <Override>[],
+  }) async {
+    final ProviderContainer container = ProviderContainer(
+      overrides: <Override>[
+        ...storage.overrides,
+        authenticationRepositoryProvider.overrideWithValue(
+          repository ?? FakeAuthRepository(),
+        ),
+        ...more,
+      ],
+    );
+    addTearDown(container.dispose);
+    container.listen<AsyncValue<AuthUiModel>>(
+      loginControllerProvider,
+      (AsyncValue<AuthUiModel>? previous, AsyncValue<AuthUiModel> next) {},
+    );
     await container.read(loginControllerProvider.future);
-    final AuthUiModel state = controller.state.requireValue;
+    return container;
+  }
+
+  LoginCredentials? savedCredentials() =>
+      storage.credentials.get('credentials');
+
+  test('starts empty when nothing is remembered', () async {
+    final ProviderContainer container = await createContainer();
+
+    final AuthUiModel state = container.read(loginControllerProvider).value!;
     expect(state.user, isNull);
     expect(state.rememberMe, isFalse);
     expect(state.showPassword, isFalse);
   });
 
+  test(
+    'remembered credentials pre-fill the form and tick remember me',
+    () async {
+      await storage.credentials.put('credentials', _eve);
+
+      final ProviderContainer container = await createContainer();
+
+      final AuthUiModel state = container.read(loginControllerProvider).value!;
+      expect(state.user, _eve);
+      expect(state.rememberMe, isTrue);
+      // Pre-fill only: nobody is signed in.
+      expect(await container.read(sessionProvider.future), isNull);
+    },
+  );
+
   group('login', () {
-    test('successful login updates state correctly', () async {
-      await container.read(loginControllerProvider.future);
-      controller.updateRememberMe(rememberMe: false);
+    test('starts the session', () async {
+      final ProviderContainer container = await createContainer();
 
-      await controller.login(
-        email: 'eve.holt@reqres.in',
-        password: 'cityslicka',
+      final LoginResponse? response = await container
+          .read(loginControllerProvider.notifier)
+          .login(email: _eve.email, password: _eve.password);
+
+      expect(response?.token, 'fake_token');
+      expect(
+        container.read(sessionProvider).value,
+        const Session(accessToken: 'fake_token'),
       );
-
-      expect(controller.state.requireValue.rememberMe, isFalse);
+      expect(storage.session.get('accessToken'), 'fake_token');
     });
 
-    test('throws exception when credentials are empty', () async {
-      await container.read(loginControllerProvider.future);
-      expect(() => controller.login(email: '', password: ''), throwsException);
+    test('with remember me ticked saves the credentials', () async {
+      final ProviderContainer container = await createContainer();
+      final LoginController controller = container.read(
+        loginControllerProvider.notifier,
+      );
+
+      await controller.updateRememberMe(rememberMe: true);
+      await controller.login(email: _eve.email, password: _eve.password);
+
+      expect(savedCredentials(), _eve);
+    });
+
+    test('without remember me saves nothing and forgets old ones', () async {
+      await storage.credentials.put(
+        'credentials',
+        const LoginCredentials(email: 'old@reqres.in', password: 'old'),
+      );
+      final ProviderContainer container = await createContainer();
+      final LoginController controller = container.read(
+        loginControllerProvider.notifier,
+      );
+      // Untick, then type over the pre-filled form.
+      await controller.updateRememberMe(rememberMe: false);
+
+      await controller.login(email: _eve.email, password: _eve.password);
+
+      expect(savedCredentials(), isNull);
+    });
+
+    test('throws when the credentials are empty', () async {
+      final ProviderContainer container = await createContainer();
+
+      expect(
+        () => container
+            .read(loginControllerProvider.notifier)
+            .login(email: '', password: ''),
+        throwsException,
+      );
     });
 
     test('a failed login is an AsyncError that keeps the form', () async {
-      final ProviderContainer rejecting = ProviderContainer(
-        overrides: <Override>[
-          authenticationRepositoryProvider.overrideWithValue(
-            _RejectingAuthRepository(),
-          ),
-          userRepositoryProvider.overrideWith(FakeUserRepository.new),
-        ],
+      final ProviderContainer container = await createContainer(
+        repository: _RejectingAuthRepository(),
       );
-      addTearDown(rejecting.dispose);
-      rejecting.listen<AsyncValue<AuthUiModel>>(
-        loginControllerProvider,
-        (AsyncValue<AuthUiModel>? previous, AsyncValue<AuthUiModel> next) {},
-      );
-      await rejecting.read(loginControllerProvider.future);
-      final LoginController rejectingController = rejecting.read(
+      final LoginController controller = container.read(
         loginControllerProvider.notifier,
       )..updateShowPassword(showPassword: true);
 
-      final LoginResponse? response = await rejectingController.login(
-        email: 'eve.holt@reqres.in',
+      final LoginResponse? response = await controller.login(
+        email: _eve.email,
         password: 'wrong',
       );
 
       expect(response, isNull);
-      final AsyncValue<AuthUiModel> state = rejecting.read(
+      final AsyncValue<AuthUiModel> state = container.read(
         loginControllerProvider,
       );
       expect(state.error, isA<ApiServerException>());
       expect(state.value?.showPassword, isTrue);
+      expect(container.read(sessionProvider).value, isNull);
     });
 
-    test('a failed cache is reported and login still succeeds', () async {
+    test('a failed save is reported and login still succeeds', () async {
       final _RecordingReporter reporter = _RecordingReporter();
-      final ProviderContainer failing = ProviderContainer(
-        overrides: <Override>[
-          authenticationRepositoryProvider.overrideWithValue(
-            FakeAuthRepository(),
+      final ProviderContainer container = await createContainer(
+        more: <Override>[
+          credentialsStoreProvider.overrideWith(
+            (Ref ref) async => _FailingCredentialsStore(storage.credentials),
           ),
-          userRepositoryProvider.overrideWith(_FailingCacheUserRepository.new),
           errorReporterProvider.overrideWithValue(reporter),
         ],
       );
-      addTearDown(failing.dispose);
-      failing.listen<AsyncValue<AuthUiModel>>(
-        loginControllerProvider,
-        (AsyncValue<AuthUiModel>? previous, AsyncValue<AuthUiModel> next) {},
-      );
-      await failing.read(loginControllerProvider.future);
-      final LoginController failingController = failing.read(
+      final LoginController controller = container.read(
         loginControllerProvider.notifier,
-      )..updateRememberMe(rememberMe: true);
+      );
+      await controller.updateRememberMe(rememberMe: true);
 
-      final LoginResponse? response = await failingController.login(
-        email: 'eve.holt@reqres.in',
-        password: 'cityslicka',
+      final LoginResponse? response = await controller.login(
+        email: _eve.email,
+        password: _eve.password,
       );
 
       expect(response?.token, 'fake_token');
       expect(reporter.errors.single, isA<StateError>());
+      expect(container.read(sessionProvider).value, isNotNull);
+    });
+  });
+
+  group('remember me', () {
+    test('unticking deletes the saved credentials at once', () async {
+      await storage.credentials.put('credentials', _eve);
+      final ProviderContainer container = await createContainer();
+
+      await container
+          .read(loginControllerProvider.notifier)
+          .updateRememberMe(rememberMe: false);
+
+      expect(savedCredentials(), isNull);
+      expect(container.read(loginControllerProvider).value?.rememberMe, false);
+    });
+
+    test('logout keeps the saved credentials', () async {
+      final ProviderContainer container = await createContainer();
+      final LoginController controller = container.read(
+        loginControllerProvider.notifier,
+      );
+      await controller.updateRememberMe(rememberMe: true);
+      await controller.login(email: _eve.email, password: _eve.password);
+
+      await container.read(sessionProvider.notifier).logout();
+
+      expect(container.read(sessionProvider).value, isNull);
+      expect(savedCredentials(), _eve);
     });
   });
 
   group('register', () {
-    test('successful registration updates state correctly', () async {
-      await container.read(loginControllerProvider.future);
+    test('pre-fills the form without saving or signing in', () async {
+      final ProviderContainer container = await createContainer();
 
-      await controller.register(
-        email: 'eve.holt@reqres.in',
-        password: 'pistol',
-      );
-
-      expect(controller.state.requireValue.rememberMe, isTrue);
-    });
-
-    test('throws exception when credentials are empty', () async {
-      await container.read(loginControllerProvider.future);
+      await container
+          .read(loginControllerProvider.notifier)
+          .register(email: _eve.email, password: 'pistol');
 
       expect(
-        () => controller.register(email: '', password: ''),
+        container.read(loginControllerProvider).value?.user,
+        LoginCredentials(email: _eve.email, password: 'pistol'),
+      );
+      expect(savedCredentials(), isNull);
+      expect(container.read(sessionProvider).value, isNull);
+    });
+
+    test('throws when the credentials are empty', () async {
+      final ProviderContainer container = await createContainer();
+
+      expect(
+        () => container
+            .read(loginControllerProvider.notifier)
+            .register(email: '', password: ''),
         throwsException,
       );
     });

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:core/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart';
 import 'package:material_ui/material_ui.dart';
@@ -98,6 +99,32 @@ void main() {
       );
       expect(container.read(errorReporterProvider), isA<ReportDispatcher>());
       expect(container.observers, contains(isA<ProviderFailureObserver>()));
+    });
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('adds the app overrides', (WidgetTester tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    final SessionHooks hooks = SessionHooks(
+      logout: (Session session) async {},
+    );
+
+    await _restoringHooks(() async {
+      await bootstrap(
+        _config,
+        app: const _ProbeApp(),
+        theme: KonteynerTheme.fallback(),
+        overrides: <Override>[
+          sessionHooksProvider.overrideWithValue(hooks),
+        ],
+      );
+      await tester.pump();
+
+      final ProviderContainer container = ProviderScope.containerOf(
+        tester.element(find.byType(_ProbeApp)),
+      );
+      expect(container.read(sessionHooksProvider), same(hooks));
+      expect(find.text('staging'), findsOneWidget);
     });
     debugDefaultTargetPlatformOverride = null;
   });

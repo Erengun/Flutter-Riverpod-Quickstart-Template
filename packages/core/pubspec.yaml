@@ -28,6 +28,7 @@ dependencies:
   upgrader: ^13.7.0
   in_app_update: ^5.0.0
   version: ^3.0.2
+  flutter_secure_storage: ^10.3.4
 
 dev_dependencies:
   build_runner: ^2.16.2

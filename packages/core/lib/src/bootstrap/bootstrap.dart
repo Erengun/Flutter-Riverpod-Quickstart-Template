@@ -30,16 +30,21 @@ import 'app_shell.dart';
 /// 5. runs [app] inside a `ProviderScope` that overrides
 ///    [appConfigProvider], [konteynerThemeProvider], [splashProvider] and the
 ///    interfaces the Modules contributed (`errorReporterProvider` is the
-///    dispatcher), and observes it with a [ProviderFailureObserver].
+///    dispatcher), plus [overrides], and observes it with a
+///    [ProviderFailureObserver].
 ///
 /// [theme] holds the app's light and dark themes. [splash] replaces Core's
-/// default progress indicator.
+/// default progress indicator. [overrides] are the app's own `ProviderScope`
+/// overrides, such as the auth Feature's `sessionHooksProvider` or extra
+/// `dioInterceptorsProvider` entries; they must not repeat a provider
+/// `bootstrap` already overrides.
 Future<void> bootstrap(
   AppConfig config, {
   required Widget app,
   required KonteynerTheme theme,
   Widget splash = const KonteynerSplash(),
   List<KonteynerModule> modules = const <KonteynerModule>[],
+  List<Override> overrides = const <Override>[],
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
   final KonteynerPlatform platform = KonteynerPlatform.current;
@@ -76,6 +81,7 @@ Future<void> bootstrap(
         konteynerThemeProvider.overrideWithValue(theme),
         splashProvider.overrideWithValue(splash),
         ...started.overrides,
+        ...overrides,
       ],
       child: app,
     ),

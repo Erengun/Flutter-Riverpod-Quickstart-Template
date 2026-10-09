@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Auto Backup on Android 11 and lower. Everything else is still backed up.
+     Keep in sync with data_extraction_rules.xml. -->
+<full-backup-content>
+    <!-- The Hive boxes: the encrypted ones' key stays in the device's
+         Keystore, so a restored copy could never be read. -->
+    <exclude domain="file" path="hive" />
+    <!-- flutter_secure_storage, which holds that key. -->
+    <exclude domain="sharedpref" path="FlutterSecureStorage.xml" />
+    <exclude domain="sharedpref" path="FlutterSecureStorageConfiguration.xml" />
+</full-backup-content>

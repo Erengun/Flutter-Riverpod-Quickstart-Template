@@ -1,6 +1,6 @@
+import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -20,9 +20,9 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.logout_outlined, color: context.colorScheme.primary),
-          onPressed: () {
-            context.pop();
-          },
+          // The router's redirect replaces home with login, so back can't
+          // undo it.
+          onPressed: () => ref.read(sessionProvider.notifier).logout(),
         ),
       ),
       backgroundColor: context.colorScheme.surface,

@@ -9,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod/misc.dart';
 import 'package:riverpod/riverpod.dart';
 
+import '../support/storage.dart';
+
 /// Answers every request with [status] and [body], and records requests.
 class _FakeAdapter implements HttpClientAdapter {
   _FakeAdapter(this.status, this.body);
@@ -43,9 +45,13 @@ const AppConfig _config = AppConfig(
   apiKey: 'demo-key',
 );
 
-ProviderContainer _container(_FakeAdapter adapter) {
+ProviderContainer _container(_FakeAdapter adapter, TestStorage storage) {
   final ProviderContainer container = ProviderContainer(
-    overrides: <Override>[appConfigProvider.overrideWithValue(_config)],
+    overrides: <Override>[
+      appConfigProvider.overrideWithValue(_config),
+      // The auth interceptor reads the session from these boxes.
+      ...storage.overrides,
+    ],
   );
   container.read(dioProvider).httpClientAdapter = adapter;
   addTearDown(container.dispose);
@@ -53,11 +59,19 @@ ProviderContainer _container(_FakeAdapter adapter) {
 }
 
 void main() {
+  late TestStorage storage;
+
+  setUp(() async {
+    storage = await TestStorage.open();
+  });
+
+  tearDown(() => storage.close());
+
   test('login posts the credentials through the retrofit client', () async {
     final _FakeAdapter adapter = _FakeAdapter(200, <String, Object?>{
       'token': 'QpwL5tke4Pnpja7X4',
     });
-    final ProviderContainer container = _container(adapter);
+    final ProviderContainer container = _container(adapter, storage);
 
     final LoginResponse response = await container
         .read(authenticationRepositoryProvider)
@@ -75,7 +89,7 @@ void main() {
     final _FakeAdapter adapter = _FakeAdapter(400, <String, Object?>{
       'error': 'user not found',
     });
-    final ProviderContainer container = _container(adapter);
+    final ProviderContainer container = _container(adapter, storage);
 
     await expectLater(
       container
@@ -90,7 +104,7 @@ void main() {
     final _FakeAdapter adapter = _FakeAdapter(200, <String, Object?>{
       'token': 42,
     });
-    final ProviderContainer container = _container(adapter);
+    final ProviderContainer container = _container(adapter, storage);
 
     Object? caught;
     try {
@@ -102,5 +116,29 @@ void main() {
     }
     expect(caught, isA<ApiDecodeException>());
     expect((caught! as ApiException).request?.path, '/api/login');
+  });
+
+  test('login and register never send the session token', () async {
+    await storage.session.put('accessToken', 'old-token');
+    final _FakeAdapter adapter = _FakeAdapter(200, <String, Object?>{
+      'id': 4,
+      'token': 'QpwL5tke4Pnpja7X4',
+    });
+    final ProviderContainer container = _container(adapter, storage);
+    expect(
+      await container.read(sessionProvider.future),
+      const Session(accessToken: 'old-token'),
+    );
+
+    final AuthenticationRepository repository = container.read(
+      authenticationRepositoryProvider,
+    );
+    await repository.login('eve.holt@reqres.in', 'cityslicka');
+    await repository.register('eve.holt@reqres.in', 'pistol');
+
+    for (final RequestOptions request in adapter.requests) {
+      expect(request.extra[skipAuthKey], isTrue);
+      expect(request.headers['Authorization'], isNull);
+    }
   });
 }

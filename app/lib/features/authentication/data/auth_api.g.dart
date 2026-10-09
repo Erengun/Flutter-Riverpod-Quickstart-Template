@@ -22,7 +22,7 @@ class _AuthApi implements AuthApi {
 
   @override
   Future<LoginResponse> login(LoginCredentials credentials) async {
-    final _extra = <String, dynamic>{};
+    final _extra = <String, dynamic>{'skipAuth': true};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
@@ -50,7 +50,7 @@ class _AuthApi implements AuthApi {
 
   @override
   Future<RegisterResponse> register(LoginCredentials credentials) async {
-    final _extra = <String, dynamic>{};
+    final _extra = <String, dynamic>{'skipAuth': true};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
