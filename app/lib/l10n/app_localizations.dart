@@ -104,6 +104,36 @@ abstract class AppLocalizations {
   /// **'Flutter Production Boilerplate'**
   String get appTitle;
 
+  /// Body of the permission demo screens.
+  ///
+  /// In en, this message translates to:
+  /// **'You can see this page because your permissions include the \"{area}\" area.'**
+  String demoAreaBody(String area);
+
+  /// No description provided for @demoPermissionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission demo'**
+  String get demoPermissionsTitle;
+
+  /// No description provided for @demoProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get demoProfileTitle;
+
+  /// No description provided for @demoReportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get demoReportsTitle;
+
+  /// No description provided for @demoSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get demoSettingsTitle;
+
   /// No description provided for @homeBottomNavFirst.
   ///
   /// In en, this message translates to:

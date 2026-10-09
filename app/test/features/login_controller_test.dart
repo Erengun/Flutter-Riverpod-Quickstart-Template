@@ -138,6 +138,60 @@ void main() {
       expect(storage.session.get('accessToken'), 'fake_token');
     });
 
+    test('waits for the permissions before starting the session', () async {
+      const Permissions loaded = Permissions(areas: <String>{'orders'});
+      final List<Session> loads = <Session>[];
+      final List<Session?> sessionsDuringLoad = <Session?>[];
+      late final ProviderContainer container;
+      container = await createContainer(
+        more: <Override>[
+          sessionHooksProvider.overrideWithValue(
+            SessionHooks(
+              loadPermissions: (Session session) async {
+                loads.add(session);
+                sessionsDuringLoad.add(container.read(sessionProvider).value);
+                return loaded;
+              },
+            ),
+          ),
+        ],
+      );
+
+      await container
+          .read(loginControllerProvider.notifier)
+          .login(email: _eve.email, password: _eve.password);
+
+      expect(loads, <Session>[const Session(accessToken: 'fake_token')]);
+      // Not signed in yet while loading: no screen sees them missing.
+      expect(sessionsDuringLoad, <Session?>[null]);
+      expect(container.read(permissionsProvider), loaded);
+      expect(storage.session.get(permissionsKey), loaded.encode());
+    });
+
+    test('fails closed when the permissions cannot load', () async {
+      const ApiConnectionException failure = ApiConnectionException();
+      final ProviderContainer container = await createContainer(
+        more: <Override>[
+          sessionHooksProvider.overrideWithValue(
+            SessionHooks(
+              loadPermissions: (Session session) async => throw failure,
+            ),
+          ),
+        ],
+      );
+
+      final LoginResponse? response = await container
+          .read(loginControllerProvider.notifier)
+          .login(email: _eve.email, password: _eve.password);
+
+      expect(response, isNull);
+      // The login screen shows it through listenApiErrors.
+      expect(container.read(loginControllerProvider).error, same(failure));
+      expect(container.read(sessionProvider).value, isNull);
+      expect(storage.session.get('accessToken'), isNull);
+      expect(storage.session.get(permissionsKey), isNull);
+    });
+
     test('with remember me ticked saves the credentials', () async {
       final ProviderContainer container = await createContainer();
       final LoginController controller = container.read(

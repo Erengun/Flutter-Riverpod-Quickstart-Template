@@ -1,10 +1,12 @@
 import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../router/app_router.dart';
 import '../../../utils/context_extensions.dart';
 import 'widgets/header.dart';
 import 'widgets/language_tile.dart';
@@ -34,6 +36,7 @@ class HomeScreen extends ConsumerWidget {
           const Divider(),
           const ThemeWidget(),
           const LanguageTile(),
+          const _PermissionDemoLinks(),
           ListView.separated(
             itemCount: 4,
             shrinkWrap: true,
@@ -84,6 +87,39 @@ class HomeScreen extends ConsumerWidget {
                   return const SizedBox.shrink();
               }
             },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Opens the permission demo screens. The demo loader grants profile and
+/// settings but not reports, so reports opens Core's no-permission page.
+class _PermissionDemoLinks extends StatelessWidget {
+  const _PermissionDemoLinks();
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Wrap(
+        spacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: <Widget>[
+          Text(l10n.demoPermissionsTitle),
+          ActionChip(
+            label: Text(l10n.demoProfileTitle),
+            onPressed: () => context.push(SGRoute.profile.route),
+          ),
+          ActionChip(
+            label: Text(l10n.demoSettingsTitle),
+            onPressed: () => context.push(SGRoute.settings.route),
+          ),
+          ActionChip(
+            label: Text(l10n.demoReportsTitle),
+            onPressed: () => context.push(SGRoute.reports.route),
           ),
         ],
       ),
