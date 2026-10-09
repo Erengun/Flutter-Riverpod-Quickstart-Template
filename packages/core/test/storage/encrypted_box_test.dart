@@ -5,9 +5,14 @@ import 'package:core/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 
-/// An in-memory [HiveKeyStore]. [readError] makes every read throw.
+/// An in-memory [HiveKeyStore]. [readError] makes every read throw. Pass
+/// another store's [values] to simulate an app restart: Core caches the key
+/// per store object.
 class _MemoryKeyStore implements HiveKeyStore {
-  final Map<String, String> values = <String, String>{};
+  _MemoryKeyStore([Map<String, String>? values])
+    : values = values ?? <String, String>{};
+
+  final Map<String, String> values;
   Exception? readError;
   int writes = 0;
   Duration delay = Duration.zero;
@@ -115,8 +120,49 @@ void main() {
     expect(box.get('token'), 'abc');
   });
 
-  test('an unreadable key store gets a new key', () async {
-    keys.readError = Exception('Failed to unwrap key');
+  test('an unreadable key store keeps the saved key and data', () async {
+    final Box<String> box = await openEncryptedBox<String>(
+      'secrets',
+      keyStore: keys,
+    );
+    await box.put('token', 'abc');
+    await Hive.close();
+    final String? savedKey = keys.values[hiveEncryptionKeyName];
+
+    // Next launch, before the Keychain is unlocked.
+    final _MemoryKeyStore relaunched = _MemoryKeyStore(keys.values)
+      ..readError = Exception('Failed to unwrap key');
+    await expectLater(
+      openEncryptedBox<String>('secrets', keyStore: relaunched),
+      throwsA(same(relaunched.readError)),
+    );
+    expect(relaunched.writes, 0);
+    expect(keys.values[hiveEncryptionKeyName], savedKey);
+
+    // The store is readable again: the same key opens the same data.
+    relaunched.readError = null;
+    final Box<String> reopened = await openEncryptedBox<String>(
+      'secrets',
+      keyStore: relaunched,
+    );
+    expect(reopened.get('token'), 'abc');
+    expect(relaunched.writes, 0);
+    expect(keys.values[hiveEncryptionKeyName], savedKey);
+  });
+
+  test('a missing key is created exactly once', () async {
+    await openEncryptedBox<String>('a', keyStore: keys);
+    await openEncryptedBox<String>('b', keyStore: keys);
+    await Hive.close();
+    final _MemoryKeyStore relaunched = _MemoryKeyStore(keys.values);
+    await openEncryptedBox<String>('a', keyStore: relaunched);
+
+    expect(keys.writes, 1);
+    expect(relaunched.writes, 0);
+  });
+
+  test('a malformed saved key is replaced', () async {
+    keys.values[hiveEncryptionKeyName] = 'not a key';
 
     final Box<String> box = await openEncryptedBox<String>(
       'secrets',
@@ -124,7 +170,11 @@ void main() {
     );
 
     expect(box.isOpen, isTrue);
-    expect(keys.values[hiveEncryptionKeyName], isNotNull);
+    expect(keys.writes, 1);
+    expect(
+      base64Url.decode(keys.values[hiveEncryptionKeyName]!),
+      hasLength(32),
+    );
   });
 
   test('boxes opened at the same time share one new key', () async {

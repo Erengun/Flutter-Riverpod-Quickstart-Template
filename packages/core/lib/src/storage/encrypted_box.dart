@@ -33,14 +33,21 @@ class SecureHiveKeyStore implements HiveKeyStore {
 final Logger _log = Logger('storage');
 
 /// One key lookup per store, shared by boxes opened at the same time, so
-/// two first-run opens never create two different keys.
+/// two first-run opens never create two different keys. A failed lookup is
+/// dropped, so the next open reads the store again.
 final Expando<Future<List<int>>> _keys = Expando<Future<List<int>>>();
 
 /// Opens the Hive box [name], AES-encrypted with the app's one key.
 ///
 /// The key is created randomly (`Hive.generateSecureKey`) on first use and
-/// kept in [keyStore] (secure storage by default). If the stored key can't
-/// be read, a new one replaces it.
+/// kept in [keyStore] (secure storage by default). A stored key that reads
+/// fine but is malformed is replaced by a new one.
+///
+/// If [keyStore] throws while reading (the iOS Keychain before the first
+/// unlock, the Android Keystore briefly unavailable, ...), nothing is
+/// written and the error is rethrown: overwriting the saved key would lose
+/// every box for good. The next open reads the key again, so once the store
+/// is readable the same key and data come back.
 ///
 /// A box that fails to open (for example a restored backup whose key stayed
 /// on the old device) is deleted and created again, empty. A box written
@@ -77,11 +84,13 @@ Future<List<int>> _encryptionKey(HiveKeyStore store) {
 }
 
 Future<List<int>> _readOrCreateKey(HiveKeyStore store) async {
-  String? saved;
+  final String? saved;
   try {
     saved = await store.read(hiveEncryptionKeyName);
   } catch (_) {
-    _log.warning('The storage key could not be read; creating a new one.');
+    // Possibly transient: keep the saved key and let the open fail.
+    _log.warning('The storage key could not be read; not opening the box.');
+    rethrow;
   }
   if (saved != null) {
     try {

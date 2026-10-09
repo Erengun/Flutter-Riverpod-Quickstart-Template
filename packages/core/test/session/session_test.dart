@@ -44,6 +44,45 @@ void main() {
     expect(await createContainer().read(sessionProvider.future), isNull);
   });
 
+  test('a box that cannot open yet ends signed out, then recovers', () async {
+    await box.put('accessToken', 'access');
+    // For example the key store before the first unlock.
+    bool keyReadable = false;
+    final ProviderContainer container = ProviderContainer(
+      overrides: <Override>[
+        sessionBoxProvider.overrideWith((Ref ref) async {
+          if (!keyReadable) throw Exception('key store locked');
+          return box;
+        }),
+        errorReporterProvider.overrideWithValue(reporter),
+      ],
+      retry: (int retryCount, Object error) => null,
+    );
+    addTearDown(container.dispose);
+
+    await expectLater(
+      container.read(sessionProvider.future),
+      throwsA(anything),
+    );
+    expect(
+      sessionRedirect(
+        container.read(sessionProvider),
+        '/splash',
+        splashPath: '/splash',
+        loginPath: '/login',
+        homePath: '/home',
+      ),
+      '/login',
+    );
+
+    keyReadable = true;
+    container.invalidate(sessionBoxProvider);
+    expect(
+      await container.read(sessionProvider.future),
+      const Session(accessToken: 'access'),
+    );
+  });
+
   test('signing in saves the session, which survives a restart', () async {
     const Session session = Session(
       accessToken: 'access',
