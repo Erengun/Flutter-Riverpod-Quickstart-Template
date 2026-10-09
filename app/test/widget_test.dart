@@ -86,6 +86,14 @@ void main() {
           overrides: <Override>[
             prefsBoxProvider.overrideWithValue(box),
             goRouterProvider.overrideWithValue(router),
+            // No store links, so force update stays off.
+            appConfigProvider.overrideWithValue(
+              const AppConfig(
+                flavor: Flavor.dev,
+                apiBaseUrl: 'https://example.com/',
+                apiKey: '',
+              ),
+            ),
           ],
           child: const MyApp(),
         ),

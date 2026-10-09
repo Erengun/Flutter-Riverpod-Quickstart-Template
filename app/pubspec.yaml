@@ -80,6 +80,9 @@ dev_dependencies:
   riverpod_lint: ^3.1.9
   freezed: ^4.0.2
   hive_ce_generator: ^1.11.3
+  # Force update tests mock these plugins, which upgrader uses.
+  package_info_plus: ^9.0.1
+  shared_preferences: ^2.5.3
 
 
 # For information on the generic Dart part of this file, see the

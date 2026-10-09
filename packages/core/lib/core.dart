@@ -21,3 +21,7 @@ export 'src/router/fade_extension.dart';
 export 'src/router/navigation_breadcrumb_observer.dart';
 export 'src/router/slide_extension.dart';
 export 'src/theme/konteyner_tokens.dart';
+export 'src/update/app_version_source.dart';
+export 'src/update/konteyner_upgrader_messages.dart';
+export 'src/update/konteyner_upgrader_store.dart';
+export 'src/update/update_gate.dart';
