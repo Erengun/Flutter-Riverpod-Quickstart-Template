@@ -28,7 +28,8 @@ enum SGRoute {
   changePassword,
   settings(area: AppAreas.settings),
   reports(area: AppAreas.reports),
-  noPermission;
+  noPermission,
+  underConstruction;
 
   const SGRoute({this.area});
 
@@ -140,6 +141,15 @@ GoRouter goRouter(Ref ref) {
         builder: (BuildContext context, GoRouterState state) =>
             NoPermissionPage(onBackHome: () => context.go(SGRoute.home.route)),
       ).fade(),
+      // Where a menu entry without a screen leads (`appMenu`).
+      GoRoute(
+        path: SGRoute.underConstruction.route,
+        name: SGRoute.underConstruction.name,
+        builder: (BuildContext context, GoRouterState state) =>
+            UnderConstructionPage(
+              onBackHome: () => context.go(SGRoute.home.route),
+            ),
+      ).slide(),
     ],
   );
   ref.onDispose(router.dispose);

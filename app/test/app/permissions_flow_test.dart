@@ -259,6 +259,71 @@ void main() {
     });
   });
 
+  testWidgets('home shows one control per Component rule', (
+    WidgetTester tester,
+  ) async {
+    await startApp(tester);
+    await signInThroughTheForm(tester);
+
+    Finder chip(String label) => find.widgetWithText(ActionChip, label);
+    Finder greyed(String label) =>
+        find.ancestor(of: chip(label), matching: find.byType(Opacity));
+
+    // Readonly: shown as it is, but a tap goes nowhere.
+    expect(chip('Email (read-only)'), findsOneWidget);
+    expect(greyed('Email (read-only)'), findsNothing);
+    await tester.tap(chip('Email (read-only)'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byType(DemoAreaScreen), findsNothing);
+
+    // Disabled: greyed out, and a tap goes nowhere.
+    expect(chip('Edit profile (disabled)'), findsOneWidget);
+    expect(greyed('Edit profile (disabled)'), findsOneWidget);
+    await tester.tap(chip('Edit profile (disabled)'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byType(DemoAreaScreen), findsNothing);
+
+    // Hidden: removed.
+    expect(find.text('Delete account (hidden)'), findsNothing);
+  });
+
+  testWidgets('the menu shows only the granted areas', (
+    WidgetTester tester,
+  ) async {
+    await startApp(tester);
+    await signInThroughTheForm(tester);
+
+    Finder inMenu(String label) =>
+        find.descendant(of: find.byType(Drawer), matching: find.text(label));
+    Future<void> openMenu() async {
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+    }
+
+    await openMenu();
+    expect(inMenu('Profile'), findsOneWidget);
+    expect(inMenu('Settings'), findsOneWidget);
+    expect(inMenu('Orders'), findsOneWidget);
+    expect(inMenu('Reports'), findsNothing);
+
+    await tester.tap(inMenu('Settings'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DemoAreaScreen), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
+
+    // Orders has no screen yet: Core's under-construction page.
+    router(tester).go(SGRoute.home.route);
+    await tester.pumpAndSettle();
+    await openMenu();
+    await tester.tap(inMenu('Orders'));
+    await tester.pumpAndSettle();
+    expect(find.byType(UnderConstructionPage), findsOneWidget);
+
+    await tester.tap(find.text(_core.pageBackHome));
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
   testWidgets('logout deletes the saved permissions', (
     WidgetTester tester,
   ) async {
