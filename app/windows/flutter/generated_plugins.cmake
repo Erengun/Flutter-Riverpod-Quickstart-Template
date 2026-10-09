@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_core
   firebase_remote_config
   flutter_secure_storage_windows
+  sentry_flutter
   url_launcher_windows
 )
 

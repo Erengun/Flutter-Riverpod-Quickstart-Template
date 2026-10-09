@@ -1,5 +1,6 @@
 import 'package:core/core.dart';
 import 'package:firebase_module/firebase_module.dart';
+import 'package:sentry_module/sentry_module.dart';
 
 /// The Modules this app opts into, started in order by `bootstrap`.
 ///
@@ -8,4 +9,5 @@ import 'package:firebase_module/firebase_module.dart';
 /// from the workspace.
 List<KonteynerModule> buildAppModules() => <KonteynerModule>[
   const FirebaseModule(),
+  SentryModule(),
 ];
