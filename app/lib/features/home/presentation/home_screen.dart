@@ -8,6 +8,8 @@ import 'package:material_ui/material_ui.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../router/app_router.dart';
 import '../../../utils/context_extensions.dart';
+import 'widgets/app_menu_drawer.dart';
+import 'widgets/component_rules_demo.dart';
 import 'widgets/header.dart';
 import 'widgets/language_tile.dart';
 import 'widgets/social_tile_widget.dart';
@@ -27,6 +29,8 @@ class HomeScreen extends ConsumerWidget {
           onPressed: () => ref.read(sessionProvider.notifier).logout(),
         ),
       ),
+      // Only the granted areas; opened from the app bar's menu button.
+      endDrawer: const AppMenuDrawer(),
       backgroundColor: context.colorScheme.surface,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,6 +41,7 @@ class HomeScreen extends ConsumerWidget {
           const ThemeWidget(),
           const LanguageTile(),
           const _PermissionDemoLinks(),
+          const ComponentRulesDemo(),
           ListView.separated(
             itemCount: 4,
             shrinkWrap: true,

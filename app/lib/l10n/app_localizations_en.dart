@@ -18,6 +18,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get demoComponentRulesTitle => 'Component rules';
+
+  @override
+  String get demoDeleteAccountHidden => 'Delete account (hidden)';
+
+  @override
+  String get demoEditProfileDisabled => 'Edit profile (disabled)';
+
+  @override
+  String get demoEmailReadonly => 'Email (read-only)';
+
+  @override
+  String get demoOrdersTitle => 'Orders';
+
+  @override
   String get demoPermissionsTitle => 'Permission demo';
 
   @override
@@ -40,6 +55,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeIntro => 'Hi, I am Eren 👋🏽';
+
+  @override
+  String get homeMenuTitle => 'Menu';
 
   @override
   String get homeMore => 'Learn More';

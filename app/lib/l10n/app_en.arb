@@ -11,6 +11,11 @@
       }
     }
   },
+  "demoComponentRulesTitle": "Component rules",
+  "demoDeleteAccountHidden": "Delete account (hidden)",
+  "demoEditProfileDisabled": "Edit profile (disabled)",
+  "demoEmailReadonly": "Email (read-only)",
+  "demoOrdersTitle": "Orders",
   "demoPermissionsTitle": "Permission demo",
   "demoProfileTitle": "Profile",
   "demoReportsTitle": "Reports",
@@ -19,6 +24,7 @@
   "homeBottomNavSecond": "Info",
   "homeInfo": "Info",
   "homeIntro": "Hi, I am Eren 👋🏽",
+  "homeMenuTitle": "Menu",
   "homeMore": "Learn More",
   "homeThemeMode": "Theme Mode",
   "homeThemeModeDark": "Dark",

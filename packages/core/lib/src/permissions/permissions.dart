@@ -50,6 +50,10 @@ class Permissions {
   /// Whether [area] is granted.
   bool can(String area) => allowsEverything || areas.contains(area);
 
+  /// The rule for the control [componentKey], or `null` when it has none
+  /// (unrestricted). [unrestricted] has no rules.
+  ComponentState? stateOf(String componentKey) => components[componentKey];
+
   /// The JSON string Core saves in the encrypted session box.
   String encode() => jsonEncode(<String, Object>{
     'areas': areas.toList(),
