@@ -56,6 +56,12 @@ jobs:
   build-windows:
     runs-on: ${{ vars.WINDOWS_RUNNER || 'windows-latest' }}
     steps:
+      # The Sentry native SDK is cloned during the CMake build, and some of its
+      # test files have paths longer than Windows' default 260-character limit.
+      - name: Allow long paths in git
+        run: git config --system core.longpaths true
+        working-directory: .
+
       - uses: actions/checkout@v5
 
       - uses: subosito/flutter-action@v2
@@ -76,7 +82,8 @@ jobs:
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+          # libsecret: flutter_secure_storage. libcurl: the Sentry native SDK.
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libsecret-1-dev libcurl4-openssl-dev
 
       - uses: subosito/flutter-action@v2
         with:
