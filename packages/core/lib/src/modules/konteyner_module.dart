@@ -1,12 +1,12 @@
-import 'dart:developer' as developer;
-
 import 'package:flutter_riverpod/misc.dart';
+import 'package:logging/logging.dart';
 
 import '../config/app_config.dart';
 import '../config/konteyner_platform.dart';
 import '../reporting/analytics.dart';
 import '../reporting/error_reporter.dart';
 import '../reporting/remote_flags.dart';
+import '../reporting/report_dispatcher.dart';
 
 /// An optional piece of infrastructure an app opts into, such as Firebase or
 /// Sentry. A Module lives in `packages/<name>_module` and is listed in the
@@ -87,8 +87,10 @@ class StartedModules {
     required this.analytics,
     required this.remoteFlags,
     required this.failures,
+    required this.reportDispatcher,
   });
 
+  /// The reporter a Module contributed, or the no-op default.
   final ErrorReporter errorReporter;
   final Analytics analytics;
   final RemoteFlags remoteFlags;
@@ -96,13 +98,20 @@ class StartedModules {
   /// Modules whose `init` threw, in start order.
   final List<ModuleStartupFailure> failures;
 
+  /// Core's dispatcher, now attached to [errorReporter]. Everything the app
+  /// reports goes through it.
+  final ReportDispatcher reportDispatcher;
+
   /// The `ProviderScope` overrides for the started interfaces.
+  /// `errorReporterProvider` gets [reportDispatcher], not [errorReporter].
   List<Override> get overrides => <Override>[
-    errorReporterProvider.overrideWithValue(errorReporter),
+    errorReporterProvider.overrideWithValue(reportDispatcher),
     analyticsProvider.overrideWithValue(analytics),
     remoteFlagsProvider.overrideWithValue(remoteFlags),
   ];
 }
+
+final Logger _log = Logger('modules');
 
 class _Slot<T extends Object> {
   _Slot(this.interfaceName, this.fallback);
@@ -133,16 +142,21 @@ class _Slot<T extends Object> {
 /// - A Module whose [KonteynerModule.platforms] lacks [platform] is skipped.
 /// - A Module whose `init` throws is logged and recorded in
 ///   [StartedModules.failures]; the defaults stay and the app still starts.
-///   Once every Module has started, each failure is sent, non-fatal, through
-///   whichever [ErrorReporter] came up; a report that throws is logged and
-///   startup continues.
+///   Each failure is reported, non-fatal, through [reports] (a new
+///   [ReportDispatcher] by default), which buffers it.
+/// - Once every Module has started, [reports] is attached to whichever
+///   [ErrorReporter] came up and sends the buffered reports; a report that
+///   throws is logged and startup continues. [reports] must not be attached
+///   yet.
 /// - Two Modules providing the same interface throw [ModuleConflictError].
 Future<StartedModules> startModules(
   List<KonteynerModule> modules,
   AppConfig config, {
   KonteynerPlatform? platform,
+  ReportDispatcher? reports,
 }) async {
   final KonteynerPlatform target = platform ?? KonteynerPlatform.current;
+  final ReportDispatcher dispatcher = reports ?? ReportDispatcher();
   final _Slot<ErrorReporter> reporter = _Slot<ErrorReporter>(
     'ErrorReporter',
     const NoopErrorReporter(),
@@ -163,12 +177,8 @@ Future<StartedModules> startModules(
     try {
       contributions = await module.init(config);
     } catch (error, stackTrace) {
-      developer.log(
+      _log.warning(
         'Module "${module.name}" failed to start; keeping the defaults.',
-        name: 'modules',
-        level: 1000,
-        error: error,
-        stackTrace: stackTrace,
       );
       failures.add(
         ModuleStartupFailure(
@@ -176,6 +186,11 @@ Future<StartedModules> startModules(
           error: error,
           stackTrace: stackTrace,
         ),
+      );
+      dispatcher.report(
+        ModuleStartupException(module.name, error),
+        stackTrace,
+        tags: <String, String>{'module': module.name},
       );
       continue;
     }
@@ -185,28 +200,13 @@ Future<StartedModules> startModules(
   }
 
   final ErrorReporter startedReporter = reporter.resolved;
-  for (final ModuleStartupFailure failure in failures) {
-    try {
-      startedReporter.report(
-        ModuleStartupException(failure.moduleName, failure.error),
-        failure.stackTrace,
-        tags: <String, String>{'module': failure.moduleName},
-      );
-    } catch (error, stackTrace) {
-      developer.log(
-        'Reporting the failure of Module "${failure.moduleName}" failed.',
-        name: 'modules',
-        level: 1000,
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-  }
+  dispatcher.attach(startedReporter);
 
   return StartedModules(
     errorReporter: startedReporter,
     analytics: analytics.resolved,
     remoteFlags: remoteFlags.resolved,
     failures: List<ModuleStartupFailure>.unmodifiable(failures),
+    reportDispatcher: dispatcher,
   );
 }

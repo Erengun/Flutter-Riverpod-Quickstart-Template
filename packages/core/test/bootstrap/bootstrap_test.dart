@@ -1,7 +1,10 @@
+import 'dart:ui';
+
 import 'package:core/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
 import 'package:material_ui/material_ui.dart';
 
 const AppConfig _config = AppConfig(
@@ -26,6 +29,21 @@ class _ProbeApp extends ConsumerWidget {
   }
 }
 
+/// Runs [body], then puts back the global hooks `bootstrap` replaces. The
+/// test binding checks `FlutterError.onError` before tear-downs run, so this
+/// restores inside the test body.
+Future<void> _restoringHooks(Future<void> Function() body) async {
+  final FlutterExceptionHandler? flutterOnError = FlutterError.onError;
+  final ErrorCallback? platformOnError = PlatformDispatcher.instance.onError;
+  try {
+    await body();
+  } finally {
+    FlutterError.onError = flutterOnError;
+    PlatformDispatcher.instance.onError = platformOnError;
+    resetLogging();
+  }
+}
+
 void main() {
   final StackTrace Function(StackTrace) originalDemangle =
       FlutterError.demangleStackTrace;
@@ -44,16 +62,43 @@ void main() {
       dark: ThemeData.dark(),
     );
 
-    await bootstrap(
-      _config,
-      app: const _ProbeApp(),
-      theme: theme,
-      splash: const Text('custom splash'),
-    );
-    await tester.pump();
+    await _restoringHooks(() async {
+      await bootstrap(
+        _config,
+        app: const _ProbeApp(),
+        theme: theme,
+        splash: const Text('custom splash'),
+      );
+      await tester.pump();
 
-    expect(find.text('staging'), findsOneWidget);
-    expect(find.text('custom splash'), findsOneWidget);
+      expect(find.text('staging'), findsOneWidget);
+      expect(find.text('custom splash'), findsOneWidget);
+    });
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('installs the logging, hooks, dispatcher and provider observer', (
+    WidgetTester tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    final FlutterExceptionHandler? before = FlutterError.onError;
+
+    await _restoringHooks(() async {
+      await bootstrap(
+        _config,
+        app: const _ProbeApp(),
+        theme: KonteynerTheme.fallback(),
+      );
+      await tester.pump();
+
+      expect(Logger.root.level, Level.INFO);
+      expect(FlutterError.onError, isNot(same(before)));
+      final ProviderContainer container = ProviderScope.containerOf(
+        tester.element(find.byType(_ProbeApp)),
+      );
+      expect(container.read(errorReporterProvider), isA<ReportDispatcher>());
+      expect(container.observers, contains(isA<ProviderFailureObserver>()));
+    });
     debugDefaultTargetPlatformOverride = null;
   });
 
