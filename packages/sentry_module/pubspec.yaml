@@ -1,0 +1,21 @@
+name: sentry_module
+description: Sends errors and crash-free statistics to Sentry on staging and prod.
+publish_to: none
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  core:
+    path: ../core
+  logging: ^1.3.0
+  # 9.30 or later: its error integrations keep and call Core's handlers.
+  sentry_flutter: ^9.30.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
