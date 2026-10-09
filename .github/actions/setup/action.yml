@@ -1,0 +1,38 @@
+name: Setup
+description: >-
+  Flutter stable with SDK and pub caching, workspace `flutter pub get`, and the
+  Melos CLI at the version pinned in the root pubspec.lock. Run
+  actions/checkout before this action: a local action only resolves once the
+  repository is checked out.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        cache: true
+
+    - name: Show Flutter version
+      shell: bash
+      run: flutter --version
+
+    - name: Install dependencies
+      shell: bash
+      run: flutter pub get
+
+    # Melos scripts call `melos exec`, so the CLI must be on PATH. The version
+    # is read from the root pubspec.lock so CI always runs the same Melos as
+    # the workspace's dev dependency.
+    - name: Install Melos
+      shell: bash
+      run: |
+        version="$(awk '/^  melos:$/ { found = 1 } found && /^    version:/ { gsub(/"/, "", $2); print $2; exit }' pubspec.lock)"
+        if [ -z "$version" ]; then
+          echo "::error::Could not read the melos version from pubspec.lock"
+          exit 1
+        fi
+        echo "Installing Melos $version"
+        dart pub global activate melos "$version"
+        echo "${PUB_CACHE:-$HOME/.pub-cache}/bin" >> "$GITHUB_PATH"
