@@ -1,24 +1,28 @@
-import 'package:easy_localization/easy_localization.dart';
+import 'package:core/core.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-class LanguageTile extends StatelessWidget {
+import '../../../../l10n/app_localizations.dart';
+
+class LanguageTile extends ConsumerWidget {
   const LanguageTile({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SwitchListTile(
       onChanged: (bool newValue) {
-        /// Example: Change locale
-        /// The initial locale is automatically determined by the library.
-        /// Changing the locale like this will persist the selected locale.
-        context.setLocale(newValue ? const Locale('tr') : const Locale('en'));
+        /// Example: change the locale. Until the user picks one the app
+        /// follows the device; the choice is saved and survives a restart.
+        ref
+            .read(localeProvider.notifier)
+            .set(newValue ? const Locale('tr') : const Locale('en'));
       },
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
       ),
-      value: context.locale == const Locale('tr'),
+      value: Localizations.localeOf(context).languageCode == 'tr',
       title: Text(
-        tr('toggle_language'),
+        AppLocalizations.of(context).homeToggleLanguage,
         style: Theme.of(
           context,
         ).textTheme.titleMedium!.apply(fontWeightDelta: 2),
