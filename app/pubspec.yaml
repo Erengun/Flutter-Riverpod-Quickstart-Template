@@ -35,6 +35,8 @@ dependencies:
 
   core:
     path: ../packages/core
+  firebase_module:
+    path: ../packages/firebase_module
 
   path_provider: ^2.1.5
   flutter_displaymode: ^0.7.0
