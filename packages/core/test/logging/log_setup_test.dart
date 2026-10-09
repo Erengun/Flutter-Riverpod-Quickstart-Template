@@ -1,4 +1,5 @@
 import 'package:core/core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logging/logging.dart';
 
@@ -105,6 +106,74 @@ void main() {
 
       expect(reporter.breadcrumbs, hasLength(1));
       expect(printed, hasLength(1));
+    });
+  });
+
+  group('console printer', () {
+    late DebugPrintCallback original;
+    late List<String?> lines;
+
+    setUp(() {
+      original = debugPrint;
+      lines = <String?>[];
+      debugPrint = (String? message, {int? wrapWidth}) => lines.add(message);
+    });
+
+    tearDown(() => debugPrint = original);
+
+    test('printLogRecord writes through debugPrint', () {
+      final StackTrace stackTrace = StackTrace.current;
+
+      printLogRecord(LogRecord(Level.INFO, 'signed in', 'auth'));
+      printLogRecord(
+        LogRecord(
+          Level.SEVERE,
+          'session lost',
+          'auth',
+          StateError('boom'),
+          stackTrace,
+        ),
+      );
+
+      expect(lines, <String>[
+        '[INFO] auth: signed in',
+        '[SEVERE] auth: session lost\nBad state: boom\n$stackTrace',
+      ]);
+    });
+
+    test('the default printer is used for flavors with a console', () {
+      configureLogging(LogPolicy.forFlavor(Flavor.staging), reporter: reporter);
+
+      Logger('auth').info('signed in');
+
+      expect(lines, <String>['[INFO] auth: signed in']);
+    });
+
+    test('prod prints nothing with the default printer', () {
+      configureLogging(LogPolicy.forFlavor(Flavor.prod), reporter: reporter);
+
+      Logger('auth')
+        ..info('signed in')
+        ..severe('session lost', StateError('boom'));
+
+      expect(lines, isEmpty);
+    });
+  });
+
+  group('shouldSilenceDebugPrint', () {
+    test('silences only prod release builds', () {
+      for (final Flavor flavor in Flavor.values) {
+        expect(
+          shouldSilenceDebugPrint(isRelease: true, flavor: flavor),
+          flavor == Flavor.prod,
+          reason: '${flavor.name} release',
+        );
+        expect(
+          shouldSilenceDebugPrint(isRelease: false, flavor: flavor),
+          isFalse,
+          reason: '${flavor.name} non-release',
+        );
+      }
     });
   });
 }
