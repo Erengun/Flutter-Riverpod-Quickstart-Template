@@ -161,6 +161,34 @@ void main() {
       expect(container.read(sessionProvider).value, isNull);
     });
 
+    test('deletes the box when clearing it fails', () async {
+      ProviderContainer start() {
+        final ProviderContainer container = ProviderContainer(
+          overrides: <Override>[
+            sessionBoxProvider.overrideWith(
+              (Ref ref) async =>
+                  _ThrowingClearBox(await Hive.openBox<String>(sessionBoxName)),
+            ),
+            errorReporterProvider.overrideWithValue(reporter),
+          ],
+        );
+        addTearDown(container.dispose);
+        return container;
+      }
+
+      final ProviderContainer container = start();
+      await container.read(sessionProvider.future);
+      await container.read(sessionProvider.notifier).signIn(session);
+
+      await container.read(sessionProvider.notifier).logout();
+
+      expect(container.read(sessionProvider).value, isNull);
+      expect(await container.read(sessionProvider.future), isNull);
+      expect(reporter.users.last, isNull);
+      expect(reporter.reports, isEmpty);
+      expect(await start().read(sessionProvider.future), isNull);
+    });
+
     test('works when already signed out, without calling the hook', () async {
       int calls = 0;
       final ProviderContainer container = createContainer(
@@ -174,4 +202,24 @@ void main() {
       expect(container.read(sessionProvider).value, isNull);
     });
   });
+}
+
+/// A real box whose [clear] always fails.
+class _ThrowingClearBox extends Fake implements Box<String> {
+  _ThrowingClearBox(this._box);
+
+  final Box<String> _box;
+
+  @override
+  String? get(dynamic key, {String? defaultValue}) =>
+      _box.get(key, defaultValue: defaultValue);
+
+  @override
+  Future<void> putAll(Map<dynamic, String> entries) => _box.putAll(entries);
+
+  @override
+  Future<void> deleteAll(Iterable<dynamic> keys) => _box.deleteAll(keys);
+
+  @override
+  Future<int> clear() => throw HiveError('disk full');
 }

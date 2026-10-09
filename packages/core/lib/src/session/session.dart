@@ -139,6 +139,18 @@ class SessionNotifier extends AsyncNotifier<Session?> {
     try {
       final Box<String> box = await ref.read(sessionBoxProvider.future);
       await box.clear();
+    } catch (_) {
+      // Tokens left on disk would sign the user back in after a restart.
+      _log.warning('The session box could not be cleared; deleting it.');
+      try {
+        await Hive.deleteBoxFromDisk(sessionBoxName);
+        // The provider still holds the deleted, closed box; reopen it.
+        ref.invalidate(sessionBoxProvider);
+      } catch (error, stackTrace) {
+        // Never log the error itself: it may quote the box's contents.
+        _log.severe('The session box could not be deleted.');
+        ref.read(errorReporterProvider).report(error, stackTrace);
+      }
     } finally {
       state = const AsyncData<Session?>(null);
       ref.read(errorReporterProvider).setUser(null);
