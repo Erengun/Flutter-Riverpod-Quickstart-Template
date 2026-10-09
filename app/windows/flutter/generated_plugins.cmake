@@ -3,6 +3,8 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  firebase_core
+  firebase_remote_config
   sentry_flutter
   url_launcher_windows
 )

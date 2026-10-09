@@ -35,6 +35,8 @@ dependencies:
 
   core:
     path: ../packages/core
+  firebase_module:
+    path: ../packages/firebase_module
   sentry_module:
     path: ../packages/sentry_module
 

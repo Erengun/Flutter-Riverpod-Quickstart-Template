@@ -79,6 +79,10 @@ jobs:
   build-ios:
     name: build-ios
     runs-on: ${{ vars.MACOS_RUNNER || 'macos-latest' }}
+    env:
+      # firebase_module: link Firebase Analytics without the advertising id.
+      # firebase_analytics' Package.swift reads this while packages resolve.
+      FIREBASE_ANALYTICS_WITHOUT_ADID: 'true'
     defaults:
       run:
         working-directory: app
