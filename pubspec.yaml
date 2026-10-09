@@ -10,6 +10,7 @@ workspace:
   - app
   - packages/core
   - packages/firebase_module
+  - packages/sentry_module
 
 dev_dependencies:
   melos: ^7.8.1
