@@ -4,7 +4,11 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 class FadeTransitionPage extends CustomTransitionPage {
-  FadeTransitionPage({required LocalKey super.key, required super.child})
+  FadeTransitionPage({
+    required LocalKey super.key,
+    required super.child,
+    super.name,
+  })
     : super(
         transitionsBuilder:
             (
@@ -24,9 +28,11 @@ extension FadeGoRouteExtension on GoRoute {
   GoRoute fade() {
     return GoRoute(
       path: path,
+      name: name,
       pageBuilder: (BuildContext context, GoRouterState state) {
         return FadeTransitionPage(
           key: ValueKey<String>(path),
+          name: state.name,
           child: builder!(context, state),
         );
       },

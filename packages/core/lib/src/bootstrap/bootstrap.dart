@@ -8,7 +8,11 @@ import 'package:stack_trace/stack_trace.dart' as stack_trace;
 import '../config/app_config.dart';
 import '../config/flavor_check.dart';
 import '../config/konteyner_platform.dart';
+import '../logging/log_setup.dart';
 import '../modules/konteyner_module.dart';
+import '../reporting/provider_failure_observer.dart';
+import '../reporting/report_dispatcher.dart';
+import '../reporting/uncaught_errors.dart';
 import 'app_shell.dart';
 
 /// Starts the app. Each flavor entrypoint (`main_<flavor>.dart`) calls it
@@ -17,10 +21,16 @@ import 'app_shell.dart';
 /// In order, it:
 /// 1. throws [FlavorMismatchError] on Android and iOS when the native
 ///    `--flavor` differs from [config]'s flavor, in every build mode;
-/// 2. starts [modules] (see [startModules]);
-/// 3. runs [app] inside a `ProviderScope` that overrides
+/// 2. attaches the only root-logger listener for [config]'s flavor (see
+///    [configureLogging]), feeding breadcrumbs to a [ReportDispatcher];
+/// 3. installs log-only uncaught-error handlers
+///    (see [installUncaughtErrorLogging]);
+/// 4. starts [modules] (see [startModules]); reports made until then are
+///    buffered and sent once the Modules' reporter is up;
+/// 5. runs [app] inside a `ProviderScope` that overrides
 ///    [appConfigProvider], [konteynerThemeProvider], [splashProvider] and the
-///    interfaces the Modules contributed.
+///    interfaces the Modules contributed (`errorReporterProvider` is the
+///    dispatcher), and observes it with a [ProviderFailureObserver].
 ///
 /// [theme] holds the app's light and dark themes. [splash] replaces Core's
 /// default progress indicator.
@@ -34,6 +44,10 @@ Future<void> bootstrap(
   WidgetsFlutterBinding.ensureInitialized();
   final KonteynerPlatform platform = KonteynerPlatform.current;
   checkNativeFlavor(config.flavor, nativeFlavor: appFlavor, platform: platform);
+
+  final ReportDispatcher reports = ReportDispatcher();
+  configureLogging(LogPolicy.forFlavor(config.flavor), reporter: reports);
+  installUncaughtErrorLogging();
 
   if (kReleaseMode) {
     // Silence debugPrint in release builds.
@@ -51,10 +65,12 @@ Future<void> bootstrap(
     modules,
     config,
     platform: platform,
+    reports: reports,
   );
 
   runApp(
     ProviderScope(
+      observers: <ProviderObserver>[ProviderFailureObserver(reports)],
       overrides: <Override>[
         appConfigProvider.overrideWithValue(config),
         konteynerThemeProvider.overrideWithValue(theme),
