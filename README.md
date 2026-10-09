@@ -169,6 +169,7 @@ Delete all of these:
 - `packages/firebase_module/` (options files included)
 - `- packages/firebase_module` in the root `pubspec.yaml` workspace list
 - the `firebase_module` dependency in `app/pubspec.yaml`
+- the `firebase_module` dependency in `widgetbook/pubspec.yaml` (and its use cases in `widgetbook/lib/`, if you added any)
 - the `FirebaseModule()` entry and its import in `app/lib/app/modules.dart`
 - the `firebase:configure:*` scripts in the root `pubspec.yaml`
 - `FIREBASE_ANALYTICS_WITHOUT_ADID` in `.github/workflows/ci.yaml` (and in your shell or `launchctl`)
@@ -233,6 +234,48 @@ class LoginController extends _$LoginController {
   }
 }
 ```
+---
+
+## Widgetbook
+
+`widgetbook/` is a web-only [Widgetbook](https://www.widgetbook.io/) catalog where designers can browse Core's screens and the demo screens: the no-permission and under-construction pages, the force-update dialog (blocking and dismissible), the error snackbar and error view for each `ApiException` kind, `PermissionGate`'s states, and the demo login and home screens running on fake repositories. Its toolbar switches the theme (the app's light and dark themes), the locale (en, tr), the device frame (phone, tablet, desktop), the text scale, and turns on accessibility checks.
+
+It is its own workspace member that depends on the app, Core and each Module; the app never depends on it.
+
+### Run it
+
+```bash
+dart run melos run widgetbook
+```
+
+(or `flutter run -d chrome` inside `widgetbook/`).
+
+### Add a use case
+
+Write a function annotated with `@UseCase` in a file whose path mirrors the widget's, for example `widgetbook/lib/core/permission_gate.use_cases.dart` for Core's `PermissionGate`, or `widgetbook/lib/app/features/home/presentation/home_screen.use_cases.dart` for the app's home screen. Screens that use Riverpod get their own `ProviderScope` with fake overrides (see `widgetbook/lib/app/demo_scope.dart`). Then run `dart run melos run gen`, which regenerates `widgetbook/lib/main.directories.g.dart`; commit it. CI fails when it is out of date.
+
+### Publish it to GitHub Pages
+
+`.github/workflows/widgetbook.yaml` builds the catalog for the web and deploys it to GitHub Pages on every push to `main` and on manual dispatch. It does nothing until you opt in:
+
+1. In the repo's Settings > Pages, set the source to **GitHub Actions**.
+2. In Settings > Secrets and variables > Actions > Variables, add the repository variable `WIDGETBOOK_PUBLISH` with the value `true`.
+
+No secrets are needed.
+
+### Remove it
+
+Delete all of these, then run `flutter pub get`:
+
+- `widgetbook/`
+- `- widgetbook` in the root `pubspec.yaml` workspace list
+- the `dependency_overrides` block for `analyzer` in the root `pubspec.yaml` (it exists only for `widgetbook_generator`)
+- the `widgetbook` Melos script in the root `pubspec.yaml`
+- `.github/workflows/widgetbook.yaml`
+- the `"/widgetbook"` line in `.github/dependabot.yml`
+
+Removing a Module also removes its dependency from `widgetbook/pubspec.yaml` and its use cases from `widgetbook/lib/`.
+
 ---
 
 ## Testing

@@ -1,0 +1,52 @@
+# Publishes the Widgetbook catalog (widgetbook/) to GitHub Pages.
+#
+# Off until a repo opts in: the job runs only when the repository variable
+# WIDGETBOOK_PUBLISH is 'true'. To publish, set that variable and choose
+# "GitHub Actions" as the Pages source (Settings > Pages). No secrets.
+#
+# PRs don't build the catalog here: ci.yaml's check job already runs its
+# codegen, analysis and tests. Deleting Widgetbook deletes this file too.
+name: Widgetbook
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push replaces a queued one, but a
+# deployment in progress finishes.
+concurrency:
+  group: widgetbook-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: vars.WIDGETBOOK_PUBLISH == 'true'
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+
+      - id: pages
+        uses: actions/configure-pages@v6
+
+      # A project site is served under /<repo>/, so the base href comes from
+      # configure-pages.
+      - name: Build Widgetbook (web, release)
+        working-directory: widgetbook
+        run: flutter build web --release --base-href "${{ steps.pages.outputs.base_path }}/"
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: widgetbook/build/web
+
+      - id: deploy
+        uses: actions/deploy-pages@v5

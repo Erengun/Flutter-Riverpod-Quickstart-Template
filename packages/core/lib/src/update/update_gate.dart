@@ -12,6 +12,7 @@ import '../reporting/remote_flags.dart';
 import 'app_version_source.dart';
 import 'konteyner_upgrader_messages.dart';
 import 'konteyner_upgrader_store.dart';
+import 'update_dialog.dart';
 
 final Logger _log = Logger('update');
 
@@ -244,27 +245,14 @@ class _KonteynerUpgradeAlertState extends UpgradeAlertState {
     bool cupertino,
     UpgraderMessages messages,
   ) {
-    final bool blocked = widget.upgrader.blocked();
-    return AlertDialog(
+    return KonteynerUpdateDialog(
       key: key,
-      title: Text(title, key: const Key('upgrader.dialog.title')),
-      content: SingleChildScrollView(child: Text(message)),
-      actions: <Widget>[
-        if (!blocked) ...<Widget>[
-          TextButton(
-            onPressed: () => onUserIgnored(context, true),
-            child: Text(messages.buttonTitleIgnore),
-          ),
-          TextButton(
-            onPressed: () => onUserLater(context, true),
-            child: Text(messages.buttonTitleLater),
-          ),
-        ],
-        TextButton(
-          onPressed: () => onUserUpdated(context, !widget.upgrader.blocked()),
-          child: Text(messages.buttonTitleUpdate),
-        ),
-      ],
+      updateRequired: widget.upgrader.blocked(),
+      title: title,
+      message: message,
+      onUpdate: () => onUserUpdated(context, !widget.upgrader.blocked()),
+      onIgnore: () => onUserIgnored(context, true),
+      onLater: () => onUserLater(context, true),
     );
   }
 }
