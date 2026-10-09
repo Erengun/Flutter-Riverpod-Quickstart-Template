@@ -172,6 +172,9 @@ Delete all of these:
 - the `FirebaseModule()` entry and its import in `app/lib/app/modules.dart`
 - the `firebase:configure:*` scripts in the root `pubspec.yaml`
 - `FIREBASE_ANALYTICS_WITHOUT_ADID` in `.github/workflows/ci.yaml` (and in your shell or `launchctl`)
+- the `packages/firebase_module/` line in `CLAUDE.md`
+
+The Firebase entries in the macOS and Windows plugin registrants go away on the next `flutter pub get`, which regenerates them.
 
 Once Firebase has been configured, also delete:
 
