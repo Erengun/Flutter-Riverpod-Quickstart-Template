@@ -51,32 +51,38 @@ class _Visitor extends SimpleAstVisitor<void> {
   final RuleContext context;
 
   @override
-  void visitImportDirective(ImportDirective node) =>
-      _checkDirective(node, node.libraryImport?.uri);
+  void visitImportDirective(ImportDirective node) => _checkDirective(node);
 
   @override
-  void visitExportDirective(ExportDirective node) =>
-      _checkDirective(node, node.libraryExport?.uri);
+  void visitExportDirective(ExportDirective node) => _checkDirective(node);
 
   /// Checks the directive's default URI and every conditional URI
-  /// (`if (dart.library.io) '...'`), reporting on the URI that crosses.
-  void _checkDirective(NamespaceDirective node, DirectiveUri? target) {
+  /// (`if (dart.library.io) '...'`) separately, reporting on the URI that
+  /// crosses.
+  void _checkDirective(NamespaceDirective node) {
     final Uri? current = context.currentUnit?.unit.declaredFragment?.source.uri;
     if (current == null) return;
     final _Feature? from = _Feature.of(current);
     if (from == null) return;
 
-    // [target] is the selected URI, which is the default URI unless declared
-    // variables (`-D`) pick a configuration.
-    _check(from, node.uri, target);
+    // The default URI is resolved from its own string. The analyzer's
+    // libraryImport/libraryExport URI is the selected one, which is a
+    // configuration's URI when declared variables (`-D`) pick one.
+    final String? defaultUri = node.uri.stringValue;
+    final Uri? relative = defaultUri == null ? null : Uri.tryParse(defaultUri);
+    if (relative != null) {
+      _check(from, node.uri, current.resolveUri(relative));
+    }
     for (final Configuration configuration in node.configurations) {
-      _check(from, configuration.uri, configuration.resolvedUri);
+      final DirectiveUri? target = configuration.resolvedUri;
+      if (target is DirectiveUriWithSource) {
+        _check(from, configuration.uri, target.source.uri);
+      }
     }
   }
 
-  void _check(_Feature from, StringLiteral uriNode, DirectiveUri? target) {
-    if (target is! DirectiveUriWithSource) return;
-    final _Feature? to = _Feature.of(target.source.uri);
+  void _check(_Feature from, StringLiteral uriNode, Uri target) {
+    final _Feature? to = _Feature.of(target);
     if (to == null) return;
 
     if (from.package == to.package && from.name != to.name) {

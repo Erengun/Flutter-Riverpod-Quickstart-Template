@@ -94,6 +94,41 @@ export 'orders_stub.dart' if (dart.library.html) '../login/login.dart';
     await assertDiagnosticsInFile(path, <ExpectedDiagnostic>[lint(49, 21)]);
   }
 
+  Future<void> test_conditionalImportWithDefaultFromAnotherFeature() async {
+    newFile('$_features/orders/orders_io.dart', 'class Login {}');
+    const String content = '''
+import '../../login/login.dart' if (dart.library.io) '../orders_io.dart';
+Login? l;
+''';
+    final String path = '$_features/orders/data/orders_data.dart';
+    newFile(path, content);
+    await assertDiagnosticsInFile(path, <ExpectedDiagnostic>[lint(7, 24)]);
+  }
+
+  Future<void> test_conditionalExportWithDefaultFromAnotherFeature() async {
+    newFile('$_features/orders/orders_io.dart', 'class Login {}');
+    const String content = '''
+export '../login/login.dart' if (dart.library.io) 'orders_io.dart';
+''';
+    final String path = '$_features/orders/orders.dart';
+    newFile(path, content);
+    await assertDiagnosticsInFile(path, <ExpectedDiagnostic>[lint(7, 21)]);
+  }
+
+  Future<void> test_conditionalImportBothUrisFromOtherFeatures() async {
+    newFile('$_features/payments/payments.dart', 'class Login {}');
+    const String content = '''
+import '../../login/login.dart' if (dart.library.io) '../../payments/payments.dart';
+Login? l;
+''';
+    final String path = '$_features/orders/data/orders_data.dart';
+    newFile(path, content);
+    await assertDiagnosticsInFile(path, <ExpectedDiagnostic>[
+      lint(7, 24),
+      lint(53, 30),
+    ]);
+  }
+
   // Allowed
 
   Future<void> test_importFromSameFeature() async {
