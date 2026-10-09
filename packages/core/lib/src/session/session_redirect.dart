@@ -50,12 +50,17 @@ String? sessionRedirect(
 }
 
 // A path inside the app (not another host, not login or splash again).
+// Backslashes are rejected because browsers read them as slashes, so
+// `/\evil.example` would become the other-host `//evil.example`.
 bool _isReturnLocation(
   String? from, {
   required String splashPath,
   required String loginPath,
 }) {
-  if (from == null || !from.startsWith('/') || from.startsWith('//')) {
+  if (from == null ||
+      !from.startsWith('/') ||
+      from.startsWith('//') ||
+      from.contains(r'\')) {
     return false;
   }
   final Uri? parsed = Uri.tryParse(from);

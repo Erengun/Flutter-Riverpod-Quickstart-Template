@@ -99,6 +99,9 @@ void main() {
       for (final String from in <String>[
         'https://evil.example',
         '//evil.example/x',
+        r'/\evil.example',
+        r'/\\evil.example/x',
+        r'/orders\..\x',
         'orders',
         '/login',
         '/splash',
