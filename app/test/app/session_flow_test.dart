@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:core/core.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/authentication_repository.dart';
@@ -173,6 +175,45 @@ void main() {
     expect(find.byType(LoginScreen), findsOneWidget);
   });
 
+  testWidgets('an expired session returns to login with the expiry line, '
+      'once', (WidgetTester tester) async {
+    // No refresh token (the reqres demo): the first 401 signs out.
+    await tester.runAsync(
+      () => storage.session.put('accessToken', 'saved-token'),
+    );
+    await startApp(tester);
+    expect(find.byType(HomeScreen), findsOneWidget);
+    const String expiredLine =
+        'Your session has expired. Please sign in again.';
+
+    final Dio dio = ProviderScope.containerOf(
+      tester.element(find.byType(MaterialApp)),
+    ).read(dioProvider)..httpClientAdapter = _UnauthorizedAdapter();
+    Object? failure;
+    unawaited(
+      dio
+          .get<Object?>('/api/users/2')
+          .then<void>((_) {}, onError: (Object error) => failure = error),
+    );
+    await tester.pumpAndSettle();
+
+    expect(failure, isA<DioException>());
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(router(tester).state.uri.toString(), '/login?from=%2Fhome');
+    expect(find.text(expiredLine), findsOneWidget);
+    expect(storage.session.isEmpty, isTrue);
+
+    await signInThroughTheForm(tester);
+    expect(find.byType(HomeScreen), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.logout_outlined));
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(router(tester).state.uri.toString(), SGRoute.login.route);
+    expect(find.text(expiredLine), findsNothing);
+  });
+
   testWidgets('remember me pre-fills the form after logout', (
     WidgetTester tester,
   ) async {
@@ -196,4 +237,17 @@ void main() {
     // Pre-fill only: still signed out.
     expect(find.byType(HomeScreen), findsNothing);
   });
+}
+
+/// Answers every request with a 401.
+class _UnauthorizedAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async => ResponseBody.fromString('{}', 401);
+
+  @override
+  void close({bool force = false}) {}
 }

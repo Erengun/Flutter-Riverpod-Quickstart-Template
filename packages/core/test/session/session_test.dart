@@ -241,6 +241,92 @@ void main() {
       expect(container.read(sessionProvider).value, isNull);
     });
   });
+
+  group('expire', () {
+    test('marks the session expired before signing out, without the '
+        'logout hook', () async {
+      int calls = 0;
+      final ProviderContainer container = createContainer(
+        hooks: SessionHooks(logout: (Session session) async => calls++),
+      );
+      await container.read(sessionProvider.future);
+      await container
+          .read(sessionProvider.notifier)
+          .signIn(const Session(accessToken: 'a', userId: '7'));
+      final List<bool> expiredWhenSignedOut = <bool>[];
+      container.listen<AsyncValue<Session?>>(sessionProvider, (
+        AsyncValue<Session?>? previous,
+        AsyncValue<Session?> next,
+      ) {
+        if (next.value == null) {
+          expiredWhenSignedOut.add(container.read(sessionExpiredProvider));
+        }
+      });
+
+      await container.read(sessionProvider.notifier).expire();
+
+      expect(container.read(sessionProvider).value, isNull);
+      expect(expiredWhenSignedOut, <bool>[true]);
+      expect(box.isEmpty, isTrue);
+      expect(reporter.users.last, isNull);
+      await pumpEventQueue();
+      expect(calls, 0);
+    });
+
+    test('does nothing while signed out', () async {
+      final ProviderContainer container = createContainer();
+      await container.read(sessionProvider.future);
+
+      await container.read(sessionProvider.notifier).expire();
+
+      expect(container.read(sessionExpiredProvider), isFalse);
+    });
+
+    test('the next sign-in clears it', () async {
+      final ProviderContainer container = createContainer();
+      await container.read(sessionProvider.future);
+      await container
+          .read(sessionProvider.notifier)
+          .signIn(const Session(accessToken: 'a'));
+      await container.read(sessionProvider.notifier).expire();
+
+      await container
+          .read(sessionProvider.notifier)
+          .signIn(const Session(accessToken: 'b'));
+
+      expect(container.read(sessionExpiredProvider), isFalse);
+    });
+  });
+
+  group('updateTokens', () {
+    test('saves the refreshed tokens', () async {
+      final ProviderContainer container = createContainer();
+      await container.read(sessionProvider.future);
+      await container
+          .read(sessionProvider.notifier)
+          .signIn(const Session(accessToken: 'a', refreshToken: 'r'));
+
+      await container
+          .read(sessionProvider.notifier)
+          .updateTokens(const Session(accessToken: 'b', refreshToken: 'r2'));
+
+      const Session refreshed = Session(accessToken: 'b', refreshToken: 'r2');
+      expect(container.read(sessionProvider).value, refreshed);
+      expect(await createContainer().read(sessionProvider.future), refreshed);
+    });
+
+    test('never signs a signed-out user back in', () async {
+      final ProviderContainer container = createContainer();
+      await container.read(sessionProvider.future);
+
+      await container
+          .read(sessionProvider.notifier)
+          .updateTokens(const Session(accessToken: 'b'));
+
+      expect(container.read(sessionProvider).value, isNull);
+      expect(box.isEmpty, isTrue);
+    });
+  });
 }
 
 /// A real box whose [clear] always fails.
