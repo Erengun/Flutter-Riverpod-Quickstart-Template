@@ -34,7 +34,7 @@ Gitignored and never committed: `CLAUDE.local.md`, `.claude/worktrees/`, `.claud
 
 ## Architecture
 
-**Entry / flavors.** `app/lib/main_dev.dart` / `main_staging.dart` / `main_prod.dart` call `FlavorConfig.setFlavor(...)` (`lib/flavors/app_flavor.dart`) then `bootstrap()` in `lib/main.dart`, which initializes EasyLocalization, Hive (`lib/hive/hive.dart`), orientation, and wraps `MyApp` in `ProviderScope` + `EasyLocalization`. Native flavor names/IDs live in `android/app/build.gradle.kts` and `ios/Flutter/{Debug,Profile,Release}-<flavor>.xcconfig`; keep them in sync with `FlavorConfig`.
+**Entry / flavors.** `app/lib/main_dev.dart` / `main_staging.dart` / `main_prod.dart` call `FlavorConfig.setFlavor(...)` (`lib/flavors/app_flavor.dart`) then `bootstrap()` in `lib/main.dart`, which initializes EasyLocalization, Hive (`lib/hive/hive.dart`), orientation, and wraps `MyApp` in `ProviderScope` + `EasyLocalization`. Native flavor names/IDs live in `android/gradle.properties` (`app.*` keys, read by `android/app/build.gradle.kts`) and `ios/Flutter/{Debug,Profile,Release}-<flavor>.xcconfig`; keep them in sync with `FlavorConfig`.
 
 **State management.** Riverpod 3 with code generation (`@riverpod` / `@Riverpod(keepAlive: true)` + `part '*.g.dart'`). Generated provider names are `<name>Provider` (e.g. `NetworkRepository` → `networkRepositoryProvider`). Immutable models and UI state use Freezed.
 
