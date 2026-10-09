@@ -29,10 +29,16 @@ CI (`.github/workflows/ci.yaml`, every PR to `main` and every push to `main`; no
 
 ## Lint rules
 
-`lint_rules.yaml` enables almost every Dart lint; the root `analysis_options.yaml` turns off the conflicting ones and adds `riverpod_lint` plus strict-casts/inference/raw-types. Each package includes it. In practice:
+`lint_rules.yaml` enables almost every Dart lint; the root `analysis_options.yaml` turns off the conflicting ones and adds the analyzer plugins (below) plus strict-casts/inference/raw-types. Each package includes it. In practice:
 - Explicit types everywhere (`always_specify_types`): `final String x = ...`, typed collection literals (`<Locale>[...]`), typed closure params.
 - Relative imports inside a package's `lib/` (`prefer_relative_imports`); other packages via `package:core/...`; app tests import via `package:flutter_riverpod_template/...`.
 - Single quotes.
+- No imports between Features (`no_cross_feature_imports`): a file in `lib/features/<a>/` must not import or export anything from `lib/features/<b>/`. Move shared code to Core or `lib/shared/`, or navigate through the router. Files outside a Feature folder (`lib/app/`, `test/`) may import any Feature.
+
+**Analyzer plugins.** The root `analysis_options.yaml` loads three plugins: `riverpod_lint`, `packages/konteyner_lints` (the template's architecture rules, currently `no_cross_feature_imports`) and `packages/app_lints` (empty; an app adds its own rules there, registered in its `lib/main.dart` the same way). The two local plugins are referenced by `path:`, are not workspace members (they have their own `pubspec.lock`) and report in every package that includes the root options. Notes:
+- Only `dart analyze` runs plugins; `flutter analyze` does not, so a clean `flutter analyze` alone proves nothing for plugin rules. The Melos `analyze` script runs both.
+- Rule tests use `analyzer_testing` (`AnalysisRuleTest`, see `packages/konteyner_lints/test/`). Run them with `dart run melos run test:lints` (also part of `melos run test`); `melos run analyze:lints` analyzes both plugin packages (also part of `melos run analyze`).
+- `analysis_server_plugin` is 0.x and pinned to an exact version, with `analyzer` pinned to the version it requires. Bump both together in both plugin packages. After changing a plugin, restart the analysis server (or rerun `dart analyze`) to pick it up.
 
 ## Local files
 

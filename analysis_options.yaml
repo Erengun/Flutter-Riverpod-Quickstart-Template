@@ -2,6 +2,13 @@ include: lint_rules.yaml
 
 plugins:
   riverpod_lint: ^3.1.9
+  # Local plugins, referenced by path and not workspace members.
+  # konteyner_lints holds the template's architecture rules; app_lints is an
+  # empty starter for the app's own rules.
+  konteyner_lints:
+    path: packages/konteyner_lints
+  app_lints:
+    path: packages/app_lints
 
 analyzer:
   language:
