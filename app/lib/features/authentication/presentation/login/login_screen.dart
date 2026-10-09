@@ -1,12 +1,10 @@
 import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../constants/assets.dart';
-import '../../../../router/app_router.dart';
-import '../../domain/login_response.dart';
+import '../../domain/login_request.dart';
 import '../register/register_dialog.dart';
 import 'auth_ui_model.dart';
 import 'login_controller.dart';
@@ -47,9 +45,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       AsyncValue<AuthUiModel>? previous,
       AsyncValue<AuthUiModel> next,
     ) {
-      if (next.value?.user != null) {
-        _emailController.text = next.value!.user!.email;
-        _passwordController.text = next.value!.user!.password;
+      // Pre-fills the form when saved or registered credentials arrive,
+      // without undoing the user's typing on other state changes.
+      final LoginCredentials? user = next.value?.user;
+      if (user != null && user != previous?.value?.user) {
+        _emailController.text = user.email;
+        _passwordController.text = user.password;
       }
     });
     return Scaffold(
@@ -229,9 +230,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                         const Gap(5),
-                        const Text(
-                          'Remember me',
-                          style: TextStyle(
+                        Text(
+                          CoreLocalizations.of(context).authRememberMe,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w400,
                           ),
@@ -276,6 +277,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                       onPressed: () {
+                        // A successful login starts the session and the
+                        // router's redirect replaces this page with home.
                         ref
                             .read(loginControllerProvider.notifier)
                             .login(
@@ -292,16 +295,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 );
                               }
                               return null;
-                            })
-                            .then((LoginResponse? loginResponse) {
-                              // Check for token and also context.mounted
-                              // to avoid context access after dispose
-                              if (loginResponse != null &&
-                                  loginResponse.token.isNotEmpty &&
-                                  context.mounted) {
-                                // Handle successful login
-                                context.push(SGRoute.home.route);
-                              }
                             });
                       },
                       child: authUiModelAsync.isLoading

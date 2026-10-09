@@ -194,7 +194,9 @@ The template includes a complete authentication system with secure credential st
 ### How it works
 
 - **Login & Registration:** A retrofit client (`AuthApi`) POSTs to `api/login` and `api/register` through Core's shared Dio.
-- **Credential Caching:** Credentials are securely cached in Hive CE using AES-256 encryption, with key derived per-device.
+- **Session:** A successful login saves the token in Core's encrypted Hive box, so the user stays signed in after a restart. The app opens on a splash, then goes to home or login. Logout clears the token, and the back button can't undo it.
+- **Remember me:** When ticked, the email and password are saved (encrypted) only to pre-fill the login form; they never sign the user in. Unticking deletes them; logout keeps them.
+- **Encryption key:** One random AES-256 key, created on first launch and kept in the platform's secure storage (`flutter_secure_storage`). Android backups exclude the Hive files and that key.
 - **State Management:** All authentication UI and logic is managed via Riverpod notifiers and state classes.
 - **Error Handling:** Network failures become an `ApiException` and show as a translated snackbar.
 - **Loading State:** UI reflects loading and error states for a smooth UX.
@@ -233,7 +235,7 @@ class LoginController extends _$LoginController {
 
 ## Testing
 
-- Integrated tests for auth controller logic (`app/test/features/login_controller_test.dart`)
+- Integrated tests for auth controller logic (`app/test/features/login_controller_test.dart`) and the session flow: restart, redirect and logout (`app/test/app/session_flow_test.dart`)
 - Run tests in every package with:
     ```bash
     dart run melos run test

@@ -19,10 +19,13 @@ abstract class AuthApi {
   factory AuthApi(Dio dio, {String? baseUrl, ParseErrorLogger? errorLogger}) =
       _AuthApi;
 
+  // Signing in and registering never carry a token.
   @POST('api/login')
+  @Extra(<String, Object>{skipAuthKey: true})
   Future<LoginResponse> login(@Body() LoginCredentials credentials);
 
   @POST('api/register')
+  @Extra(<String, Object>{skipAuthKey: true})
   Future<RegisterResponse> register(@Body() LoginCredentials credentials);
 }
 

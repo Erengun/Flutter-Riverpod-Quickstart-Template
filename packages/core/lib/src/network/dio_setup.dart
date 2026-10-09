@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 
 import '../config/app_config.dart';
 import '../reporting/error_reporter.dart';
+import '../session/auth_interceptor.dart';
 import 'request_path.dart';
 
 /// Core's Dio timeouts. Any single request can override them through its
@@ -113,11 +114,12 @@ bool shouldRetryRequest(DioException error, int attempt) {
 }
 
 /// Extra interceptors placed first in [dioProvider]'s chain, before
-/// breadcrumb and retry. Empty by default; the app overrides it (the auth
-/// token/refresh interceptor goes here).
+/// breadcrumb and retry. Defaults to Core's auth interceptor alone
+/// ([authInterceptorProvider]). An app that overrides it to add its own
+/// keeps `ref.watch(authInterceptorProvider)` in the list.
 final Provider<List<Interceptor>> dioInterceptorsProvider =
     Provider<List<Interceptor>>(
-      (Ref ref) => const <Interceptor>[],
+      (Ref ref) => <Interceptor>[ref.watch(authInterceptorProvider)],
       name: 'dioInterceptorsProvider',
     );
 
