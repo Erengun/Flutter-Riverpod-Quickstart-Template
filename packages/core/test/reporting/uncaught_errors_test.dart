@@ -82,18 +82,22 @@ void main() {
       expect(forwarded, <Object>[error]);
     });
 
-    test('on web, logs the error when PlatformDispatcher.onError is '
-        'unset', () async {
+    test('on web, prints the error to the console when '
+        'PlatformDispatcher.onError is unset', () async {
       PlatformDispatcher.instance.onError = null;
-      final StateError error = StateError('no handler');
+      final DebugPrintCallback originalPrint = debugPrint;
+      addTearDown(() => debugPrint = originalPrint);
+      final List<String> printed = <String>[];
+      debugPrint = (String? message, {int? wrapWidth}) {
+        if (message != null) printed.add(message);
+      };
 
       await runGuarded(() async {
-        Timer.run(() => throw error);
+        Timer.run(() => throw StateError('no handler'));
       }, platform: KonteynerPlatform.web);
       await pumpEventQueue();
 
-      expect(logged.map((LogRecord r) => r.error), <Object>[error]);
-      expect(logged.single.level, Level.SEVERE);
+      expect(printed.join('\n'), contains('no handler'));
     });
 
     for (final KonteynerPlatform platform in KonteynerPlatform.values.where(

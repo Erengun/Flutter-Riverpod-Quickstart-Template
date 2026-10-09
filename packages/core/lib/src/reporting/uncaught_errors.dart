@@ -41,7 +41,8 @@ void installUncaughtErrorLogging() {
 /// The web engine never calls `PlatformDispatcher.onError`
 /// (flutter/flutter#100277), so on web [body] runs in a guarded zone whose
 /// handler calls the current `PlatformDispatcher.onError` (Core's log-only
-/// handler, and an error-tracker Module's handler chained to it). The zone
+/// handler, and an error-tracker Module's handler chained to it; before
+/// `bootstrap` installs it, the error is printed to the console). The zone
 /// must enclose `WidgetsFlutterBinding.ensureInitialized` so frame and event
 /// callbacks run in it too, which is why the entrypoint, not `bootstrap`,
 /// opens it.
@@ -62,7 +63,12 @@ Future<void> runGuarded(
       ) {
         final ErrorCallback? onError = PlatformDispatcher.instance.onError;
         if (onError == null) {
-          _log.severe('Uncaught error', error, stackTrace);
+          // Before `bootstrap` installs the handlers (and the log listener),
+          // print to the console as the root zone would have.
+          FlutterError.dumpErrorToConsole(
+            FlutterErrorDetails(exception: error, stack: stackTrace),
+            forceReport: true,
+          );
         } else {
           onError(error, stackTrace);
         }
