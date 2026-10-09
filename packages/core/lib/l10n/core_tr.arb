@@ -1,0 +1,22 @@
+{
+  "@@locale": "tr",
+  "authRememberMe": "Beni hatırla",
+  "authSessionExpired": "Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.",
+  "errorConnection": "İnternet bağlantısı yok. Bağlantınızı kontrol edip tekrar deneyin.",
+  "errorNoPermission": "Bu işlem için yetkiniz yok.",
+  "errorNotFound": "Aradığınız içerik bulunamadı.",
+  "errorServer": "Sunucuda bir sorun oluştu. Lütfen daha sonra tekrar deneyin.",
+  "errorSomethingWentWrong": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+  "errorTimeout": "İstek zaman aşımına uğradı. Lütfen tekrar deneyin.",
+  "noPermissionBody": "Bu sayfayı görüntüleme yetkiniz yok.",
+  "noPermissionTitle": "Erişim yok",
+  "pageBackHome": "Ana sayfaya dön",
+  "underConstructionBody": "Bu sayfa henüz hazır değil. Lütfen daha sonra tekrar bakın.",
+  "underConstructionTitle": "Yakında",
+  "updateBodyOptional": "Yeni bir sürüm mevcut. Şimdi güncellemek ister misiniz?",
+  "updateBodyRequired": "Uygulamayı kullanmaya devam etmek için yeni sürüm gerekli. Lütfen şimdi güncelleyin.",
+  "updateButtonIgnore": "Yoksay",
+  "updateButtonLater": "Daha sonra",
+  "updateButtonUpdate": "Güncelle",
+  "updateTitle": "Güncelleme mevcut"
+}

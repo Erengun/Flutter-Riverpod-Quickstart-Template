@@ -1,9 +1,9 @@
-import 'package:easy_localization/easy_localization.dart';
+import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../../../../config/theme/theme_logic.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class ThemeWidget extends ConsumerWidget {
   const ThemeWidget({super.key});
@@ -15,7 +15,7 @@ class ThemeWidget extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.all(15),
           child: Text(
-            tr('toggle_theme'),
+            AppLocalizations.of(context).homeToggleTheme,
             style: Theme.of(
               context,
             ).textTheme.titleMedium!.apply(fontWeightDelta: 2),
@@ -24,7 +24,7 @@ class ThemeWidget extends ConsumerWidget {
         const Spacer(),
         SegmentedButton<ThemeMode>(
           showSelectedIcon: false,
-          selected: <ThemeMode>{ref.watch(themeLogicProvider).themeMode},
+          selected: <ThemeMode>{ref.watch(themeModeProvider)},
           segments: const <ButtonSegment<ThemeMode>>[
             ButtonSegment<ThemeMode>(
               icon: Icon(Ionicons.sunnyOutline),
@@ -40,7 +40,7 @@ class ThemeWidget extends ConsumerWidget {
             ),
           ],
           onSelectionChanged: (Set<ThemeMode> theme) =>
-              ref.read(themeLogicProvider.notifier).setThemeMode(theme.first),
+              ref.read(themeModeProvider.notifier).set(theme.first),
         ),
       ],
     );

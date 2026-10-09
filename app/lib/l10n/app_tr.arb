@@ -1,0 +1,16 @@
+{
+  "@@locale": "tr",
+  "appTitle": "Flutter Production Boilerplate",
+  "homeBottomNavFirst": "Ana Sayfa",
+  "homeBottomNavSecond": "Ayarlar",
+  "homeInfo": "Hakkında",
+  "homeIntro": "Merhaba, ben Eren 👋🏽",
+  "homeMore": "Daha Fazla",
+  "homeThemeMode": "Tema Modu",
+  "homeThemeModeDark": "Karanlık",
+  "homeThemeModeLight": "Aydınlık",
+  "homeThemeModeSystem": "Sistem",
+  "homeTitle": "Ana Sayfa",
+  "homeToggleLanguage": "Dili Değiştir",
+  "homeToggleTheme": "Temayı Değiştir"
+}

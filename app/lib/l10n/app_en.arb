@@ -1,0 +1,16 @@
+{
+  "@@locale": "en",
+  "appTitle": "Flutter Production Boilerplate",
+  "homeBottomNavFirst": "Home",
+  "homeBottomNavSecond": "Info",
+  "homeInfo": "Info",
+  "homeIntro": "Hi, I am Eren 👋🏽",
+  "homeMore": "Learn More",
+  "homeThemeMode": "Theme Mode",
+  "homeThemeModeDark": "Dark",
+  "homeThemeModeLight": "Light",
+  "homeThemeModeSystem": "System",
+  "homeTitle": "Home",
+  "homeToggleLanguage": "Change Language",
+  "homeToggleTheme": "Change Theme"
+}

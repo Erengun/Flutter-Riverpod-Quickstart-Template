@@ -1,5 +1,5 @@
 name: flutter_riverpod_template
-description: A flutter boilerplate project with riverpod 2.0 containing riverpod annotations, freezed, lints, hive, easy_translations and more
+description: A flutter boilerplate project with riverpod 2.0 containing riverpod annotations, freezed, lints, hive, gen-l10n localization and more
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -30,13 +30,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   core:
     path: ../packages/core
 
   path_provider: ^2.1.5
   flutter_displaymode: ^0.7.0
-  easy_localization: ^3.0.7
   ionicons: ^0.2.3
   cupertino_icons: ^2.0.0
   flutter_riverpod: ^3.4.3
@@ -50,7 +51,8 @@ dependencies:
   go_router: ^18.0.2
   flex_color_scheme: ^9.0.0
   url_launcher: ^6.1.11
-  intl: ^0.20.2
+  # Pinned by flutter_localizations; the generated localizations import it.
+  intl: any
   google_fonts: ^9.0.0
   android_id: ^0.5.1
   hive_ce: ^2.11.1
@@ -93,8 +95,10 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # gen-l10n: `flutter pub get` regenerates lib/l10n/ from l10n.yaml.
+  generate: true
+
   assets:
-    - assets/translations/
     - assets/img/
 
   fonts:

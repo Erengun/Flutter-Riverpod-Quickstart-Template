@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,6 +10,7 @@ class LinkCard extends StatelessWidget {
     required this.url,
   });
 
+  /// The already-localized title to show.
   final String title;
   final IconData icon;
   final Uri url;
@@ -38,7 +38,7 @@ class LinkCard extends StatelessWidget {
             Icon(icon, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 16),
             Text(
-              tr(title),
+              title,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium!.apply(fontWeightDelta: 2),
