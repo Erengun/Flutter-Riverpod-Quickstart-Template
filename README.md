@@ -124,7 +124,7 @@ Run these from `app/`, or use the dev/staging/prod configs in `.vscode/launch.js
 - Windows app name: `APP_NAME` in [app/windows/CMakeLists.txt](app/windows/CMakeLists.txt)
 - Linux application id: `APPLICATION_ID` in [app/linux/CMakeLists.txt](app/linux/CMakeLists.txt)
 - iOS bundle IDs and display names: [app/ios/Flutter/Debug-dev.xcconfig](app/ios/Flutter/Debug-dev.xcconfig) (and the other flavor xcconfig files)
-- Dart-side flavor labels: [app/lib/flavors/app_flavor.dart](app/lib/flavors/app_flavor.dart)
+- Per-flavor backend URL and settings: [app/lib/app/config.dart](app/lib/app/config.dart). A plain `flutter run` without `--flavor` uses dev.
 
 ---
 

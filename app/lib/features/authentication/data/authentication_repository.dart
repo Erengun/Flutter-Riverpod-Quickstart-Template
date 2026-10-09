@@ -1,13 +1,16 @@
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../constants/endpoints.dart';
 import '../../../data/repository/network_repository.dart';
 import '../domain/login_request.dart';
 import '../domain/login_response.dart';
 import '../domain/register_response.dart';
 
 part 'authentication_repository.g.dart';
+
+/// The reqres demo backend's auth paths, relative to `AppConfig.apiBaseUrl`.
+const String _loginPath = 'api/login';
+const String _registerPath = 'api/register';
 
 /// An abstract class that defines the authentication methods.
 abstract class AuthenticationRepository {
@@ -31,7 +34,7 @@ class HttpAuthRepository implements AuthenticationRepository {
   Future<LoginResponse> login(String email, String password) async {
     try {
       final Response<dynamic> response = await dio.post(
-        Endpoints.login,
+        _loginPath,
         data: LoginCredentials(email: email, password: password),
       );
       if (response.statusCode != 200) {
@@ -66,7 +69,7 @@ class HttpAuthRepository implements AuthenticationRepository {
   Future<RegisterResponse> register(String email, String password) async {
     try {
       final Response<dynamic> response = await dio.post(
-        Endpoints.register,
+        _registerPath,
         data: LoginCredentials(email: email, password: password),
       );
       if (response.statusCode != 200) {
