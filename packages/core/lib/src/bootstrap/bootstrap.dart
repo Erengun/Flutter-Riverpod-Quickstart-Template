@@ -54,8 +54,8 @@ Future<void> bootstrap(
   configureLogging(LogPolicy.forFlavor(config.flavor), reporter: reports);
   installUncaughtErrorLogging();
 
-  if (kReleaseMode) {
-    // Silence debugPrint in release builds.
+  if (shouldSilenceDebugPrint(isRelease: kReleaseMode, flavor: config.flavor)) {
+    // Silence debugPrint in prod release builds; staging keeps its console.
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
 
