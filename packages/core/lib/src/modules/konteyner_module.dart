@@ -134,7 +134,8 @@ class _Slot<T extends Object> {
 /// - A Module whose `init` throws is logged and recorded in
 ///   [StartedModules.failures]; the defaults stay and the app still starts.
 ///   Once every Module has started, each failure is sent, non-fatal, through
-///   whichever [ErrorReporter] came up.
+///   whichever [ErrorReporter] came up; a report that throws is logged and
+///   startup continues.
 /// - Two Modules providing the same interface throw [ModuleConflictError].
 Future<StartedModules> startModules(
   List<KonteynerModule> modules,
@@ -185,11 +186,21 @@ Future<StartedModules> startModules(
 
   final ErrorReporter startedReporter = reporter.resolved;
   for (final ModuleStartupFailure failure in failures) {
-    startedReporter.report(
-      ModuleStartupException(failure.moduleName, failure.error),
-      failure.stackTrace,
-      tags: <String, String>{'module': failure.moduleName},
-    );
+    try {
+      startedReporter.report(
+        ModuleStartupException(failure.moduleName, failure.error),
+        failure.stackTrace,
+        tags: <String, String>{'module': failure.moduleName},
+      );
+    } catch (error, stackTrace) {
+      developer.log(
+        'Reporting the failure of Module "${failure.moduleName}" failed.',
+        name: 'modules',
+        level: 1000,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   return StartedModules(

@@ -42,6 +42,21 @@ class _FakeReporter implements ErrorReporter {
   void setUser(String? id) {}
 }
 
+class _ThrowingReporter extends _FakeReporter {
+  @override
+  void report(
+    Object error,
+    StackTrace? stackTrace, {
+    bool fatal = false,
+    String? groupKey,
+    Map<String, String> tags = const <String, String>{},
+    Map<String, Object?> extra = const <String, Object?>{},
+  }) {
+    super.report(error, stackTrace, fatal: fatal);
+    throw StateError('report failed');
+  }
+}
+
 class _FakeAnalytics implements Analytics {
   @override
   void logEvent(
@@ -184,6 +199,38 @@ void main() {
         'moduleName',
         'broken',
       ),
+    );
+  });
+
+  test('a throwing reporter does not stop startup and every failure is '
+      'still reported', () async {
+    final _ThrowingReporter reporter = _ThrowingReporter();
+    final _FakeModule first = _FakeModule(
+      'first',
+      error: StateError('first failed'),
+    );
+    final _FakeModule second = _FakeModule(
+      'second',
+      error: StateError('second failed'),
+    );
+    final _FakeModule reporting = _FakeModule(
+      'reporting',
+      contributions: ModuleContributions(errorReporter: reporter),
+    );
+
+    final StartedModules started = await startModules(
+      <KonteynerModule>[first, second, reporting],
+      _config,
+      platform: KonteynerPlatform.android,
+    );
+
+    expect(started.errorReporter, same(reporter));
+    expect(started.failures, hasLength(2));
+    expect(
+      reporter.reports
+          .map((_Report r) => (r.error as ModuleStartupException).moduleName)
+          .toList(),
+      <String>['first', 'second'],
     );
   });
 
