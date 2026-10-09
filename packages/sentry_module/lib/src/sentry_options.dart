@@ -21,10 +21,17 @@ const String sentryDsn = '';
 ///
 /// Release and dist are left to sentry_flutter, which reads them from the
 /// platform's package info.
+///
+/// On web ([platform] defaults to [KonteynerPlatform.current]) it also adds
+/// sentry_flutter's `OnErrorIntegration`, which sentry_flutter leaves out on
+/// web because the web engine never calls `PlatformDispatcher.onError`.
+/// Core's `runGuarded` zone calls it there instead, so uncaught asynchronous
+/// errors on web are reported once, like on the other platforms.
 void configureSentryOptions(
   SentryFlutterOptions options,
   AppConfig config, {
   String dsn = sentryDsn,
+  KonteynerPlatform? platform,
 }) {
   options
     ..dsn = dsn
@@ -44,4 +51,7 @@ void configureSentryOptions(
   options.replay
     ..sessionSampleRate = 0
     ..onErrorSampleRate = 0;
+  if ((platform ?? KonteynerPlatform.current) == KonteynerPlatform.web) {
+    options.addIntegration(OnErrorIntegration());
+  }
 }

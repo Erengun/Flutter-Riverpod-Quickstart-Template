@@ -26,7 +26,9 @@ Future<void> _startSentry(FlutterOptionsConfiguration configureOptions) =>
 /// Sentry's Flutter and platform error integrations keep the uncaught-error
 /// handlers Core installed before the Modules started and call them, so each
 /// uncaught error is logged once by Core and reported once, as unhandled, by
-/// Sentry.
+/// Sentry. On web, where the engine never calls `PlatformDispatcher.onError`,
+/// Core's `runGuarded` zone calls it, and [configureSentryOptions] adds the
+/// platform error integration sentry_flutter leaves out there.
 class SentryModule implements KonteynerModule {
   /// [dsn] defaults to [sentryDsn]; [start] defaults to `SentryFlutter.init`.
   /// Both are replaceable for tests.

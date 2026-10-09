@@ -5,7 +5,7 @@ import 'app/modules.dart';
 import 'app/setup.dart';
 import 'app/theme.dart';
 
-Future<void> main() async {
+Future<void> main() => runGuarded(() async {
   await setUpApp();
   await bootstrap(
     devConfig,
@@ -13,4 +13,4 @@ Future<void> main() async {
     theme: buildAppTheme(),
     modules: buildAppModules(),
   );
-}
+});
