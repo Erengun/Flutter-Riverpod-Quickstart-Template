@@ -66,11 +66,11 @@ abstract final class AppRadii {
 /// point).
 ///
 /// The family is loaded with google_fonts from the files bundled in
-/// `assets/fonts/` (`<Family>-<Weight>.ttf`, such as `Nunito-Medium.ttf`).
+/// `assets/fonts/` (`<Family>-<Weight>.ttf`, such as `Roboto-Medium.ttf`).
 /// Every weight used below needs its file there, because runtime fetching is
 /// off.
 abstract final class AppTypography {
-  static const String fontFamily = 'Nunito';
+  static const String fontFamily = 'Roboto';
 
   static const TextStyle displayLarge = TextStyle(
     fontSize: 57,

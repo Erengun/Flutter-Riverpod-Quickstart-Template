@@ -49,7 +49,9 @@ void main() {
           text.bodyMedium,
           text.labelSmall,
         ]) {
-          expect(style?.fontFamily, startsWith('Nunito'));
+          // google_fonts names each loaded family `<Family>_<variant>`, unlike
+          // Flutter's default plain 'Roboto'.
+          expect(style?.fontFamily, startsWith('Roboto_'));
         }
       }
     });
@@ -74,15 +76,16 @@ void main() {
       final List<LicenseEntry> entries = (await tester.runAsync(
         () => LicenseRegistry.licenses.toList(),
       ))!;
-      final Iterable<LicenseEntry> nunito = entries.where(
-        (LicenseEntry entry) => entry.packages.contains('Nunito'),
+      final Iterable<LicenseEntry> roboto = entries.where(
+        (LicenseEntry entry) => entry.packages.contains('Roboto'),
       );
 
-      expect(nunito, hasLength(1));
-      expect(
-        nunito.single.paragraphs.map((LicenseParagraph p) => p.text).join(),
-        contains('SIL Open Font License'),
-      );
+      expect(roboto, hasLength(1));
+      final String text = roboto.single.paragraphs
+          .map((LicenseParagraph p) => p.text)
+          .join();
+      expect(text, contains('The Roboto Project Authors'));
+      expect(text, contains('SIL Open Font License'));
     });
   });
 }
