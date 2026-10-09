@@ -18,6 +18,21 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get demoComponentRulesTitle => 'Bileşen kuralları';
+
+  @override
+  String get demoDeleteAccountHidden => 'Hesabı sil (gizli)';
+
+  @override
+  String get demoEditProfileDisabled => 'Profili düzenle (devre dışı)';
+
+  @override
+  String get demoEmailReadonly => 'E-posta (salt okunur)';
+
+  @override
+  String get demoOrdersTitle => 'Siparişler';
+
+  @override
   String get demoPermissionsTitle => 'Yetki örneği';
 
   @override
@@ -40,6 +55,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get homeIntro => 'Merhaba, ben Eren 👋🏽';
+
+  @override
+  String get homeMenuTitle => 'Menü';
 
   @override
   String get homeMore => 'Daha Fazla';

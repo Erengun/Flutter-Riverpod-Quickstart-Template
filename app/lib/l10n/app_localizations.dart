@@ -110,6 +110,36 @@ abstract class AppLocalizations {
   /// **'You can see this page because your permissions include the \"{area}\" area.'**
   String demoAreaBody(String area);
 
+  /// No description provided for @demoComponentRulesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Component rules'**
+  String get demoComponentRulesTitle;
+
+  /// No description provided for @demoDeleteAccountHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account (hidden)'**
+  String get demoDeleteAccountHidden;
+
+  /// No description provided for @demoEditProfileDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit profile (disabled)'**
+  String get demoEditProfileDisabled;
+
+  /// No description provided for @demoEmailReadonly.
+  ///
+  /// In en, this message translates to:
+  /// **'Email (read-only)'**
+  String get demoEmailReadonly;
+
+  /// No description provided for @demoOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get demoOrdersTitle;
+
   /// No description provided for @demoPermissionsTitle.
   ///
   /// In en, this message translates to:
@@ -157,6 +187,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hi, I am Eren 👋🏽'**
   String get homeIntro;
+
+  /// No description provided for @homeMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get homeMenuTitle;
 
   /// No description provided for @homeMore.
   ///

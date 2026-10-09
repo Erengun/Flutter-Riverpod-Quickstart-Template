@@ -4,6 +4,9 @@ abstract final class AppAreas {
   static const String profile = 'profile';
   static const String settings = 'settings';
   static const String reports = 'reports';
+
+  /// Has no screen yet: its menu entry opens Core's under-construction page.
+  static const String orders = 'orders';
 }
 
 /// The component keys this app gives rules to (`hidden`, `readonly`,

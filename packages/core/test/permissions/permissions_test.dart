@@ -24,6 +24,14 @@ void main() {
       expect(Permissions.unrestricted, isNot(Permissions.none));
     });
 
+    test('stateOf returns the rule, or null for a control without one', () {
+      expect(permissions.stateOf('orders.delete'), ComponentState.hidden);
+      expect(permissions.stateOf('orders.price'), ComponentState.readonly);
+      expect(permissions.stateOf('reports.export'), ComponentState.disabled);
+      expect(permissions.stateOf('orders.create'), isNull);
+      expect(Permissions.unrestricted.stateOf('orders.delete'), isNull);
+    });
+
     test('survives encode and decode', () {
       expect(Permissions.decode(permissions.encode()), permissions);
       expect(Permissions.decode(Permissions.none.encode()), Permissions.none);
