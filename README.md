@@ -134,7 +134,7 @@ Run these from `app/`, or use the dev/staging/prod configs in `.vscode/launch.js
 
 **As shipped, Firebase is not configured.** The options files in `packages/firebase_module/lib/src/options/` are placeholders, so the Module's `init` throws `Firebase not configured for <flavor>`, Core logs that once, and the app runs on the no-op `Analytics` and `RemoteFlags`. There are no Firebase native files in `app/`.
 
-Remote Config fetches at most every 12 hours (5 minutes on dev). Reads never wait on the network: they use the last cached values, a refresh runs in the background, and the real-time listener activates updates as they arrive, then fires `RemoteFlags.onChanged`. When a fetch fails, the cached values (or the fallbacks) stay.
+Ordinary Remote Config fetches run at most every 12 hours (5 minutes on dev); real-time updates are not limited by that interval and are fetched as soon as the backend publishes them. Reads never wait on the network: they use the last cached values, a refresh runs in the background, and the real-time listener activates updates as they arrive, then fires `RemoteFlags.onChanged`. When a fetch fails, the cached values (or the fallbacks) stay.
 
 ### Set up Firebase
 
@@ -160,7 +160,7 @@ Analytics is linked without the advertising id (IDFA). Under Swift Package Manag
 - Locally: `export FIREBASE_ANALYTICS_WITHOUT_ADID=true` in your shell profile before `flutter build ios` / `flutter run`. Xcode opened from the Dock does not see your shell; run `launchctl setenv FIREBASE_ANALYTICS_WITHOUT_ADID true` and restart Xcode.
 - After changing it, clear the resolved packages (`flutter clean`, then delete Xcode's DerivedData for the app) so the package resolves again.
 
-Apps that run ads remove the variable everywhere, then also need App Tracking Transparency and a privacy manifest entry.
+Keep this setting unless the app needs IDFA, for example for cross-app tracking or ad attribution that depends on it. Showing ads alone does not require IDFA. An app that does need it removes the variable everywhere, then must ask for permission through App Tracking Transparency before tracking, declare the tracking in its privacy manifest and App Store privacy details, and collect any consent its regions require (for example GDPR consent in the EU).
 
 ### Remove the Module
 
