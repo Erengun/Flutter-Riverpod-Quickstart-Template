@@ -123,8 +123,18 @@ Run these from `app/`, or use the dev/staging/prod configs in `.vscode/launch.js
 - Web app name: `name` in [app/web/manifest.json](app/web/manifest.json)
 - Windows app name: `APP_NAME` in [app/windows/CMakeLists.txt](app/windows/CMakeLists.txt)
 - Linux application id: `APPLICATION_ID` in [app/linux/CMakeLists.txt](app/linux/CMakeLists.txt)
-- iOS bundle IDs and display names: [app/ios/Flutter/Debug-dev.xcconfig](app/ios/Flutter/Debug-dev.xcconfig) (and the other flavor xcconfig files)
+- iOS and macOS bundle id and display name: [app/Identity.xcconfig](app/Identity.xcconfig), included by every flavor xcconfig. The iOS dev and staging flavors add their suffixes (`.dev`, ` Dev`) in `app/ios/Flutter/<Config>-<flavor>.xcconfig`.
 - Per-flavor backend URL and settings: [app/lib/app/config.dart](app/lib/app/config.dart). A plain `flutter run` without `--flavor` uses dev.
+
+### Signing on iOS and macOS
+
+The Xcode projects carry no development team. To run on a device or sign locally, create `app/ios/Flutter/Signing.xcconfig` (and `app/macos/Runner/Configs/Signing.xcconfig` for macOS) with your team id:
+
+```
+DEVELOPMENT_TEAM = ABCDE12345
+```
+
+Every flavor xcconfig includes it when it exists. Both files are gitignored; unsigned builds (`flutter build ios --no-codesign`) work without them.
 
 ---
 
@@ -141,7 +151,7 @@ Ordinary Remote Config fetches run at most every 12 hours (5 minutes on dev); re
 Each flavor uses its own Firebase project. Two flavors can share one by passing the same `--project`.
 
 1. Install the [Firebase CLI](https://firebase.google.com/docs/cli) and `dart pub global activate flutterfire_cli`, then `firebase login`.
-2. Create the Firebase projects, then edit `--project`, `--android-package-name` and `--ios-bundle-id` in the `firebase:configure:<flavor>` scripts in the root [pubspec.yaml](pubspec.yaml). Ids must match `app/android/gradle.properties` and the iOS xcconfig files.
+2. Create the Firebase projects, then edit `--project`, `--android-package-name` and `--ios-bundle-id` in the `firebase:configure:<flavor>` scripts in the root [pubspec.yaml](pubspec.yaml). Ids must match `app/android/gradle.properties` and `app/Identity.xcconfig` (plus the iOS flavor suffixes).
 3. Run, once per flavor:
     ```bash
     melos run firebase:configure:dev

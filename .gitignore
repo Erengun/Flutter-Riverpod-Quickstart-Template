@@ -65,6 +65,7 @@ coverage/
 **/ios/Flutter/flutter_assets/
 **/ios/Flutter/flutter_export_environment.sh
 app/ios/Flutter/Signing.xcconfig
+app/macos/Runner/Configs/Signing.xcconfig
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
 
