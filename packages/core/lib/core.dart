@@ -31,7 +31,7 @@ export 'src/router/navigation_breadcrumb_observer.dart';
 export 'src/router/slide_extension.dart';
 export 'src/session/auth_interceptor.dart';
 export 'src/session/session.dart';
-export 'src/session/session_redirect.dart';
+export 'src/session/session_redirect.dart' hide splashWithFrom;
 export 'src/storage/encrypted_box.dart';
 export 'src/theme/konteyner_tokens.dart';
 export 'src/update/app_version_source.dart';

@@ -59,6 +59,7 @@ void main() {
   Future<void> startApp(
     WidgetTester tester, {
     LoadPermissionsHook? loadPermissions,
+    bool settle = true,
   }) async {
     tester.view
       ..physicalSize = const Size(1080, 2340)
@@ -80,12 +81,22 @@ void main() {
         child: const MyApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    // The splash's progress indicator never settles.
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      for (int i = 0; i < 5; i++) {
+        await tester.pump();
+      }
+    }
   }
 
   GoRouter router(WidgetTester tester) =>
       ProviderScope.containerOf(tester.element(find.byType(MaterialApp)))
           .read(goRouterProvider);
+
+  String location(WidgetTester tester) =>
+      router(tester).routerDelegate.currentConfiguration.uri.toString();
 
   Future<void> signInThroughTheForm(WidgetTester tester) async {
     await tester.enterText(
@@ -100,9 +111,8 @@ void main() {
   Future<void> saveSignedIn(WidgetTester tester) => tester.runAsync(
     () => storage.session.putAll(<String, String>{
       'accessToken': 'saved-token',
-      permissionsKey: const Permissions(
-        areas: <String>{AppAreas.profile},
-      ).encode(),
+      permissionsKey: const Permissions(areas: <String>{AppAreas.profile})
+          .encode(),
     }),
   );
 
@@ -188,6 +198,65 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(NoPermissionPage), findsOneWidget);
     expect(loads, hasLength(1));
+  });
+
+  group('a cold start with nothing saved opening a guarded route', () {
+    late Completer<Permissions> load;
+
+    /// Signed in with no saved permissions, launched on a link to
+    /// [SGRoute.profile]; the permission load waits on [load].
+    Future<void> coldStartOnProfile(WidgetTester tester) async {
+      await tester.runAsync(
+        () => storage.session.put('accessToken', 'saved-token'),
+      );
+      tester.binding.platformDispatcher.defaultRouteNameTestValue =
+          SGRoute.profile.route;
+      addTearDown(
+        tester.binding.platformDispatcher.clearDefaultRouteNameTestValue,
+      );
+      load = Completer<Permissions>();
+      await startApp(
+        tester,
+        settle: false,
+        loadPermissions: (Session session) {
+          loads.add(session);
+          return load.future;
+        },
+      );
+
+      // Held on the splash, with the route kept, while the load runs.
+      expect(location(tester), '/splash?from=%2Fprofile');
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(HomeScreen), findsNothing);
+      expect(find.byType(DemoAreaScreen), findsNothing);
+      expect(loads, <Session>[const Session(accessToken: 'saved-token')]);
+    }
+
+    testWidgets('opens the route once the load grants it', (
+      WidgetTester tester,
+    ) async {
+      await coldStartOnProfile(tester);
+
+      load.complete(const Permissions(areas: <String>{AppAreas.profile}));
+      await tester.pumpAndSettle();
+
+      expect(location(tester), SGRoute.profile.route);
+      expect(find.byType(DemoAreaScreen), findsOneWidget);
+      expect(loads, hasLength(1));
+    });
+
+    testWidgets('opens the no-permission page when the area is missing', (
+      WidgetTester tester,
+    ) async {
+      await coldStartOnProfile(tester);
+
+      load.complete(const Permissions(areas: <String>{AppAreas.settings}));
+      await tester.pumpAndSettle();
+
+      expect(location(tester), SGRoute.noPermission.route);
+      expect(find.byType(NoPermissionPage), findsOneWidget);
+      expect(find.byType(DemoAreaScreen), findsNothing);
+    });
   });
 
   testWidgets('logout deletes the saved permissions', (

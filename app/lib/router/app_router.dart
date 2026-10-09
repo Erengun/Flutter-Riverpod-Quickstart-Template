@@ -66,6 +66,8 @@ GoRouter goRouter(Ref ref) {
     // A redirect replaces the whole stack, so back never undoes a logout.
     // Then the permission guard: a route outside the user's areas opens
     // Core's no-permission page, links and direct `go()` calls included.
+    // A route opened before the session or the permissions are known waits
+    // on /splash?from=<location> and continues there once they are.
     redirect: (BuildContext context, GoRouterState state) =>
         sessionRedirect(
           session.value,
@@ -76,6 +78,8 @@ GoRouter goRouter(Ref ref) {
           // An expired session returns to /login?from=<location>.
           uri: state.uri,
           expired: ref.read(sessionExpiredProvider),
+          // A guarded route waits on the splash until the permissions load.
+          holdOnSplash: permissions.value == null,
         ) ??
         permissionRedirect(
           permissions.value,
@@ -83,6 +87,7 @@ GoRouter goRouter(Ref ref) {
           area: SGRoute.byName(state.topRoute?.name)?.area,
           splashPath: SGRoute.splash.route,
           noPermissionPath: SGRoute.noPermission.route,
+          uri: state.uri,
         ),
     // Every route needs a `name`: breadcrumbs record route names only.
     routes: <GoRoute>[
