@@ -39,6 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final AsyncValue<AuthUiModel> authUiModelAsync = ref.watch(
       loginControllerProvider,
     ); // Access the state
+    final bool sessionExpired = ref.watch(sessionExpiredProvider);
     // Failed logins become an AsyncError; Core shows their message.
     ref.listenApiErrors(loginControllerProvider, context);
     ref.listen(loginControllerProvider, (
@@ -115,6 +116,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     const Spacer(),
+                    // Signed out by an expired session; cleared on sign-in.
+                    if (sessionExpired) ...<Widget>[
+                      Text(
+                        CoreLocalizations.of(context).authSessionExpired,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      const Gap(10),
+                    ],
                     const Text(
                       'Login',
                       style: TextStyle(

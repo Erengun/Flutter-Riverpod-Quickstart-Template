@@ -195,6 +195,7 @@ The template includes a complete authentication system with secure credential st
 
 - **Login & Registration:** A retrofit client (`AuthApi`) POSTs to `api/login` and `api/register` through Core's shared Dio.
 - **Session:** A successful login saves the token in Core's encrypted Hive box, so the user stays signed in after a restart. The app opens on a splash, then goes to home or login. Logout clears the token, and the back button can't undo it.
+- **Token refresh:** On a 401, Core refreshes the token once through the auth Feature's optional `refresh` hook and replays the failed requests. If the refresh is rejected (or there is nothing to refresh, as with reqres), the user is signed out, sees "Your session has expired" on the login screen, and comes back to the same page after signing in. A network error during the refresh keeps them signed in.
 - **Remember me:** When ticked, the email and password are saved (encrypted) only to pre-fill the login form; they never sign the user in. Unticking deletes them; logout keeps them.
 - **Encryption key:** One random AES-256 key, created on first launch and kept in the platform's secure storage (`flutter_secure_storage`). Android backups exclude the Hive files and that key.
 - **State Management:** All authentication UI and logic is managed via Riverpod notifiers and state classes.
