@@ -178,6 +178,9 @@ class ApiCall {
           null => ApiUnknownException(request: request, cause: error),
         };
       case DioExceptionType.unknown:
+        // Already mapped, for example a failed token refresh made through
+        // apiCall and passed on to the requests waiting for it.
+        if (error.error case final ApiException mapped) return mapped;
         if (error.error is FormatException) {
           return ApiDecodeException(request: request, cause: error);
         }

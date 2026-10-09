@@ -48,6 +48,18 @@ class Session {
 /// replaces an `Authorization` header that is already set).
 typedef LogoutHook = Future<void> Function(Session session);
 
+/// Trades [Session.refreshToken] for new tokens and returns the new
+/// [Session]. The auth interceptor calls it on a 401, one call at a time,
+/// with the current [Session] (whose `refreshToken` is set).
+///
+/// The request must carry `@Extra(<String, Object>{skipAuthKey: true})`.
+/// Throw when it fails: a 400 or 401 (as a `DioException`,
+/// `ApiUnauthorizedException` or `ApiServerException` 400) signs the user
+/// out; anything else (no network, 5xx) keeps them signed in. Copy
+/// `refreshToken` and `userId` over from [session] when the backend doesn't
+/// send them again.
+typedef RefreshHook = Future<Session> Function(Session session);
+
 /// Fetches the user's permissions (a nested tree, a flat list, token
 /// claims, ...) and flattens this app's branch into [Permissions]. Called at
 /// login before the [Session] is saved, so the request must carry the token
@@ -58,12 +70,36 @@ typedef LoadPermissionsHook = Future<Permissions> Function(Session session);
 /// optional.
 @immutable
 class SessionHooks {
-  const SessionHooks({this.logout, this.loadPermissions});
+  const SessionHooks({this.logout, this.refresh, this.loadPermissions});
 
   final LogoutHook? logout;
 
+  /// Without it, or without a refresh token, a 401 signs the user out.
+  final RefreshHook? refresh;
+
   /// Without it every Permission area is granted.
   final LoadPermissionsHook? loadPermissions;
+}
+
+/// Whether the user was signed out because the session expired (a rejected
+/// refresh, or a 401 with nothing to refresh). The router then sends them to
+/// `/login?from=<location>` and the login screen shows
+/// `CoreLocalizations.authSessionExpired`. The next sign-in clears it.
+final NotifierProvider<SessionExpiredNotifier, bool> sessionExpiredProvider =
+    NotifierProvider<SessionExpiredNotifier, bool>(
+      SessionExpiredNotifier.new,
+      name: 'sessionExpiredProvider',
+    );
+
+class SessionExpiredNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  /// Marks the session as expired. [SessionNotifier.expire] calls it.
+  void mark() => state = true;
+
+  /// Forgets the expiry. [SessionNotifier.signIn] calls it.
+  void clear() => state = false;
 }
 
 /// The auth Feature's [SessionHooks]. None by default; the app overrides it
@@ -117,6 +153,31 @@ class SessionNotifier extends AsyncNotifier<Session?> {
   /// Saves [session] and signs in. Sets the reporter user when
   /// [Session.userId] is given.
   Future<void> signIn(Session session) async {
+    await _save(session);
+    state = AsyncData<Session?>(session);
+    ref.read(sessionExpiredProvider.notifier).clear();
+    if (session.userId case final String id) {
+      ref.read(errorReporterProvider).setUser(id);
+    }
+    _log.info('Signed in.');
+  }
+
+  /// Replaces the tokens after a successful refresh; the auth interceptor
+  /// calls it. Does nothing while signed out. A failed save is logged and
+  /// the new tokens are used anyway.
+  Future<void> updateTokens(Session session) async {
+    if (state.value == null) return;
+    state = AsyncData<Session?>(session);
+    try {
+      await _save(session);
+    } catch (_) {
+      // Never log the error itself: it may quote the tokens.
+      _log.warning('The refreshed tokens could not be saved.');
+    }
+    _log.fine('Tokens refreshed.');
+  }
+
+  Future<void> _save(Session session) async {
     final Box<String> box = await ref.read(sessionBoxProvider.future);
     await box.putAll(<String, String>{
       _accessTokenKey: session.accessToken,
@@ -127,18 +188,28 @@ class SessionNotifier extends AsyncNotifier<Session?> {
       if (session.refreshToken == null) _refreshTokenKey,
       if (session.userId == null) _userIdKey,
     ]);
-    state = AsyncData<Session?>(session);
-    if (session.userId case final String id) {
-      ref.read(errorReporterProvider).setUser(id);
-    }
-    _log.info('Signed in.');
   }
 
   /// Signs out: calls the logout hook without waiting for it, clears the
   /// tokens whatever the hook does, and clears the reporter user.
-  Future<void> logout() async {
+  Future<void> logout() => _signOut(callHook: true);
+
+  /// Signs out because the session expired; the auth interceptor calls it.
+  /// Marks [sessionExpiredProvider] before the session changes (so the
+  /// router's redirect sees it) and skips the logout hook: the backend has
+  /// already rejected the tokens. Does nothing while signed out.
+  Future<void> expire() async {
+    if (state.value == null) return;
+    ref.read(sessionExpiredProvider.notifier).mark();
+    _log.info('The session expired.');
+    await _signOut(callHook: false);
+  }
+
+  Future<void> _signOut({required bool callHook}) async {
     final Session? current = state.value;
-    final LogoutHook? hook = ref.read(sessionHooksProvider).logout;
+    final LogoutHook? hook = callHook
+        ? ref.read(sessionHooksProvider).logout
+        : null;
     if (current != null && hook != null) {
       unawaited(
         Future<void>.sync(() => hook(current)).catchError((Object _) {

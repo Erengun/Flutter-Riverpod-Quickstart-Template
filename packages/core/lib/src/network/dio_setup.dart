@@ -86,6 +86,10 @@ Dio createDio(
     ),
     if (logRequests) const RedactedLogInterceptor(),
   ]);
+  // It replays requests after a token refresh through this Dio.
+  for (final Interceptor interceptor in interceptors) {
+    if (interceptor is AuthInterceptor) interceptor.attach(dio);
+  }
   return dio;
 }
 

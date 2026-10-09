@@ -20,7 +20,14 @@ void main() {
       adapter = FakeHttpAdapter(<FakeReply>[jsonReply(200, null)]);
       dio = createDio(
         'https://api.example.com',
-        interceptors: <Interceptor>[AuthInterceptor(() => token)],
+        interceptors: <Interceptor>[
+          AuthInterceptor(
+            session: () => switch (token) {
+              final String value => Session(accessToken: value),
+              null => null,
+            },
+          ),
+        ],
         retryDelays: const <Duration>[],
       )..httpClientAdapter = adapter;
     });

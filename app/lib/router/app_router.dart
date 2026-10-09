@@ -73,6 +73,9 @@ GoRouter goRouter(Ref ref) {
           splashPath: SGRoute.splash.route,
           loginPath: SGRoute.login.route,
           homePath: SGRoute.home.route,
+          // An expired session returns to /login?from=<location>.
+          uri: state.uri,
+          expired: ref.read(sessionExpiredProvider),
         ) ??
         permissionRedirect(
           permissions.value,
