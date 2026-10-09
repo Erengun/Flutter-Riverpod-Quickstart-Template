@@ -26,15 +26,19 @@ enum SGRoute {
 @riverpod
 GoRouter goRouter(Ref ref) => GoRouter(
   initialLocation: SGRoute.login.route,
+  observers: <NavigatorObserver>[NavigationBreadcrumbObserver()],
+  // Every route needs a `name`: breadcrumbs record route names only.
   routes: <GoRoute>[
     GoRoute(
       path: SGRoute.login.route,
+      name: SGRoute.login.name,
       builder: (BuildContext context, GoRouterState state) {
         return const LoginScreen();
       },
     ).fade(),
     GoRoute(
       path: SGRoute.home.route,
+      name: SGRoute.home.name,
       builder: (BuildContext context, GoRouterState state) =>
           const HomeScreen(),
     ).fade(),

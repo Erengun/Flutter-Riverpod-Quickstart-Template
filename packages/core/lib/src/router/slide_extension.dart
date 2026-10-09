@@ -4,7 +4,11 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 class SlideTransitionPage extends CustomTransitionPage {
-  SlideTransitionPage({required LocalKey super.key, required super.child})
+  SlideTransitionPage({
+    required LocalKey super.key,
+    required super.child,
+    super.name,
+  })
     : super(
         transitionsBuilder:
             (
@@ -30,9 +34,11 @@ extension SlideGoRouteExtension on GoRoute {
   GoRoute slide() {
     return GoRoute(
       path: path,
+      name: name,
       pageBuilder: (BuildContext context, GoRouterState state) {
         return SlideTransitionPage(
           key: ValueKey<String>(path),
+          name: state.name,
           child: builder!(context, state),
         );
       },

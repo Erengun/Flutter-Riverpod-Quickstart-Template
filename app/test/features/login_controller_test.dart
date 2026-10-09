@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:core/core.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/authentication_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/hive/user_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/domain/login_request.dart';
@@ -33,6 +34,29 @@ class FakeUserRepository extends UserRepository {
 
   @override
   Future<LoginCredentials?> getCachedUser() async => null;
+}
+
+class _FailingCacheUserRepository extends FakeUserRepository {
+  @override
+  Future<void> cacheUser(LoginCredentials user) async {
+    throw StateError('disk full');
+  }
+}
+
+class _RecordingReporter extends NoopErrorReporter {
+  final List<Object> errors = <Object>[];
+
+  @override
+  void report(
+    Object error,
+    StackTrace? stackTrace, {
+    bool fatal = false,
+    String? groupKey,
+    Map<String, String> tags = const <String, String>{},
+    Map<String, Object?> extra = const <String, Object?>{},
+  }) {
+    errors.add(error);
+  }
 }
 
 void main() {
@@ -82,6 +106,36 @@ void main() {
     test('throws exception when credentials are empty', () async {
       await container.read(loginControllerProvider.future);
       expect(() => controller.login(email: '', password: ''), throwsException);
+    });
+
+    test('a failed cache is reported and login still succeeds', () async {
+      final _RecordingReporter reporter = _RecordingReporter();
+      final ProviderContainer failing = ProviderContainer(
+        overrides: <Override>[
+          authenticationRepositoryProvider.overrideWithValue(
+            FakeAuthRepository(),
+          ),
+          userRepositoryProvider.overrideWith(_FailingCacheUserRepository.new),
+          errorReporterProvider.overrideWithValue(reporter),
+        ],
+      );
+      addTearDown(failing.dispose);
+      failing.listen<AsyncValue<AuthUiModel>>(
+        loginControllerProvider,
+        (AsyncValue<AuthUiModel>? previous, AsyncValue<AuthUiModel> next) {},
+      );
+      await failing.read(loginControllerProvider.future);
+      final LoginController failingController = failing.read(
+        loginControllerProvider.notifier,
+      )..updateRememberMe(rememberMe: true);
+
+      final LoginResponse response = await failingController.login(
+        email: 'eve.holt@reqres.in',
+        password: 'cityslicka',
+      );
+
+      expect(response.token, 'fake_token');
+      expect(reporter.errors.single, isA<StateError>());
     });
   });
 
