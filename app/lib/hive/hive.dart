@@ -9,7 +9,7 @@ import 'hive_registrar.g.dart';
 
 Future<void> initHive() async {
   if (!kIsWeb) {
-    final Directory directory = await getTemporaryDirectory();
+    final Directory directory = await getApplicationSupportDirectory();
     Hive
       ..init(directory.path)
       ..registerAdapters();
