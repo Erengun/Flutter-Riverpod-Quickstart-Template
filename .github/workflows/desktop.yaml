@@ -32,7 +32,7 @@ jobs:
   build-macos:
     runs-on: ${{ vars.MACOS_RUNNER || 'macos-latest' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
         with:
@@ -62,7 +62,7 @@ jobs:
         run: git config --system core.longpaths true
         working-directory: .
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
         with:
@@ -77,7 +77,7 @@ jobs:
   build-linux:
     runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install Linux build dependencies
         run: |
