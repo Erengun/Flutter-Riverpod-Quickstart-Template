@@ -1,0 +1,2 @@
+#include "Debug.xcconfig"
+FLAVOR = staging
