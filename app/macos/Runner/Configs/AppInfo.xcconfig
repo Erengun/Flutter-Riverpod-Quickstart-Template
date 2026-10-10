@@ -4,11 +4,10 @@
 // future. If not, the values below would default to using the project name when this becomes a
 // 'flutter create' template.
 
-// The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = temp
-
-// The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.temp
+// The application's name (PRODUCT_NAME) and bundle identifier
+// (PRODUCT_BUNDLE_IDENTIFIER) come from app/Identity.xcconfig through the
+// flavor xcconfigs. Do not set them here: this file is the target-level base
+// and would override them.
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.
