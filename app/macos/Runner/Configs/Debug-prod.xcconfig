@@ -1,2 +1,6 @@
 #include "Debug.xcconfig"
+#include "../../../Identity.xcconfig"
+#include? "Signing.xcconfig"
 FLAVOR = prod
+PRODUCT_BUNDLE_IDENTIFIER = $(IDENTITY_BUNDLE_ID)
+PRODUCT_NAME = $(IDENTITY_MACOS_PRODUCT_NAME)

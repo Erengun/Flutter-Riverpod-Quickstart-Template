@@ -1,5 +1,7 @@
 #include "Release.xcconfig"
-BUNDLE_ID = com.example.temp.staging
-APP_DISPLAY_NAME = Temp Staging
-APP_NAME = TempStaging
+#include "../../Identity.xcconfig"
+#include? "Signing.xcconfig"
 FLAVOR = staging
+BUNDLE_ID = $(IDENTITY_BUNDLE_ID).staging
+APP_DISPLAY_NAME = $(IDENTITY_DISPLAY_NAME) Staging
+APP_NAME = $(IDENTITY_BUNDLE_NAME)Staging

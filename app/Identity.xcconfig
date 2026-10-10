@@ -1,0 +1,17 @@
+// App identity for iOS and macOS. Every flavor xcconfig in ios/Flutter/ and
+// macos/Runner/Configs/ includes this file; edit only here.
+// On iOS the dev and staging flavors add their suffixes on top
+// (.dev / .staging to the bundle id, " Dev" / " Staging" to the display name).
+
+// Bundle id of the prod flavor (iOS) and of every macOS flavor.
+IDENTITY_BUNDLE_ID = com.example.temp
+
+// Name shown under the app icon on iOS (CFBundleDisplayName).
+IDENTITY_DISPLAY_NAME = Temp
+
+// Short bundle name on iOS (CFBundleName): no spaces, at most 15 characters
+// including the flavor suffix.
+IDENTITY_BUNDLE_NAME = Temp
+
+// macOS app name: the .app file name, menu bar and window title.
+IDENTITY_MACOS_PRODUCT_NAME = temp
