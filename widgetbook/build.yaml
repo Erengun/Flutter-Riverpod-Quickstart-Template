@@ -1,0 +1,8 @@
+targets:
+  $default:
+    builders:
+      # widgetbook_generator reports anonymous usage on every build (hashes
+      # of the git user email and of the first commit). Turned off; delete
+      # these lines to send it.
+      widgetbook_generator:telemetry:
+        enabled: false
