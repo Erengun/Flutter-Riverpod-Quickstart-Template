@@ -165,6 +165,11 @@ class PermissionsService {
 
   void _forget() => _loaded = null;
 
+  /// The reload in progress, or `null`. Tests await it to know a reload
+  /// has landed, however long saving it takes.
+  @visibleForTesting
+  Future<void>? get reloading => _reloading;
+
   /// One reload at a time: a second caller joins the running one.
   Future<void> _reload(Session session) {
     return _reloading ??= _runReload(session).whenComplete(
@@ -172,19 +177,27 @@ class PermissionsService {
     );
   }
 
+  /// After every await it checks `_ref.mounted`: the provider is keep-alive
+  /// and never rebuilt, so it is only disposed with its container (the app
+  /// closing, a test ending). Nothing is left to update then; the reload
+  /// stops instead of using the disposed [Ref].
   Future<void> _runReload(Session session) async {
+    if (!_ref.mounted) return;
     final LoadPermissionsHook? hook = _ref
         .read(sessionHooksProvider)
         .loadPermissions;
     if (hook == null) return;
     try {
       final Permissions permissions = await hook(session);
+      if (!_ref.mounted) return;
       final Box<String> box = await _ref.read(sessionBoxProvider.future);
+      if (!_ref.mounted) return;
       // Signed out (or in as someone else) meanwhile: drop the result.
       if (_ref.read(sessionProvider).value != session) return;
       _loaded = (session: session, permissions: permissions);
       await _save(box, permissions);
     } catch (error, stackTrace) {
+      if (!_ref.mounted) return;
       _log.info('Reloading permissions failed; keeping the current list.');
       _reportUnhandled(error, stackTrace);
       // Nothing was known (a cold start with nothing saved): fail closed.
@@ -193,6 +206,7 @@ class PermissionsService {
         _loaded = (session: session, permissions: Permissions.none);
       }
     }
+    if (!_ref.mounted) return;
     _ref.read(_revisionProvider.notifier).bump();
   }
 
