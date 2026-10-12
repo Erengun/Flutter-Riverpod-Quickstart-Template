@@ -25,13 +25,28 @@ void main() {
 
 @widgetbook.App()
 class WidgetbookApp extends StatelessWidget {
-  const WidgetbookApp({required this.theme, super.key});
+  const WidgetbookApp({
+    required this.theme,
+    this.initialRoute = '/',
+    super.key,
+  });
 
   /// The app's light and dark themes.
   final KonteynerTheme theme;
 
+  /// Widgetbook's first route; `/?path=<use case path>` opens a use case.
+  final String initialRoute;
+
   @override
   Widget build(BuildContext context) {
-    return Widgetbook(directories: directories, addons: catalogAddons(theme));
+    return Widgetbook(
+      directories: directories,
+      addons: catalogAddons(theme),
+      initialRoute: initialRoute,
+      // The theme addon already wraps each use case in CatalogApp, the app
+      // around it. Widgetbook's default builder adds a WidgetsApp with `home`
+      // and no page route builder, which throws on its first route.
+      appBuilder: (BuildContext context, Widget child) => child,
+    );
   }
 }
