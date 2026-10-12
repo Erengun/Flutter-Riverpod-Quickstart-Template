@@ -173,6 +173,30 @@ void main() {
       expect(box.isEmpty, isTrue);
     });
 
+    test('is signed out before the hook runs or the box is cleared', () async {
+      final List<Session?> seenByHook = <Session?>[];
+      late final ProviderContainer container;
+      container = await signedIn(
+        hooks: SessionHooks(
+          logout: (Session session) async {
+            seenByHook.add(container.read(sessionProvider).value);
+          },
+        ),
+      );
+      final int before = container.read(sessionGenerationProvider).value;
+
+      final Future<void> loggingOut = container
+          .read(sessionProvider.notifier)
+          .logout();
+      // Nothing has been awaited yet: the box is still being cleared.
+      expect(container.read(sessionProvider).value, isNull);
+      expect(container.read(sessionGenerationProvider).value, isNot(before));
+      await loggingOut;
+
+      // So the hook's own request is never refreshed with this session.
+      expect(seenByHook, <Session?>[null]);
+    });
+
     test('clears the tokens when the hook fails', () async {
       final ProviderContainer container = await signedIn(
         hooks: SessionHooks(
@@ -314,6 +338,32 @@ void main() {
       expect(container.read(sessionProvider).value, refreshed);
       expect(await createContainer().read(sessionProvider.future), refreshed);
     });
+
+    test(
+      'keeps the generation; signing out or in over it changes it',
+      () async {
+        final ProviderContainer container = createContainer();
+        final SessionNotifier notifier = container.read(
+          sessionProvider.notifier,
+        );
+        int generation() => container.read(sessionGenerationProvider).value;
+        await container.read(sessionProvider.future);
+        await notifier.signIn(
+          const Session(accessToken: 'a', refreshToken: 'r'),
+        );
+        final int signedIn = generation();
+
+        await notifier.updateTokens(const Session(accessToken: 'b'));
+        expect(generation(), signedIn);
+
+        await notifier.signIn(const Session(accessToken: 'c'));
+        final int replaced = generation();
+        expect(replaced, isNot(signedIn));
+
+        await notifier.logout();
+        expect(generation(), isNot(replaced));
+      },
+    );
 
     test('never signs a signed-out user back in', () async {
       final ProviderContainer container = createContainer();
