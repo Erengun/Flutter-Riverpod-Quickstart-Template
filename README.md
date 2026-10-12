@@ -3,21 +3,23 @@
 
 ## Modern Flutter Architecture Template with Riverpod
 
-A production-ready Flutter template built with the latest packages and best practices, supporting Flutter 3.32 and above. This template implements clean architecture principles and provides a robust foundation for building scalable applications.
+A production-ready Flutter template built with the latest packages and best practices, supporting Flutter 3.47.4 and above. This template implements clean architecture principles and provides a robust foundation for building scalable applications.
 
 ---
 
 ### Key Features
 
 - 🏗️ Clean Architecture with Domain-Driven Design
-- 🎯 Riverpod 2.6+ with code generation
-- 🔒 Built-in authentication pack with secure storage (Hive CE + AES-256)
+- 🎯 Riverpod 3 with code generation
+- 🔒 Built-in authentication pack with secure storage (Hive CE + AES-256), token refresh and backend-driven permissions
 - 🌐 Type-safe API integration with retrofit clients on one shared Dio
 - 📱 Responsive UI with adaptive widgets
 - 🌍 Internationalization with Flutter's gen-l10n (ARB files, English and Turkish)
 - 💾 Secure local storage with Hive CE
-- 🧪 Pre-configured unit testing for authentication and controller logic
-- ⚡ Modern navigation with GoRouter 14.8+
+- 🧩 Optional Modules: Firebase (Analytics, Remote Config) and Sentry, each removable in a few lines
+- 🧪 Pre-configured unit and widget tests, plus a Widgetbook catalog
+- ⚡ Modern navigation with GoRouter 18
+- 🚀 CI on every PR, and a tag-driven release workflow with fastlane
 - 🛠️ Custom linting and devtools configuration
 
 ---
@@ -25,15 +27,16 @@ A production-ready Flutter template built with the latest packages and best prac
 ## Tech Stack
 
 **Core Libraries:**
-- State Management: Riverpod 2.6.1, Freezed 3.0.6 (immutable state)
+- State Management: Riverpod 3, Freezed 4 (immutable state)
 - Network Layer: Dio 5 + retrofit, with a sealed `ApiException` and translated error messages
-- Local Storage: Hive CE 2.11.1 with AES-256 encryption
-- UI & Navigation: GoRouter 14.8.0, Google Fonts 6.2.1, Material 3
+- Local Storage: Hive CE 2 with AES-256 encryption
+- UI & Navigation: GoRouter 18, FlexColorScheme 9, Google Fonts 9, Material 3
 
 **Developer Tools:**
-- Flutter Lints 5.0.0
-- Build Runner, code generation
+- Flutter Lints 6, riverpod_lint and the template's own analyzer plugins (`packages/konteyner_lints`, `packages/app_lints`)
 - Custom linting rules (`lint_rules.yaml`)
+- Build Runner, code generation
+- Melos 7 scripts across the workspace
 - Dart & Flutter DevTools support
 
 ---
@@ -43,62 +46,94 @@ A production-ready Flutter template built with the latest packages and best prac
 The repo is a Dart pub workspace: the app lives in `app/`, shared infrastructure in `packages/core/`, and Melos scripts at the root run across every package.
 
 ```
+.
+├── app/                   # The app: pubspec, lib/, test/, assets/, platform folders, fastlane lanes
+├── packages/
+│   ├── core/              # Infrastructure every app gets (bootstrap, network, session, permissions, logging)
+│   ├── firebase_module/   # Optional Module: Firebase Analytics and Remote Config
+│   ├── sentry_module/     # Optional Module: Sentry error reporting
+│   ├── konteyner_lints/   # Analyzer plugin with the template's architecture rules
+│   └── app_lints/         # Empty analyzer plugin for your app's own rules
+├── widgetbook/            # Widgetbook catalog (web)
+├── .github/               # Workflows, the shared setup action, Dependabot
+├── Gemfile                # fastlane, for the release workflow
+└── pubspec.yaml           # Workspace list and Melos scripts
+```
+
+```
 app/lib/
-├── common/            # Shared widgets and components
-├── config/            # App configuration (theme etc.)
-├── constants/         # App-wide constants (assets)
-├── core/              # Core functionality, network layer
-├── features/          # Feature modules (authentication, home, ...)
+├── app/               # App-wide setup: config, theme, tokens, Modules, overrides, l10n delegates
+├── common/            # Shared widgets
+├── constants/         # App-wide constants (assets, strings)
+├── data/              # Shared models
+├── features/          # Features (authentication, home, demo)
 │   └── authentication/
 │       ├── data/
 │       ├── domain/
 │       └── presentation/
 ├── hive/              # Local storage setup and adapters
-├── router/            # Navigation & routing
+├── l10n/              # ARB files and generated localizations
+├── router/            # Navigation, routing and the permission menu
+├── shared/            # Code shared between Features (permission keys)
 ├── utils/             # Utility functions
-├── main.dart          # App entry point
+├── main_<flavor>.dart # One entry point per flavor (main.dart is dev)
 └── my_app.dart        # App configuration
 ```
 
 ---
 
-## Getting Started
+## Create a new app
 
+Start from everything, then remove what you don't need. Each step links to the section with the details.
 
-### Setup
+1. **Use this template.** Click **Use this template** on this repo (or on your organization's copy, see below). The new repo gets its own fresh history and never merges template updates; later template fixes reach it by hand.
+2. **Set your identity.** Edit the ids and names listed in [Customize names and IDs](#customize-names-and-ids): `app/android/gradle.properties`, `app/Identity.xcconfig`, `app/web/manifest.json`, `app/windows/CMakeLists.txt` and `app/linux/CMakeLists.txt`. The Dart package name and the Kotlin namespace stay as they are.
+3. **Point at your backend.** Set `apiBaseUrl` and `apiKey` per flavor in `app/lib/app/config.dart`, then replace the demo login (reqres.in) and the demo permission loader (`app/lib/features/authentication/data/demo_permissions.dart`) with your own.
+4. **Register the ids.** Register the bundle ids with Apple (Certificates, Identifiers & Profiles; `.dev` and `.staging` too if you run those flavors on devices) and create the app in Play Console. For local device builds, add your Apple team id as in [Signing on iOS and macOS](#signing-on-ios-and-macos).
+5. **Firebase.** Edit and run the `firebase:configure:<flavor>` scripts as in [Set up Firebase](#set-up-firebase), or [remove the Firebase Module](#remove-firebase).
+6. **Sentry.** Paste your DSN as in [Sentry Module](#sentry-module), or [remove the Sentry Module](#remove-sentry).
+7. **Protect `main`.** In Settings > Rules > Rulesets (or Settings > Branches), protect `main` and require the status checks `check`, `build-android`, `build-ios` and `build-web` from `ci.yaml`. "Use this template" doesn't copy this setting, and the checks only appear in the picker after `ci.yaml` has run once. See [CI](#ci).
+8. **fastlane placeholders.** Replace the certificates repo URL in [app/ios/fastlane/Matchfile](app/ios/fastlane/Matchfile) (or set `MATCH_GIT_URL`); for local runs, also `team_id` in [app/ios/fastlane/Appfile](app/ios/fastlane/Appfile) and `json_key_file` in [app/android/fastlane/Appfile](app/android/fastlane/Appfile). The lanes refuse to upload while the id is still `com.example.temp`.
+9. **Release secrets, variables and match.** Follow [One-time setup](#one-time-setup): the Play upload keystore and service account, the App Store Connect API key, the first `match` run that creates the certificate and profile, the secrets and variables, then `RELEASE_ENABLED`.
+10. **Widgetbook on Pages.** Set the Pages source to GitHub Actions and the `WIDGETBOOK_PUBLISH` variable as in [Publish it to GitHub Pages](#publish-it-to-github-pages), or [remove Widgetbook](#remove-widgetbook).
+11. **Runners (optional).** Set the repository variables `LINUX_RUNNER`, `MACOS_RUNNER` and `WINDOWS_RUNNER` to use other runner labels. See [CI](#ci).
+12. **Clean up.** Delete the open-source files a private app doesn't need: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `.github/FUNDING.yml` and `.github/ISSUE_TEMPLATE/`.
 
-1. **Clone the template:**
-    ```bash
-    git clone https://github.com/Erengun/Flutter-Riverpod-2.0-Template.git my_app
-    cd my_app
-    ```
+### Keeping your own copy of the template
 
-2. **Install dependencies:**
+If your organization keeps its own copy of this repo (to add its own rules or Modules and merge updates from here), mark that copy as a template repository: Settings > General > **Template repository**. Without it, the copy has no **Use this template** button.
+
+---
+
+## Run it locally
+
+1. **Install dependencies (every package):**
     ```bash
     flutter pub get
     ```
 
-3. **Generate code (every package):**
+2. **Generate code (every package):**
     ```bash
     dart run melos run gen
     ```
 
-4. **Setup environment:**
-    ```bash
-    cp .env.example .env
-    ```
-
-5. **Run the app:**
+3. **Run the app (dev flavor):**
     ```bash
     cd app
-    flutter run --flavor prod -t lib/main_prod.dart
+    flutter run --flavor dev -t lib/main_dev.dart
+    ```
+
+4. **Analyze and test, as CI does:**
+    ```bash
+    dart run melos run analyze
+    dart run melos run test
     ```
 
 ---
 
 ## Flavors (app names & package IDs)
 
-This template ships with dev, staging, and prod flavors for Android and iOS.
+This template ships with dev, staging, and prod flavors for Android and iOS. On web and desktop the entry point alone picks the flavor.
 
 ### Run commands
 
@@ -138,6 +173,66 @@ Every flavor xcconfig includes it when it exists. Both files are gitignored; uns
 
 ---
 
+## Minimum OS
+
+The template supports what Flutter supports and moves when Flutter raises its minimums. An app may raise a minimum for its audience, never lower it.
+
+| Platform | Minimum | Where it is set |
+|---|---|---|
+| Android | API 24 (Android 7.0), from Flutter | `minSdk = flutter.minSdkVersion` in `app/android/app/build.gradle.kts`, so it tracks Flutter |
+| iOS | 15.0 | `IPHONEOS_DEPLOYMENT_TARGET` in `app/ios/Runner.xcodeproj` |
+| macOS | 12.0 | `MACOSX_DEPLOYMENT_TARGET` in `app/macos/Runner.xcodeproj` |
+| Windows | Windows 10 | Flutter's minimum; nothing to set |
+| Linux | Debian 10 / Ubuntu 20.04 | Flutter's minimum; nothing to set |
+| Web | Chrome, Edge and Firefox (latest two versions), Safari 15.6 | Flutter's supported browsers |
+
+Android, iOS and web are first-class: every feature works there, and CI builds them on every PR. macOS, Windows and Linux are build-only: CI builds them after merge, and Modules whose native SDK is missing there (Firebase) switch themselves off.
+
+---
+
+## CI
+
+Four workflows live in `.github/workflows/`. None of them needs a secret until you turn releases on.
+
+| Workflow | Runs on | Jobs |
+|---|---|---|
+| `ci.yaml` | every PR to `main` and every push to `main` | `check`, `build-android`, `build-ios`, `build-web` |
+| `desktop.yaml` | push to `main`, weekly (Monday 03:00 UTC), manual | `build-macos`, `build-windows`, `build-linux` |
+| `release.yaml` | a `v*` tag, only when `RELEASE_ENABLED` is `true` | `version`, `release-android`, `release-ios`, `release-web`, `github-release` |
+| `widgetbook.yaml` | push to `main`, manual, only when `WIDGETBOOK_PUBLISH` is `true` | `publish` |
+
+- **`check`** runs `melos run gen` and fails when a generated file (`*.g.dart`, `*.freezed.dart`, generated localizations) is out of date, then `melos run analyze` (any lint info fails) and `melos run test`. There is no format check.
+- **Build jobs** make unsigned prod release builds, so R8 and tree-shaking problems show up before a release. `build-ios` (and `build-macos`) fails if a `Podfile` appears: every plugin must support Swift Package Manager.
+- **Required checks:** the four `ci.yaml` jobs are meant to block merges. Turn that on in branch protection (step 7 of [Create a new app](#create-a-new-app)).
+- **Desktop** runs only after merge, because macOS and Windows minutes are expensive. GitHub turns off scheduled workflows after 60 days without repo activity, and a failed scheduled run only emails whoever last edited the workflow file.
+- **Runners** come from the repository variables `LINUX_RUNNER`, `MACOS_RUNNER` and `WINDOWS_RUNNER` (defaults `ubuntu-latest`, `macos-latest`, `windows-latest`), so a copy can switch runners without editing the workflows.
+- **Dependabot** ([.github/dependabot.yml](.github/dependabot.yml)) updates pub packages, GitHub Actions and the `Gemfile` weekly.
+
+---
+
+## Modules
+
+A Module is optional infrastructure in `packages/<name>_module/` that plugs into Core's `ErrorReporter`, `Analytics` or `RemoteFlags`. The template ships every Module wired in, so its CI covers them all; an app removes the ones it doesn't want. Core skips a Module on platforms it doesn't support and falls back to no-op defaults.
+
+### Remove a Module
+
+Delete all of these, then run `flutter pub get` and `dart run melos run analyze` (a leftover import or dependency fails the analysis):
+
+- `packages/<name>_module/`
+- `- packages/<name>_module` in the root `pubspec.yaml` workspace list
+- its dependency in `app/pubspec.yaml`
+- its dependency in `widgetbook/pubspec.yaml`, and any use cases in `widgetbook/lib/` that import it
+- its entry and import in `app/lib/app/modules.dart`
+- its localizations delegate in `app/lib/app/l10n.dart`, if it has strings (neither shipped Module does)
+- its line in `CLAUDE.md` and its section in this README
+- the Module's own extras: [Firebase](#remove-firebase), [Sentry](#remove-sentry)
+
+`flutter pub get` regenerates the macOS, Windows and Linux plugin registrants without the Module's plugins; commit them.
+
+To add a Module back, copy its folder from the template and add the same lines again, plus the vendor's native setup.
+
+---
+
 ## Firebase Module
 
 [packages/firebase_module](packages/firebase_module) provides Firebase Analytics and Remote Config through Core's `Analytics` and `RemoteFlags`. It runs on Android, iOS and web; on macOS, Windows and Linux Core skips it. Crash reporting is not part of it.
@@ -154,38 +249,32 @@ Each flavor uses its own Firebase project. Two flavors can share one by passing 
 2. Create the Firebase projects, then edit `--project`, `--android-package-name` and `--ios-bundle-id` in the `firebase:configure:<flavor>` scripts in the root [pubspec.yaml](pubspec.yaml). Ids must match `app/android/gradle.properties` and `app/Identity.xcconfig` (plus the iOS flavor suffixes).
 3. Run, once per flavor:
     ```bash
-    melos run firebase:configure:dev
-    melos run firebase:configure:staging
-    melos run firebase:configure:prod
+    dart run melos run firebase:configure:dev
+    dart run melos run firebase:configure:staging
+    dart run melos run firebase:configure:prod
     ```
    Each script runs `flutterfire configure` in `app/` once per iOS build configuration (`Debug-<flavor>`, `Profile-<flavor>`, `Release-<flavor>`). It writes the Dart options file over the placeholder, `app/android/app/src/<flavor>/google-services.json`, `app/ios/flavors/<flavor>/GoogleService-Info.plist` and `app/firebase.json`, adds the google-services Gradle plugin, and adds a "FlutterFire: bundle-service-file" build phase to the Runner target.
 4. Commit every generated file. Firebase options are identifiers, not secrets; restrict the API keys in Google Cloud instead.
-5. Install `flutterfire` on every Mac that builds iOS (CI included): the Xcode build phase calls it. Add SHA fingerprints for each Android app, and link each flavor's web app to Google Analytics.
+5. Install `flutterfire` on every Mac that builds iOS: the Xcode build phase calls it. `release.yaml` already installs it once `app/firebase.json` exists; add the same "Install the FlutterFire CLI" step to the `build-ios` job in `ci.yaml`. Add SHA fingerprints for each Android app, and link each flavor's web app to Google Analytics.
 
 ### iOS advertising id
 
 Analytics is linked without the advertising id (IDFA). Under Swift Package Manager, `firebase_analytics` decides this from the `FIREBASE_ANALYTICS_WITHOUT_ADID` environment variable while packages resolve, so it has to be set wherever iOS is built:
 
-- CI: the `build-ios` job in [.github/workflows/ci.yaml](.github/workflows/ci.yaml) sets it.
+- CI: the `build-ios` job in [.github/workflows/ci.yaml](.github/workflows/ci.yaml) and the `release-ios` job in [.github/workflows/release.yaml](.github/workflows/release.yaml) set it.
 - Locally: `export FIREBASE_ANALYTICS_WITHOUT_ADID=true` in your shell profile before `flutter build ios` / `flutter run`. Xcode opened from the Dock does not see your shell; run `launchctl setenv FIREBASE_ANALYTICS_WITHOUT_ADID true` and restart Xcode.
 - After changing it, clear the resolved packages (`flutter clean`, then delete Xcode's DerivedData for the app) so the package resolves again.
 
 Keep this setting unless the app needs IDFA, for example for cross-app tracking or ad attribution that depends on it. Showing ads alone does not require IDFA. An app that does need it removes the variable everywhere, then must ask for permission through App Tracking Transparency before tracking, declare the tracking in its privacy manifest and App Store privacy details, and collect any consent its regions require (for example GDPR consent in the EU).
 
-### Remove the Module
+### Remove Firebase
 
-Delete all of these:
+Follow [Remove a Module](#remove-a-module) for `firebase_module`, then also delete:
 
-- `packages/firebase_module/` (options files included)
-- `- packages/firebase_module` in the root `pubspec.yaml` workspace list
-- the `firebase_module` dependency in `app/pubspec.yaml`
-- the `firebase_module` dependency in `widgetbook/pubspec.yaml` (and its use cases in `widgetbook/lib/`, if you added any)
-- the `FirebaseModule()` entry and its import in `app/lib/app/modules.dart`
 - the `firebase:configure:*` scripts in the root `pubspec.yaml`
-- `FIREBASE_ANALYTICS_WITHOUT_ADID` in `.github/workflows/ci.yaml` (and in your shell or `launchctl`)
-- the `packages/firebase_module/` line in `CLAUDE.md`
-
-The Firebase entries in the macOS and Windows plugin registrants go away on the next `flutter pub get`, which regenerates them.
+- `FIREBASE_ANALYTICS_WITHOUT_ADID` in `.github/workflows/ci.yaml` and `.github/workflows/release.yaml` (and in your shell or `launchctl`)
+- the "Install the FlutterFire CLI" step in `.github/workflows/release.yaml` (and in `ci.yaml`, if you added it)
+- the `firebase-dependencies` group in `.github/dependabot.yml`
 
 Once Firebase has been configured, also delete:
 
@@ -194,11 +283,26 @@ Once Firebase has been configured, also delete:
 - `app/android/app/src/{dev,staging,prod}/google-services.json`
 - `app/ios/flavors/{dev,staging,prod}/GoogleService-Info.plist`
 - the "FlutterFire: bundle-service-file" build phase on the Runner target (remove it in Xcode)
-- the `flutterfire` install step in CI, if you added one
 
 ---
 
-## Authentication Module
+## Sentry Module
+
+[packages/sentry_module](packages/sentry_module) reports errors and crash-free statistics to Sentry through Core's `ErrorReporter`, on all six platforms. Staging and prod report, with the flavor name as the Sentry `environment`; dev never starts Sentry. There is no tracing, session replay, screenshots, personal data or HTTP capture.
+
+**As shipped, Sentry is off.** Set `sentryDsn` in [packages/sentry_module/lib/src/sentry_options.dart](packages/sentry_module/lib/src/sentry_options.dart) to your project's DSN (Sentry project settings > Client Keys). One Sentry project serves every flavor. A DSN is not a secret. To get readable prod stack traces, set up the symbol upload in [Releases](#releases).
+
+### Remove Sentry
+
+Follow [Remove a Module](#remove-a-module) for `sentry_module`, then also delete:
+
+- the `sentry_dart_plugin` dev dependency in `app/pubspec.yaml`
+- the three "Upload ... to Sentry" steps in `.github/workflows/release.yaml`, and the Sentry rows and notes in [Releases](#releases)
+- in `.github/workflows/desktop.yaml`, the "Allow long paths in git" step of `build-windows` and `libcurl4-openssl-dev` in `build-linux` (both are there for Sentry's native SDK)
+
+---
+
+## Authentication
 
 The template includes a complete authentication system with secure credential storage and error handling.
 
@@ -273,7 +377,7 @@ Write a function annotated with `@UseCase` in a file whose path mirrors the widg
 
 No secrets are needed.
 
-### Remove it
+### Remove Widgetbook
 
 Delete all of these, then run `flutter pub get`:
 
@@ -283,8 +387,7 @@ Delete all of these, then run `flutter pub get`:
 - the `widgetbook` Melos script in the root `pubspec.yaml`
 - `.github/workflows/widgetbook.yaml`
 - the `"/widgetbook"` line in `.github/dependabot.yml`
-
-Removing a Module also removes its dependency from `widgetbook/pubspec.yaml` and its use cases from `widgetbook/lib/`.
+- the `widgetbook/` line and the other Widgetbook mentions in `CLAUDE.md`, and this section of the README
 
 ---
 
@@ -316,10 +419,10 @@ The Sentry release must match what `sentry_flutter` reports, `<package id>@<name
 
 ### One-time setup
 
-1. Set your own ids ("Customize names and IDs", above). The lanes refuse to upload while the id is still `com.example.temp`.
+1. Set your own ids ([Customize names and IDs](#customize-names-and-ids)). The lanes refuse to upload while the id is still `com.example.temp`.
 2. **Android:** create an upload keystore (`keytool -genkeypair -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload`) and keep it outside the repo. Create the app in Play Console and upload the first App Bundle by hand: the Play API can't create an app or make its first upload. Then create a Google Cloud service account with release access to the app in Play Console and download its JSON key.
 3. **iOS:** create the app in App Store Connect and an App Store Connect API key (Users and Access > Integrations, App Manager role). Create an empty private git repo for the certificates. Then, once, someone with App Store access runs `bundle exec fastlane match appstore` from `app/ios` (with `MATCH_GIT_URL` set, or the placeholder in [Matchfile](app/ios/fastlane/Matchfile) replaced) to create the certificate and profile; CI only reads them. The gitignored `Signing.xcconfig` is for local development only; CI doesn't need it.
-4. **Sentry (optional):** set `sentryDsn` in [packages/sentry_module/lib/src/sentry_options.dart](packages/sentry_module/lib/src/sentry_options.dart) and create an auth token with the `project:releases` and `org:read` scopes. Without the `SENTRY_PROJECT` variable the upload steps are skipped, and prod stack traces stay obfuscated.
+4. **Sentry (optional):** set `sentryDsn` ([Sentry Module](#sentry-module)) and create an auth token with the `project:releases` and `org:read` scopes. Without the `SENTRY_PROJECT` variable the upload steps are skipped, and prod stack traces stay obfuscated.
 5. Add the secrets and variables below (Settings > Secrets and variables > Actions), then set `RELEASE_ENABLED` to `true`.
 
 | Name | Kind | Use |
@@ -340,7 +443,7 @@ The Sentry release must match what `sentry_flutter` reports, `<package id>@<name
 | `SENTRY_ORG` | variable | Sentry organization slug |
 | `SENTRY_PROJECT` | variable | Sentry project slug; when unset, the Sentry upload steps are skipped |
 
-The runner labels come from `LINUX_RUNNER` and `MACOS_RUNNER`, as in CI.
+The runner labels come from `LINUX_RUNNER` and `MACOS_RUNNER`, as in [CI](#ci).
 
 Never commit keystores, `key.properties`, `.p8` keys or service-account JSON; `.gitignore` already excludes them.
 
@@ -376,6 +479,8 @@ The upload runs with `commits=false`, so Sentry doesn't link commits to the rele
 ## Documentation
 
 - Up-to-date documentation in this README
+- [CLAUDE.md](CLAUDE.md): the architecture, commands and the rules the code follows
+- [CONTEXT.md](CONTEXT.md): the project's vocabulary (Module, Feature, Flavor, Session, ...)
 - Code comments and examples throughout
 
 ---
