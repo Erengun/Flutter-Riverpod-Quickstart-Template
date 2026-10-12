@@ -16,6 +16,7 @@ Future<void> _startSentry(FlutterOptionsConfiguration configureOptions) =>
     SentryFlutter.init(configureOptions);
 
 /// Sends errors and crash-free statistics to Sentry on staging and prod.
+/// Web gets errors only: see [configureSentryOptions].
 ///
 /// - **dev:** Sentry never starts and the Module returns the no-op
 ///   reporter, so dev errors only reach the console.

@@ -344,6 +344,24 @@ void main() {
       });
     });
 
+    test('a request whose own header carries the current token is refreshed '
+        'and replayed', () async {
+      build(refresh: refreshToNew);
+
+      // A permission loader sends the session's token itself.
+      final Response<Object?> response = await dio.get<Object?>(
+        '/permissions',
+        options: Options(
+          headers: <String, Object?>{'Authorization': 'Bearer old'},
+        ),
+      );
+
+      expect(response.statusCode, 200);
+      expect(refreshCalls, 1);
+      expect(sentTokens(), <Object?>['Bearer old', 'Bearer new']);
+      expect(session?.accessToken, 'new');
+    });
+
     test('a 401 while signed out passes through', () async {
       session = null;
       build(refresh: refreshToNew);

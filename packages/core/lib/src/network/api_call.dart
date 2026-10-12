@@ -76,6 +76,9 @@ class _ApiParseErrorLogger implements ParseErrorLogger {
 ///   breadcrumbs. Reports carry the group key `<method> <path> <status>`,
 ///   tags `http.method` / `http.path` / `http.status` and extra
 ///   `errorMessage` / `requestId`. Never bodies, headers or query values.
+///   A failure with no request (thrown before or outside Dio) is reported
+///   once per launch per kind and cause type, without a group key, so the
+///   tracker groups it by stack trace.
 /// - Every other kind becomes a breadcrumb only.
 class ApiCall {
   ApiCall(
@@ -198,8 +201,11 @@ class ApiCall {
   }
 
   void _record(ApiException error, StackTrace stackTrace) {
-    final ApiRequestInfo request =
-        error.request ?? const ApiRequestInfo(method: '?', path: '?');
+    final ApiRequestInfo? request = error.request;
+    if (request == null) {
+      _recordWithoutRequest(error, stackTrace);
+      return;
+    }
     final String groupKey = request.toString();
     final String status = request.statusCode?.toString() ?? '-';
     if (error.isReported && _reported.add(groupKey)) {
@@ -229,6 +235,29 @@ class ApiCall {
         'path': request.path,
         'status': request.statusCode,
       },
+    );
+  }
+
+  // A failure that never reached Dio (a throw in the closure, a decode
+  // error outside retrofit) has no method, path or status. It is reported
+  // once per launch per kind and cause type, with no group key, so the
+  // tracker groups it by stack trace instead of merging unrelated bugs.
+  void _recordWithoutRequest(ApiException error, StackTrace stackTrace) {
+    final String cause = (error.cause ?? error).runtimeType.toString();
+    final String dedupeKey = '${error.kind} $cause';
+    if (error.isReported && _reported.add(dedupeKey)) {
+      _reporter.report(
+        error,
+        stackTrace,
+        extra: <String, Object?>{'errorMessage': error.message},
+      );
+      return;
+    }
+    _reporter.addBreadcrumb(
+      'API error $dedupeKey',
+      category: 'http',
+      level: BreadcrumbLevel.warning,
+      data: <String, Object?>{'kind': error.kind, 'cause': cause},
     );
   }
 }

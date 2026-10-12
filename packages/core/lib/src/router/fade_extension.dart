@@ -3,6 +3,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'transition_route.dart';
+
 class FadeTransitionPage extends CustomTransitionPage {
   FadeTransitionPage({
     required LocalKey super.key,
@@ -24,18 +26,18 @@ class FadeTransitionPage extends CustomTransitionPage {
 
 /// Extension for GoRouter to add fade transition
 extension FadeGoRouteExtension on GoRoute {
-  /// Add fade transition to the route page
+  /// Returns this route with a fade transition; every other field is kept.
+  ///
+  /// The route must have a `builder` (throws [ArgumentError] otherwise).
   GoRoute fade() {
-    return GoRoute(
-      path: path,
-      name: name,
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        return FadeTransitionPage(
-          key: ValueKey<String>(path),
-          name: state.name,
-          child: builder!(context, state),
-        );
-      },
+    return withTransitionPage(
+      this,
+      (GoRouterState state, Widget child) => FadeTransitionPage(
+        key: state.pageKey,
+        name: state.name,
+        child: child,
+      ),
+      transition: 'fade',
     );
   }
 }

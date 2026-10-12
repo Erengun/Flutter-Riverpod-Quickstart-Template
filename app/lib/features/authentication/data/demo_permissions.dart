@@ -11,7 +11,9 @@ import '../../../shared/permission_keys.dart';
 ///
 /// A real loader fetches the backend's tree with [session]'s token (sent
 /// as its own `Authorization` header: the session isn't saved yet at
-/// login), keeps this app's branch, flattens it and returns [Permissions].
+/// login; on Core's reloads it is the current token, which the auth
+/// interceptor refreshes on a 401), keeps this app's branch, flattens it and
+/// returns [Permissions].
 Future<Permissions> loadDemoPermissions(Session session) async {
   return const Permissions(
     areas: <String>{AppAreas.profile, AppAreas.settings, AppAreas.orders},

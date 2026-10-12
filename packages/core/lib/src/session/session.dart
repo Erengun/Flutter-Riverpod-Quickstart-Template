@@ -42,10 +42,11 @@ class Session {
       '${refreshToken == null ? 'none' : 'set'})';
 }
 
-/// Tells the backend the user signed out. Called without waiting, while
-/// [Session] is already being cleared, so the request must carry the token
-/// from the [Session] it receives itself (the auth interceptor never
-/// replaces an `Authorization` header that is already set).
+/// Tells the backend the user signed out. Called without waiting, once
+/// [sessionProvider] is already signed out, so the request must carry the
+/// token from the [Session] it receives itself (the auth interceptor never
+/// replaces an `Authorization` header that is already set, and never
+/// refreshes a token that is no longer the current one).
 typedef LogoutHook = Future<void> Function(Session session);
 
 /// Trades [Session.refreshToken] for new tokens and returns the new
@@ -63,7 +64,10 @@ typedef RefreshHook = Future<Session> Function(Session session);
 /// Fetches the user's permissions (a nested tree, a flat list, token
 /// claims, ...) and flattens this app's branch into [Permissions]. Called at
 /// login before the [Session] is saved, so the request must carry the token
-/// from the [Session] it receives itself.
+/// from the [Session] it receives itself. Core also calls it for its
+/// reloads (once per launch, after a 403) with the current [Session]; a 401
+/// on a request whose own `Authorization` header carries the current token
+/// is refreshed and replayed like any other.
 typedef LoadPermissionsHook = Future<Permissions> Function(Session session);
 
 /// The backend-specific calls the auth Feature gives Core. Every hook is
@@ -116,6 +120,30 @@ const String _accessTokenKey = 'accessToken';
 const String _refreshTokenKey = 'refreshToken';
 const String _userIdKey = 'userId';
 
+/// Which signed-in user [sessionProvider] belongs to, as a number that
+/// changes whenever that user may change: on every sign-out (at its start,
+/// before anything is awaited) and on a sign-in over another session. A
+/// token refresh keeps it, so work started for one user (a permission
+/// reload) can tell whether its result still belongs to the current one.
+///
+/// Read it with `ref.read(sessionGenerationProvider).value`; it notifies
+/// nobody. It lives outside [SessionNotifier], which Riverpod recreates
+/// whenever the provider rebuilds.
+final Provider<SessionGeneration> sessionGenerationProvider =
+    Provider<SessionGeneration>(
+      (Ref ref) => SessionGeneration._(),
+      name: 'sessionGenerationProvider',
+    );
+
+/// See [sessionGenerationProvider]. Only [SessionNotifier] changes it.
+class SessionGeneration {
+  SessionGeneration._();
+
+  int _value = 0;
+
+  int get value => _value;
+}
+
 /// The encrypted session box, opened with `openEncryptedBox`. Tests
 /// override it with a box of their own.
 final FutureProvider<Box<String>> sessionBoxProvider =
@@ -154,6 +182,7 @@ class SessionNotifier extends AsyncNotifier<Session?> {
   /// [Session.userId] is given.
   Future<void> signIn(Session session) async {
     await _save(session);
+    if (state.value != null) ref.read(sessionGenerationProvider)._value++;
     state = AsyncData<Session?>(session);
     ref.read(sessionExpiredProvider.notifier).clear();
     if (session.userId case final String id) {
@@ -190,8 +219,9 @@ class SessionNotifier extends AsyncNotifier<Session?> {
     ]);
   }
 
-  /// Signs out: calls the logout hook without waiting for it, clears the
-  /// tokens whatever the hook does, and clears the reporter user.
+  /// Signs out: the state is `null` at once, then it calls the logout hook
+  /// without waiting for it, clears the tokens whatever the hook does, and
+  /// clears the reporter user.
   Future<void> logout() => _signOut(callHook: true);
 
   /// Signs out because the session expired; the auth interceptor calls it.
@@ -207,6 +237,12 @@ class SessionNotifier extends AsyncNotifier<Session?> {
 
   Future<void> _signOut({required bool callHook}) async {
     final Session? current = state.value;
+    // Before anything is awaited: a permission reload landing while the box
+    // is cleared must see the sign-out, or it would write to the box after
+    // the clear. Requests sent from now on (the logout hook's) carry no
+    // current token, so a 401 on them never refreshes.
+    ref.read(sessionGenerationProvider)._value++;
+    state = const AsyncData<Session?>(null);
     final LogoutHook? hook = callHook
         ? ref.read(sessionHooksProvider).logout
         : null;
@@ -233,7 +269,6 @@ class SessionNotifier extends AsyncNotifier<Session?> {
         ref.read(errorReporterProvider).report(error, stackTrace);
       }
     } finally {
-      state = const AsyncData<Session?>(null);
       ref.read(errorReporterProvider).setUser(null);
       _log.info('Signed out.');
     }

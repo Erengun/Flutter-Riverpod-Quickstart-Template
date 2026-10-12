@@ -37,12 +37,36 @@ void main() {
     test('staging keeps INFO and above and prints it', () {
       configure(Flavor.staging);
 
-      Logger('network')
-        ..fine('request sent')
+      Logger('auth')
+        ..fine('token read')
         ..info('signed in');
 
       expect(Logger.root.level, Level.INFO);
       expect(printed.map((LogRecord r) => r.message), <String>['signed in']);
+    });
+
+    test('staging also keeps network at FINE, without breadcrumbs', () {
+      configure(Flavor.staging);
+
+      Logger('network')
+        ..finer('too fine')
+        ..fine('request sent');
+      Logger('auth').fine('token read');
+
+      expect(printed.map((LogRecord r) => r.message), <String>['request sent']);
+      expect(reporter.breadcrumbs, isEmpty);
+    });
+
+    test('a later policy drops the earlier per-logger levels', () {
+      configure(Flavor.staging);
+      configure(Flavor.prod);
+
+      expect(Logger('network').isLoggable(Level.FINE), isFalse);
+
+      resetLogging();
+
+      expect(hierarchicalLoggingEnabled, isFalse);
+      expect(Logger('network').isLoggable(Level.FINE), isFalse);
     });
 
     test('prod keeps INFO and above without a console', () {

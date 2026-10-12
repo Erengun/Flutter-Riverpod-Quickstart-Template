@@ -15,3 +15,6 @@ IDENTITY_BUNDLE_NAME = Temp
 
 // macOS app name: the .app file name, menu bar and window title.
 IDENTITY_MACOS_PRODUCT_NAME = temp
+
+// macOS copyright, shown in the About panel (NSHumanReadableCopyright).
+IDENTITY_MACOS_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.

@@ -3,6 +3,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'transition_route.dart';
+
 class SlideTransitionPage extends CustomTransitionPage {
   SlideTransitionPage({
     required LocalKey super.key,
@@ -30,18 +32,18 @@ class SlideTransitionPage extends CustomTransitionPage {
 
 /// Extension for GoRouter to add slide transition
 extension SlideGoRouteExtension on GoRoute {
-  /// Add slide transition to the route page
+  /// Returns this route with a slide transition; every other field is kept.
+  ///
+  /// The route must have a `builder` (throws [ArgumentError] otherwise).
   GoRoute slide() {
-    return GoRoute(
-      path: path,
-      name: name,
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        return SlideTransitionPage(
-          key: ValueKey<String>(path),
-          name: state.name,
-          child: builder!(context, state),
-        );
-      },
+    return withTransitionPage(
+      this,
+      (GoRouterState state, Widget child) => SlideTransitionPage(
+        key: state.pageKey,
+        name: state.name,
+        child: child,
+      ),
+      transition: 'slide',
     );
   }
 }

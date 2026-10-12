@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 
+import '../support/fake_http_adapter.dart';
 import '../support/recording_reporter.dart';
 
 const Session _session = Session(accessToken: 'access');
@@ -287,6 +288,161 @@ void main() {
     });
   });
 
+  group('a token refresh while the launch reload runs', () {
+    Future<(ProviderContainer, _Loader)> refreshedMidReload(
+      FutureOr<Permissions> Function() reply,
+    ) async {
+      final _Loader loader = _Loader(<FutureOr<Permissions> Function()>[
+        reply,
+      ]);
+      final ProviderContainer container = createContainer(
+        loadPermissions: loader.call,
+      );
+      await container.read(sessionProvider.future);
+      container.read(permissionsProvider);
+      await _settle();
+      expect(loader.calls, <Session>[_session]);
+
+      // Another request got a 401 and refreshed the token meanwhile.
+      await container
+          .read(sessionProvider.notifier)
+          .updateTokens(const Session(accessToken: 'access2'));
+      return (container, loader);
+    }
+
+    test('nothing saved: its result is still used and saved', () async {
+      await saveSignedIn();
+      final Completer<Permissions> reload = Completer<Permissions>();
+      final (ProviderContainer container, _Loader loader) =
+          await refreshedMidReload(() => reload.future);
+      expect(container.read(permissionsProvider), isNull);
+
+      reload.complete(_fresh);
+      await _reloaded(container);
+
+      expect(container.read(permissionsProvider), _fresh);
+      expect(Permissions.decode(box.get(permissionsKey)!), _fresh);
+      expect(loader.calls, hasLength(1));
+    });
+
+    test('a saved list is replaced by its result', () async {
+      await saveSignedIn(permissions: _saved);
+      final Completer<Permissions> reload = Completer<Permissions>();
+      final (ProviderContainer container, _) = await refreshedMidReload(
+        () => reload.future,
+      );
+      expect(container.read(permissionsProvider), _saved);
+
+      reload.complete(_fresh);
+      await _reloaded(container);
+
+      expect(container.read(permissionsProvider), _fresh);
+      expect(Permissions.decode(box.get(permissionsKey)!), _fresh);
+    });
+
+    test('nothing saved and it fails: no areas (fail-closed)', () async {
+      await saveSignedIn();
+      final Completer<Permissions> reload = Completer<Permissions>();
+      final (ProviderContainer container, _) = await refreshedMidReload(
+        () => reload.future,
+      );
+
+      reload.completeError(const ApiConnectionException());
+      await _reloaded(container);
+
+      expect(container.read(permissionsProvider), Permissions.none);
+    });
+  });
+
+  test('a launch reload that gets a 401 is refreshed and replayed', () async {
+    await box.putAll(<String, String>{
+      'accessToken': 'old',
+      'refreshToken': 'r1',
+    });
+    final FakeHttpAdapter adapter = FakeHttpAdapter(<FakeReply>[
+      (RequestOptions options) => switch (options.path) {
+        '/refresh' => jsonReply(200, <String, Object?>{'token': 'new'})(
+          options,
+        ),
+        _ when options.headers['Authorization'] == 'Bearer new' =>
+          jsonReply(200, <String, Object?>{
+            'areas': <String>['orders', 'reports'],
+          })(options),
+        _ => jsonReply(401, <String, Object?>{'error': 'expired'})(options),
+      },
+    ]);
+    final ProviderContainer container = ProviderContainer(
+      overrides: <Override>[
+        appConfigProvider.overrideWithValue(
+          const AppConfig(
+            flavor: Flavor.prod,
+            apiBaseUrl: 'https://api.example.com/',
+            apiKey: '',
+          ),
+        ),
+        sessionBoxProvider.overrideWith((Ref ref) async => box),
+        errorReporterProvider.overrideWithValue(reporter),
+        sessionHooksProvider.overrideWith(
+          (Ref ref) => SessionHooks(
+            refresh: (Session session) async {
+              final Response<Map<String, Object?>> response = await ref
+                  .read(dioProvider)
+                  .post<Map<String, Object?>>(
+                    '/refresh',
+                    options: Options(
+                      extra: <String, Object?>{skipAuthKey: true},
+                    ),
+                  );
+              return Session(
+                accessToken: response.data!['token']! as String,
+                refreshToken: session.refreshToken,
+              );
+            },
+            // What a real loader looks like: it sends the token itself,
+            // since at login the session is not saved yet.
+            loadPermissions: (Session session) async {
+              final Response<Map<String, Object?>> response = await ref
+                  .read(dioProvider)
+                  .get<Map<String, Object?>>(
+                    '/permissions',
+                    options: Options(
+                      headers: <String, Object?>{
+                        'Authorization': 'Bearer ${session.accessToken}',
+                      },
+                    ),
+                  );
+              final List<Object?> areas =
+                  response.data!['areas']! as List<Object?>;
+              return Permissions(areas: areas.cast<String>().toSet());
+            },
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    container.read(dioProvider).httpClientAdapter = adapter;
+    container.listen<Permissions?>(
+      permissionsProvider,
+      (Permissions? previous, Permissions? next) {},
+    );
+    await container.read(sessionProvider.future);
+    expect(container.read(permissionsProvider), isNull);
+
+    await _reloaded(container);
+
+    expect(
+      container.read(permissionsProvider),
+      const Permissions(areas: <String>{'orders', 'reports'}),
+    );
+    expect(
+      adapter.requests
+          .where((RequestOptions request) => request.path == '/permissions')
+          .map((RequestOptions request) => request.headers['Authorization']),
+      <Object?>['Bearer old', 'Bearer new'],
+    );
+    expect(container.read(sessionProvider).value?.accessToken, 'new');
+  });
+
   group('after a 403', () {
     test('reloads at most once per launch', () async {
       await saveSignedIn(permissions: _saved);
@@ -389,6 +545,35 @@ void main() {
       expect(box.get(permissionsKey), isNull);
       expect(container.read(permissionsProvider), Permissions.none);
     });
+  });
+
+  test('a logout while a reload runs leaves nothing on disk', () async {
+    await saveSignedIn(permissions: _saved);
+    final Completer<Permissions> reload = Completer<Permissions>();
+    final _Loader loader = _Loader(<FutureOr<Permissions> Function()>[
+      () => reload.future,
+    ]);
+    final ProviderContainer container = createContainer(
+      loadPermissions: loader.call,
+    );
+    await container.read(sessionProvider.future);
+    container.read(permissionsProvider);
+    await _settle();
+    expect(loader.calls, hasLength(1));
+
+    // The reload lands while the session box is being cleared.
+    final Future<void> loggingOut = container
+        .read(sessionProvider.notifier)
+        .logout();
+    reload.complete(_fresh);
+    await loggingOut;
+    await _reloaded(container);
+    expect(container.read(permissionsProvider), Permissions.none);
+
+    // What the next launch (and the next user's login) would read.
+    await box.close();
+    final Box<String> reopened = await Hive.openBox<String>(sessionBoxName);
+    expect(reopened.get(permissionsKey), isNull);
   });
 
   group('the container is disposed while a reload runs', () {
