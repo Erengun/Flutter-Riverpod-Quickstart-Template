@@ -8,14 +8,23 @@ import '../reporting/error_reporter.dart';
 
 /// How much a [Flavor] logs and whether it prints to the console.
 class LogPolicy {
-  const LogPolicy({required this.level, required this.console});
+  const LogPolicy({
+    required this.level,
+    required this.console,
+    this.loggerLevels = const <String, Level>{},
+  });
 
-  /// dev keeps everything and prints it; staging keeps `INFO` and above and
-  /// prints it; prod keeps `INFO` and above without a console.
+  /// dev keeps everything and prints it; staging keeps `INFO` and above
+  /// (`FINE` for `Logger('network')`, so the request log works) and prints
+  /// it; prod keeps `INFO` and above without a console.
   factory LogPolicy.forFlavor(Flavor flavor) {
     return switch (flavor) {
       Flavor.dev => const LogPolicy(level: Level.ALL, console: true),
-      Flavor.staging => const LogPolicy(level: Level.INFO, console: true),
+      Flavor.staging => const LogPolicy(
+        level: Level.INFO,
+        console: true,
+        loggerLevels: <String, Level>{'network': Level.FINE},
+      ),
       Flavor.prod => const LogPolicy(level: Level.INFO, console: false),
     };
   }
@@ -25,6 +34,10 @@ class LogPolicy {
 
   /// Whether kept records are printed.
   final bool console;
+
+  /// The lowest level kept for single named loggers, overriding [level].
+  /// Records below `INFO` never become breadcrumbs, whatever is kept here.
+  final Map<String, Level> loggerLevels;
 }
 
 /// Writes one kept record somewhere a developer can read it.
@@ -32,10 +45,23 @@ typedef LogPrinter = void Function(LogRecord record);
 
 StreamSubscription<LogRecord>? _subscription;
 
+/// The loggers whose level [configureLogging] set from
+/// [LogPolicy.loggerLevels].
+final Set<String> _leveledLoggers = <String>{};
+
+void _clearLoggerLevels() {
+  for (final String name in _leveledLoggers) {
+    Logger(name).level = null;
+  }
+  _leveledLoggers.clear();
+}
+
 /// Attaches the only listener on the root logger. `bootstrap` calls it once;
 /// calling it again replaces the previous listener.
 ///
-/// - Records below [LogPolicy.level] are dropped.
+/// - Records below [LogPolicy.level] are dropped, except for the loggers
+///   in [LogPolicy.loggerLevels], which keep their own level (this turns on
+///   the `logging` package's `hierarchicalLoggingEnabled`).
 /// - Kept records go to [printer] (the console by default) when
 ///   [LogPolicy.console] is on.
 /// - Kept records at `INFO` and above become breadcrumbs on [reporter], with
@@ -47,7 +73,15 @@ void configureLogging(
   LogPrinter? printer,
 }) {
   unawaited(_subscription?.cancel());
+  _clearLoggerLevels();
   Logger.root.level = policy.level;
+  if (policy.loggerLevels.isNotEmpty) {
+    hierarchicalLoggingEnabled = true;
+    for (final MapEntry<String, Level> entry in policy.loggerLevels.entries) {
+      Logger(entry.key).level = entry.value;
+      _leveledLoggers.add(entry.key);
+    }
+  }
   final LogPrinter? console = policy.console
       ? (printer ?? printLogRecord)
       : null;
@@ -64,10 +98,12 @@ void configureLogging(
 }
 
 /// Removes the listener [configureLogging] attached and restores the
-/// `logging` package's default level. For tests.
+/// `logging` package's default levels. For tests.
 void resetLogging() {
   unawaited(_subscription?.cancel());
   _subscription = null;
+  _clearLoggerLevels();
+  hierarchicalLoggingEnabled = false;
   Logger.root.level = Level.INFO;
 }
 

@@ -121,6 +121,10 @@ void main() {
       expect(options.enableLogs, isFalse);
     });
 
+    test('turns debugPrint breadcrumbs off: Core logs records itself', () {
+      expect(options.enablePrintBreadcrumbs, isFalse);
+    });
+
     test('leaves release and dist to sentry_flutter', () {
       expect(options.release, isNull);
       expect(options.dist, isNull);

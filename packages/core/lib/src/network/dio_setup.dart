@@ -51,7 +51,8 @@ const Set<String> redactedHeaders = <String>{'authorization', 'x-api-key'};
 /// 3. Retry ([dioRetries] times) on connection errors, 408, 429 and 5xx,
 ///    for [idempotentMethods] only.
 /// 4. When [logRequests] is set (dev and staging), a log of every request
-///    to `Logger('network')` at `FINE`, with [redactedHeaders] hidden.
+///    to `Logger('network')` at `FINE`, with [redactedHeaders] hidden. The
+///    flavor's `LogPolicy` keeps `FINE` for that logger.
 ///
 /// [headers] are sent with every request (the demo `x-api-key`). There is no
 /// global `Content-Type`: Dio sets it per request.
@@ -65,6 +66,7 @@ Dio createDio(
   List<Interceptor> interceptors = const <Interceptor>[],
   Map<String, String> headers = const <String, String>{},
   bool logRequests = false,
+  @visibleForTesting int retries = dioRetries,
   @visibleForTesting List<Duration> retryDelays = dioRetryDelays,
 }) {
   final Dio dio = Dio(
@@ -81,6 +83,7 @@ Dio createDio(
     BreadcrumbInterceptor(reporter),
     RetryInterceptor(
       dio: dio,
+      retries: retries,
       retryDelays: retryDelays,
       retryEvaluator: shouldRetryRequest,
     ),

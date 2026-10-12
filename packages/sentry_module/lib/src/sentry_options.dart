@@ -13,11 +13,15 @@ const String sentryDsn = '';
 /// flavor, with [dsn].
 ///
 /// Errors and crash-free statistics only:
-/// - error events at sample rate 1.0 and automatic session tracking on;
+/// - error events at sample rate 1.0 and automatic session tracking on
+///   (crash-free statistics). Not on web: sentry_flutter starts web
+///   sessions only from its `SentryNavigatorObserver`, which the template
+///   does not add;
 /// - no performance tracing, screenshots or session replay;
 /// - no PII, no automatic HTTP capture (Core's network layer reports API
-///   errors itself) and no Sentry structured logs (Core's logger already
-///   turns log records into breadcrumbs).
+///   errors itself), no Sentry structured logs and no `debugPrint`
+///   breadcrumbs (Core's logger already turns log records into
+///   breadcrumbs).
 ///
 /// Release and dist are left to sentry_flutter, which reads them from the
 /// platform's package info (`<package id>@<version>+<build>`, dist
@@ -50,7 +54,12 @@ void configureSentryOptions(
     ..sendDefaultPii = false
     ..captureFailedRequests = false
     ..captureNativeFailedRequests = false
-    ..enableLogs = false;
+    ..enableLogs = false
+    // Core's console printer writes every kept record through debugPrint,
+    // and Core already turns records into breadcrumbs. Left on, Sentry would
+    // swap debugPrint for a breadcrumb-only one in release builds: duplicate
+    // breadcrumbs (error text included) and no staging console.
+    ..enablePrintBreadcrumbs = false;
   options.replay
     ..sessionSampleRate = 0
     ..onErrorSampleRate = 0;
