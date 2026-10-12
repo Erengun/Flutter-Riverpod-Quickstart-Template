@@ -11,9 +11,17 @@ workspace:
   - packages/core
   - packages/firebase_module
   - packages/sentry_module
+  - widgetbook
 
 dev_dependencies:
   melos: ^7.8.1
+
+# widgetbook_generator 3.24 (widgetbook/) allows analyzer below 14, but
+# build_runner 2.16 needs analyzer 14. The generator runs fine on 14, so this
+# lifts its cap. Remove it once a widgetbook_generator release allows
+# analyzer 14, or when Widgetbook is removed.
+dependency_overrides:
+  analyzer: ^14.3.0
 
 melos:
   scripts:
@@ -28,6 +36,10 @@ melos:
     analyze:
       description: Run flutter analyze and dart analyze in every package.
       run: melos exec --concurrency=1 -- "flutter analyze --no-pub --fatal-infos --fatal-warnings && dart analyze --fatal-infos --fatal-warnings" && melos run analyze:lints
+
+    widgetbook:
+      description: Run the Widgetbook catalog in Chrome.
+      run: cd widgetbook && flutter run -d chrome
 
     # The analyzer plugins in packages/konteyner_lints and packages/app_lints
     # are not workspace members, so melos exec skips them. These scripts cover them.

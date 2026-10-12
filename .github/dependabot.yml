@@ -9,6 +9,7 @@ updates:
       - "/"
       - "/app"
       - "/packages/*"
+      - "/widgetbook"
     schedule:
       interval: "weekly"
     groups:
