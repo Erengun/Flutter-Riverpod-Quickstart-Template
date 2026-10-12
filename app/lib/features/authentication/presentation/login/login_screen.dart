@@ -4,6 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../constants/assets.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../domain/login_request.dart';
 import '../register/register_dialog.dart';
 import 'auth_ui_model.dart';
@@ -34,14 +35,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+      );
+  }
+
+  /// Logs in with the form's values; the Login button and the password
+  /// field's keyboard action both call it. Empty fields never reach the
+  /// controller, whose check throws; every other failure becomes its
+  /// `AsyncError`, which `build` shows.
+  Future<void> _submit() async {
+    FocusScope.of(context).unfocus();
+    final String email = _emailController.text;
+    final String password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage(AppLocalizations.of(context).authCredentialsRequired);
+      return;
+    }
+    // A successful login starts the session and the router's redirect
+    // replaces this page with home.
+    await ref
+        .read(loginControllerProvider.notifier)
+        .login(email: email, password: password);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
     final AsyncValue<AuthUiModel> authUiModelAsync = ref.watch(
       loginControllerProvider,
     ); // Access the state
     final bool sessionExpired = ref.watch(sessionExpiredProvider);
     // Failed logins become an AsyncError; Core shows their message.
     ref.listenApiErrors(loginControllerProvider, context);
+    // listenApiErrors skips 401s, which elsewhere mean an expired session.
+    // The login call skips auth, so its 401 means wrong credentials: show
+    // the backend's message, or the Feature's own text without one.
+    ref.listen(loginControllerProvider, (
+      AsyncValue<AuthUiModel>? previous,
+      AsyncValue<AuthUiModel> next,
+    ) {
+      final Object? error = next.error;
+      if (next.isLoading || error is! ApiUnauthorizedException) return;
+      if (previous != null &&
+          !previous.isLoading &&
+          identical(previous.error, error)) {
+        return;
+      }
+      final String? message = error.message;
+      _showMessage(
+        message != null && message.isNotEmpty ? message : l10n.authLoginFailed,
+      );
+    });
     ref.listen(loginControllerProvider, (
       AsyncValue<AuthUiModel>? previous,
       AsyncValue<AuthUiModel> next,
@@ -57,7 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Login'),
+        title: Text(l10n.authLoginTitle),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.person_outline_outlined),
@@ -98,7 +147,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const Spacer(),
                     Center(
                       child: Text(
-                        'Welcome to the app',
+                        l10n.authWelcome,
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w600,
@@ -107,10 +156,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ),
                     const Gap(10),
-                    const Text(
-                      'You can login with your email and password',
+                    Text(
+                      l10n.authLoginSubtitle,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w400,
                       ),
@@ -126,9 +175,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const Gap(10),
                     ],
-                    const Text(
-                      'Login',
-                      style: TextStyle(
+                    Text(
+                      l10n.authLoginTitle,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w500,
                       ),
@@ -142,33 +191,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       autovalidateMode: AutovalidateMode.onUnfocus,
                       validator: (String? value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter an email address';
+                          return l10n.authEmailRequired;
                         }
                         // Regex for validating email format
                         final RegExp emailRegex = RegExp(
                           r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
                         );
                         if (!emailRegex.hasMatch(value)) {
-                          return 'Please enter a valid email address';
+                          return l10n.authEmailInvalid;
                         }
                         return null;
                       },
-                      decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(
                           vertical: 10,
                           horizontal: 15,
                         ),
-                        hintText: 'Enter your email',
-                        hintStyle: TextStyle(color: Colors.black54),
-                        border: OutlineInputBorder(
+                        hintText: l10n.authEmailHint,
+                        hintStyle: const TextStyle(color: Colors.black54),
+                        border: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
                       ),
                     ),
                     const Gap(15),
-                    const Text(
-                      'Password',
-                      style: TextStyle(
+                    Text(
+                      l10n.authPasswordLabel,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w500,
                       ),
@@ -190,15 +239,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       //   return null;
                       // },
                       autovalidateMode: AutovalidateMode.onUserInteraction,
-                      onFieldSubmitted: (String value) {
-                        FocusScope.of(context).unfocus();
-                        ref
-                            .read(loginControllerProvider.notifier)
-                            .login(
-                              email: _emailController.text,
-                              password: _passwordController.text,
-                            );
-                      },
+                      onFieldSubmitted: (String value) => _submit(),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
                           vertical: 10,
@@ -207,7 +248,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         border: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
-                        hintText: 'Enter your password',
+                        hintText: l10n.authPasswordHint,
                         hintStyle: const TextStyle(color: Colors.black54),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -257,9 +298,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             padding: const EdgeInsets.all(0),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text(
-                            'Create an account',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.authCreateAccount,
+                            style: const TextStyle(
                               decoration: TextDecoration.underline,
                             ),
                           ),
@@ -287,30 +328,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
-                      onPressed: () {
-                        // A successful login starts the session and the
-                        // router's redirect replaces this page with home.
-                        ref
-                            .read(loginControllerProvider.notifier)
-                            .login(
-                              email: _emailController.text,
-                              password: _passwordController.text,
-                            )
-                            .catchError((dynamic error, StackTrace stackTrace) {
-                              // Only the empty-credentials check throws here;
-                              // API failures go to the state instead.
-                              if (context.mounted) {
-                                // Show error message to the user
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(error.toString())),
-                                );
-                              }
-                              return null;
-                            });
-                      },
+                      onPressed: _submit,
                       child: authUiModelAsync.isLoading
                           ? const CircularProgressIndicator()
-                          : const Text('Login'),
+                          : Text(l10n.authLoginButton),
                     ),
                     const Spacer(flex: 4),
                   ],

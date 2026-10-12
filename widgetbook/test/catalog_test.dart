@@ -134,6 +134,22 @@ void main() {
       // locale addon's Localizations, so it must come after it.
       expect(addons.last, same(themes));
     });
+
+    test('the accessibility addon is left out of release builds', () {
+      // accessibility_tools checks nothing outside debug mode, so the
+      // release catalog on Pages must not offer the addon.
+      Iterable<String> builderNames({required bool debug}) => catalogAddons(
+        theme,
+        debug: debug,
+      ).whereType<BuilderAddon>().map((BuilderAddon addon) => addon.name);
+
+      expect(builderNames(debug: true), contains('Accessibility'));
+      expect(builderNames(debug: false), isNot(contains('Accessibility')));
+      expect(
+        catalogAddons(theme, debug: false).last,
+        isA<ThemeAddon<ThemeData>>(),
+      );
+    });
   });
 
   group('every use case builds', () {
