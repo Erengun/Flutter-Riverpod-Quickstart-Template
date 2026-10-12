@@ -29,6 +29,7 @@ CI (`.github/workflows/ci.yaml`, every PR to `main` and every push to `main`; no
 - `build-android`, `build-ios` (`--no-codesign`), `build-web`: unsigned prod release builds from `app/` with `-t lib/main_prod.dart` (plus `--flavor prod` on Android/iOS). `build-ios` fails if `app/ios/Podfile` appears: every iOS plugin must support Swift Package Manager.
 - Runner labels come from repo variables `LINUX_RUNNER` / `MACOS_RUNNER` (defaults `ubuntu-latest` / `macos-latest`). A new push to a PR cancels its older runs.
 - `.github/workflows/widgetbook.yaml` (push to `main` and manual dispatch) builds `widgetbook/` for the web and deploys it to GitHub Pages, only when the repo variable `WIDGETBOOK_PUBLISH` is `'true'` (and Pages' source is "GitHub Actions"). PRs have no Widgetbook job: `check` already generates, analyzes and tests it, and its `*.g.dart` check covers `main.directories.g.dart`.
+- `.github/workflows/release.yaml` (`v*` tags) ships prod: fastlane lanes in `app/android/fastlane/` (obfuscated App Bundle to Play's internal track) and `app/ios/fastlane/` (`match` readonly, TestFlight), a web build with source maps, Sentry symbol/source-map upload through `sentry_dart_plugin` (an `app/` dev dependency) with the release set explicitly to what sentry_flutter reports, and a GitHub Release with the files. Every job runs only when the repo variable `RELEASE_ENABLED` is `'true'`; the template skips. The tag must be `v<name>` of `app/pubspec.yaml`'s version. fastlane is pinned by the root `Gemfile` / `Gemfile.lock`. Secrets and variables are listed in the README's "Releases" section. `app/android/app/build.gradle.kts` signs release builds with the keystore from `ANDROID_KEYSTORE_*` env vars or `app/android/key.properties` (gitignored), else with the debug keys.
 - Dependabot (`.github/dependabot.yml`) updates pub (root, `app/`, `packages/*`, `widgetbook/`), GitHub Actions and Bundler weekly. New packages under `packages/` are picked up by the glob.
 
 ## Lint rules
@@ -47,7 +48,7 @@ CI (`.github/workflows/ci.yaml`, every PR to `main` and every push to `main`; no
 
 ## Local files
 
-Gitignored and never committed: `CLAUDE.local.md`, `.claude/worktrees/`, `.claude/settings.local.json`, `graphify-out/`, `.idea/`, `*.iml`, `app/ios/Flutter/Signing.xcconfig`, `app/macos/Runner/Configs/Signing.xcconfig`, and everything in `.vscode/` except `launch.json` and `extensions.json`.
+Gitignored and never committed: `CLAUDE.local.md`, `.claude/worktrees/`, `.claude/settings.local.json`, `graphify-out/`, `.idea/`, `*.iml`, `app/ios/Flutter/Signing.xcconfig`, `app/macos/Runner/Configs/Signing.xcconfig`, `app/android/key.properties`, signing material (`*.jks`, `*.keystore`, `*.p8`, `*.p12`, service-account JSON), fastlane output (`report.xml`, its generated `README.md`, `*.aab`, `*.ipa`, ...), and everything in `.vscode/` except `launch.json` and `extensions.json`.
 
 ## Architecture
 

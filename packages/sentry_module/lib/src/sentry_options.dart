@@ -20,7 +20,10 @@ const String sentryDsn = '';
 ///   turns log records into breadcrumbs).
 ///
 /// Release and dist are left to sentry_flutter, which reads them from the
-/// platform's package info.
+/// platform's package info (`<package id>@<version>+<build>`, dist
+/// `<build>`). The release workflow (`.github/workflows/release.yaml`)
+/// uploads debug symbols and source maps under the same values; setting a
+/// release here means changing it there too.
 ///
 /// On web ([platform] defaults to [KonteynerPlatform.current]) it also adds
 /// sentry_flutter's `OnErrorIntegration`, which sentry_flutter leaves out on

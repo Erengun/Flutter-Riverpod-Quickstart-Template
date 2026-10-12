@@ -74,6 +74,33 @@ app/macos/Runner/Configs/Signing.xcconfig
 
 # Service account files
 svc-keyfile.json
+*service-account*.json
+*service_account*.json
+
+# Release signing material (CI reads it from secrets; never commit it)
+**/android/key.properties
+*.jks
+*.keystore
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+# fastlane and release output
+**/fastlane/report.xml
+**/fastlane/README.md
+**/fastlane/Preview.html
+**/fastlane/screenshots/
+**/fastlane/test_output/
+**/fastlane/logs/
+*.aab
+*.apk
+*.ipa
+*.xcarchive
+*.dSYM.zip
+.bundle/
+vendor/bundle/
 
 # Lockfiles
 Podfile.lock

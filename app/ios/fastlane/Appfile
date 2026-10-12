@@ -1,0 +1,15 @@
+# App Store Connect settings for the release lane and match (Fastfile and
+# Matchfile in this folder). Paths here are relative to this folder.
+
+# The prod flavor's bundle id, read from app/Identity.xcconfig
+# (IDENTITY_BUNDLE_ID), so the id is set in one place. The release lane
+# refuses to upload while it is still the template's placeholder,
+# com.example.temp.
+identity = File.read("../../Identity.xcconfig")
+app_identifier(identity[/^IDENTITY_BUNDLE_ID\s*=\s*(\S+)/, 1])
+
+# Your Apple Developer team id (Membership details), for local runs that sign
+# in with an Apple ID, such as creating the certificates with match the first
+# time. CI signs in with the App Store Connect API key and takes the team from
+# match's profile, so it doesn't need this line.
+# team_id("ABCDE12345")
