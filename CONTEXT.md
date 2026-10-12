@@ -48,6 +48,26 @@ _Avoid_: feature, plugin, kit
 The infrastructure every app always gets, such as configuration, networking, routing, theme, localization and logging.
 _Avoid_: base, common
 
+**Designer**:
+A team member who shapes how an app looks: its tokens, its **Shared widgets** and the look of its **Features**' screens. Works in the **Catalog**; leaves app logic, data and navigation to developers.
+_Avoid_: UI developer
+
+**Shared widget**:
+A reusable piece of UI that several **Features** of one app use, such as a button or a card. One that every app needs belongs to **Core** instead.
+_Avoid_: component (kept for **Component rule**), common widget
+
+**Feature widget**:
+A piece of UI that belongs to one **Feature** and is used only there.
+_Avoid_: component
+
+**Catalog**:
+The browsable collection of an app's **Shared widgets** and screens, each shown with fake data so it runs without a backend.
+_Avoid_: storybook, gallery
+
+**Use case**:
+One example in the **Catalog**: a widget or screen shown in one particular state.
+_Avoid_: story, scenario; never a business operation
+
 **Session**:
 A user's signed-in state on one device. It begins at login and ends at logout or when it can no longer be renewed.
 _Avoid_: login, auth state
@@ -91,3 +111,4 @@ _Avoid_: crash (only for fatal ones), event, issue
 - A **Derived app** is started from a **Company copy** and inherits its **Company layer**
 - A **Derived app** is created once and never merges later updates from its **Company copy**
 - A **Derived app** starts with every **Module** and removes the ones it doesn't use; **Core** always stays
+- A **Designer** works in the **Catalog**; every **Shared widget** and screen has at least one **Use case**
