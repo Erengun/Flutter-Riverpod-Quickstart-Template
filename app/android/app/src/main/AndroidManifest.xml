@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Core's network layer needs this in every build. Debug and profile
+         also get it from their own manifests (for the Flutter tool), and a
+         release build must not depend on a Module's plugin merging it in. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"

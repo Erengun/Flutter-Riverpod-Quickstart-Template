@@ -5,10 +5,12 @@ project(runner LANGUAGES CXX)
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "temp")
-# The unique GTK application identifier for this application. This is the only
-# identity line a new app edits on Linux; the window title uses BINARY_NAME. See:
+# The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 set(APPLICATION_ID "com.example.temp")
+# The app's display name: the window title. APPLICATION_ID and APP_NAME are
+# the identity lines a new app edits on Linux.
+set(APP_NAME "Temp")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
