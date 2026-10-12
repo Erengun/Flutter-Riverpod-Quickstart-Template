@@ -31,9 +31,14 @@ platform :android do
     if package.to_s.empty? || package == TEMPLATE_APP_ID
       UI.user_error!("Set your application id in app/android/gradle.properties (app.applicationId) first.")
     end
-    # build.gradle.kts would sign with the debug keys, which Play rejects.
-    if ENV["ANDROID_KEYSTORE_PATH"].to_s.empty? && !File.file?(KEY_PROPERTIES_PATH)
-      UI.user_error!("Set ANDROID_KEYSTORE_PATH (and the other ANDROID_KEY* variables) or create app/android/key.properties.")
+    # Without a keystore build.gradle.kts signs with the debug keys, which Play
+    # rejects. Same lookup as build.gradle.kts: the variable, else storeFile.
+    store_file = ENV["ANDROID_KEYSTORE_PATH"].to_s.strip
+    if store_file.empty? && File.file?(KEY_PROPERTIES_PATH)
+      store_file = File.read(KEY_PROPERTIES_PATH)[/^\s*storeFile\s*[=:]\s*(.*)$/, 1].to_s.strip
+    end
+    if store_file.empty?
+      UI.user_error!("Set ANDROID_KEYSTORE_PATH (and the other ANDROID_KEY* variables) or storeFile in app/android/key.properties.")
     end
     json_key_data = ENV["PLAY_SERVICE_ACCOUNT_JSON"].to_s
     json_key_file = CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file).to_s
