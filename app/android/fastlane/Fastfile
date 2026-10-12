@@ -1,0 +1,73 @@
+# Google Play release lane. The release workflow (.github/workflows/
+# release.yaml) runs it from app/android with `bundle exec fastlane android
+# release`; see the README's "Releases" section.
+#
+# It builds the prod App Bundle (obfuscated, Dart debug symbols split into
+# app/build/symbols/android) and uploads it to Play's internal track.
+#
+# Environment:
+#   ANDROID_KEYSTORE_PATH, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS,
+#   ANDROID_KEY_PASSWORD   the upload keystore; app/android/app/build.gradle.kts
+#                          signs release builds with it. Locally,
+#                          app/android/key.properties works instead.
+#   PLAY_SERVICE_ACCOUNT_JSON  the Play service account key (JSON text).
+#                          Locally, json_key_file in the Appfile works instead.
+#
+# The app must already exist in Play Console, with one build uploaded by hand:
+# the Play API can't create an app or make its first upload.
+
+default_platform(:android)
+
+# app/, the Flutter project. Lane code runs inside this fastlane folder.
+APP_DIR = File.expand_path("../..", __dir__)
+AAB_PATH = File.join(APP_DIR, "build/app/outputs/bundle/prodRelease/app-prod-release.aab")
+KEY_PROPERTIES_PATH = File.join(APP_DIR, "android/key.properties")
+TEMPLATE_APP_ID = "com.example.temp"
+
+platform :android do
+  desc "Build the prod App Bundle and upload it to Play's internal track"
+  lane :release do
+    package = CredentialsManager::AppfileConfig.try_fetch_value(:package_name)
+    if package.to_s.empty? || package == TEMPLATE_APP_ID
+      UI.user_error!("Set your application id in app/android/gradle.properties (app.applicationId) first.")
+    end
+    # Without a keystore build.gradle.kts signs with the debug keys, which Play
+    # rejects. Same lookup as build.gradle.kts: the variable, else storeFile.
+    store_file = ENV["ANDROID_KEYSTORE_PATH"].to_s.strip
+    if store_file.empty? && File.file?(KEY_PROPERTIES_PATH)
+      store_file = File.read(KEY_PROPERTIES_PATH)[/^\s*storeFile\s*[=:]\s*(.*)$/, 1].to_s.strip
+    end
+    if store_file.empty?
+      UI.user_error!("Set ANDROID_KEYSTORE_PATH (and the other ANDROID_KEY* variables) or storeFile in app/android/key.properties.")
+    end
+    json_key_data = ENV["PLAY_SERVICE_ACCOUNT_JSON"].to_s
+    json_key_file = CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file).to_s
+    play_key =
+      if !json_key_data.empty?
+        { json_key_data: json_key_data }
+      elsif !json_key_file.empty?
+        { json_key: json_key_file }
+      else
+        UI.user_error!("Set PLAY_SERVICE_ACCOUNT_JSON or json_key_file in the Appfile.")
+      end
+
+    Dir.chdir(APP_DIR) do
+      sh(
+        "flutter", "build", "appbundle", "--release",
+        "--flavor", "prod", "-t", "lib/main_prod.dart",
+        "--obfuscate", "--split-debug-info=build/symbols/android"
+      )
+    end
+
+    upload_to_play_store(
+      package_name: package,
+      track: "internal",
+      aab: AAB_PATH,
+      **play_key,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end

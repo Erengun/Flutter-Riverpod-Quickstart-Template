@@ -1,0 +1,14 @@
+# match settings: the App Store certificate and provisioning profile live,
+# encrypted with MATCH_PASSWORD, in a private git repo. The release lane only
+# reads them (readonly). Someone with App Store access creates them once,
+# locally: see the README's "Releases" section.
+#
+# The bundle id comes from the Appfile.
+
+# The private certificates repo. CI sets MATCH_GIT_URL (a repository
+# variable); replace the placeholder to run match locally without it.
+git_url(ENV.fetch("MATCH_GIT_URL", "https://github.com/your-org/your-certificates.git"))
+
+storage_mode("git")
+
+type("appstore")

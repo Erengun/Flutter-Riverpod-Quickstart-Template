@@ -1,0 +1,17 @@
+# Google Play settings for the release lane (Fastfile in this folder).
+# Paths here are relative to this folder.
+
+# The prod flavor's application id, read from the app.* keys in
+# ../gradle.properties (app.applicationId + app.prod.applicationIdSuffix), so
+# the id is set in one place. The release lane refuses to upload while it is
+# still the template's placeholder, com.example.temp.
+gradle_properties = File.read("../gradle.properties")
+app_property = lambda do |key|
+  gradle_properties[/^app\.#{Regexp.escape(key)}=(.*)$/, 1].to_s.strip
+end
+package_name(app_property.call("applicationId") + app_property.call("prod.applicationIdSuffix"))
+
+# The Play service account key. CI passes its JSON text from the
+# PLAY_SERVICE_ACCOUNT_JSON secret, so no key file is ever written. For a local
+# run, point at a key file outside the repo instead (never commit it):
+# json_key_file("/path/outside/the/repo/play-service-account.json")

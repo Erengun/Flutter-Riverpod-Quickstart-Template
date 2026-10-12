@@ -288,6 +288,81 @@ Removing a Module also removes its dependency from `widgetbook/pubspec.yaml` and
 
 ---
 
+## Releases
+
+`.github/workflows/release.yaml` ships the prod flavor when you push a version tag (`v*`):
+
+- **Android:** an obfuscated App Bundle, signed with your upload keystore, goes to Play's internal track (`supply`).
+- **iOS:** `match` (readonly) fetches the App Store certificate and profile, `update_code_signing_settings` applies them, `gym` archives the obfuscated build and the IPA goes to TestFlight.
+- **Web:** a release build with source maps. Hosting is up to you; the build is attached to the GitHub Release as `web.zip` (without the `.map` files).
+- **Sentry:** each job uploads its debug symbols (web: source maps) with `sentry_dart_plugin`, under the same release and dist that the Sentry Module reports.
+- **GitHub Release:** once all three jobs succeed, the tag's release gets the App Bundle, the iOS archive, the Dart debug symbols (plus the R8 mapping) and the web build.
+
+It does nothing until you opt in: every job runs only when the repository variable `RELEASE_ENABLED` is `true`. The template sets nothing, so its tags skip cleanly.
+
+The lanes are in [app/android/fastlane](app/android/fastlane) and [app/ios/fastlane](app/ios/fastlane); fastlane is pinned by the root `Gemfile` and `Gemfile.lock` (Dependabot updates them). Each lane runs `flutter build` itself, then signs and uploads. To run one locally: `bundle install` at the root, then `bundle exec fastlane android release` from `app/android` (or `ios release` from `app/ios`) with the same environment variables set. The Android lane also takes the keystore from `app/android/key.properties` (below) and the Play key from `json_key_file` in its [Appfile](app/android/fastlane/Appfile).
+
+### Versions and tags
+
+The version comes from `version: <name>+<build>` in `app/pubspec.yaml`, and the tag must be `v<name>` (the `version` job fails otherwise). A tag with a `-` (`v1.2.0-rc.1`) makes a prerelease. Bump the build number for every release: Play and App Store Connect reject a build number they have seen before.
+
+The Sentry release must match what `sentry_flutter` reports, `<package id>@<name>+<build>` with dist `<build>`, and the package id differs per platform. The workflow reads it from the same files the build does:
+
+| Platform | Release | Read from |
+|---|---|---|
+| Android | `<application id>@<name>+<build>` | `app.applicationId` + `app.prod.applicationIdSuffix` in `app/android/gradle.properties` |
+| iOS | `<bundle id>@<name>+<build>` | `IDENTITY_BUNDLE_ID` in `app/Identity.xcconfig` |
+| Web | `<pubspec name>@<name>+<build>` | `name` in `app/pubspec.yaml` (web has no package id) |
+
+### One-time setup
+
+1. Set your own ids ("Customize names and IDs", above). The lanes refuse to upload while the id is still `com.example.temp`.
+2. **Android:** create an upload keystore (`keytool -genkeypair -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload`) and keep it outside the repo. Create the app in Play Console and upload the first App Bundle by hand: the Play API can't create an app or make its first upload. Then create a Google Cloud service account with release access to the app in Play Console and download its JSON key.
+3. **iOS:** create the app in App Store Connect and an App Store Connect API key (Users and Access > Integrations, App Manager role). Create an empty private git repo for the certificates. Then, once, someone with App Store access runs `bundle exec fastlane match appstore` from `app/ios` (with `MATCH_GIT_URL` set, or the placeholder in [Matchfile](app/ios/fastlane/Matchfile) replaced) to create the certificate and profile; CI only reads them. The gitignored `Signing.xcconfig` is for local development only; CI doesn't need it.
+4. **Sentry (optional):** set `sentryDsn` in [packages/sentry_module/lib/src/sentry_options.dart](packages/sentry_module/lib/src/sentry_options.dart) and create an auth token with the `project:releases` and `org:read` scopes. Without the `SENTRY_PROJECT` variable the upload steps are skipped, and prod stack traces stay obfuscated.
+5. Add the secrets and variables below (Settings > Secrets and variables > Actions), then set `RELEASE_ENABLED` to `true`.
+
+| Name | Kind | Use |
+|---|---|---|
+| `RELEASE_ENABLED` | variable | `true` turns the release jobs on |
+| `ANDROID_KEYSTORE_BASE64` | secret | the upload keystore, base64 (`base64 -i upload-keystore.jks \| pbcopy` on macOS, `base64 -w0 upload-keystore.jks` on Linux) |
+| `ANDROID_KEYSTORE_PASSWORD` | secret | the keystore password |
+| `ANDROID_KEY_ALIAS` | secret | the key alias (`upload` in the command above) |
+| `ANDROID_KEY_PASSWORD` | secret | the key password |
+| `PLAY_SERVICE_ACCOUNT_JSON` | secret | the service account's JSON key, pasted as text, for `supply` |
+| `MATCH_GIT_URL` | variable | HTTPS URL of the private certificates repo |
+| `MATCH_PASSWORD` | secret | the passphrase match encrypts the certificates with |
+| `MATCH_GIT_BASIC_AUTHORIZATION` | secret | `base64("<user>:<token>")` for a token that can read the certificates repo |
+| `APP_STORE_CONNECT_API_KEY_ID` | secret | the API key's id |
+| `APP_STORE_CONNECT_ISSUER_ID` | secret | the issuer id shown above the keys list |
+| `APP_STORE_CONNECT_API_KEY` | secret | the contents of the downloaded `.p8` file, pasted as text |
+| `SENTRY_AUTH_TOKEN` | secret | Sentry auth token for the symbol upload |
+| `SENTRY_ORG` | variable | Sentry organization slug |
+| `SENTRY_PROJECT` | variable | Sentry project slug; when unset, the Sentry upload steps are skipped |
+
+The runner labels come from `LINUX_RUNNER` and `MACOS_RUNNER`, as in CI.
+
+Never commit keystores, `key.properties`, `.p8` keys or service-account JSON; `.gitignore` already excludes them.
+
+### Signing Android locally
+
+`app/android/app/build.gradle.kts` signs release builds with the upload keystore when one is set, and with the debug keys otherwise (so `flutter run --release` and CI's unsigned builds keep working). CI sets `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`. Locally, create the gitignored `app/android/key.properties` instead:
+
+```
+storeFile=/absolute/path/to/upload-keystore.jks
+storePassword=...
+keyAlias=upload
+keyPassword=...
+```
+
+A relative `storeFile` is resolved from `app/android/`.
+
+### Sentry commits
+
+The upload runs with `commits=false`, so Sentry doesn't link commits to the release. To turn that on, connect the repository in Sentry, check out with `fetch-depth: 0` in the jobs that upload, and drop `--sentry-define=commits=false`.
+
+---
+
 ## Testing
 
 - Integrated tests for auth controller logic (`app/test/features/login_controller_test.dart`) and the session flow: restart, redirect and logout (`app/test/app/session_flow_test.dart`), and the permission guard, gates and menu (`app/test/app/permissions_flow_test.dart`)

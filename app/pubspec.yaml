@@ -83,6 +83,9 @@ dev_dependencies:
   # Force update tests mock these plugins, which upgrader uses.
   package_info_plus: ^9.0.1
   shared_preferences: ^2.5.3
+  # Uploads prod debug symbols and web source maps to Sentry in the release
+  # workflow (.github/workflows/release.yaml). Not used at build time.
+  sentry_dart_plugin: ^3.4.0
 
 
 # For information on the generic Dart part of this file, see the

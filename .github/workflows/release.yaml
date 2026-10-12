@@ -1,0 +1,315 @@
+# Ships prod when a version tag (v*) is pushed: Android to Play's internal
+# track, iOS to TestFlight, a web build, Sentry debug symbols and source maps,
+# and a GitHub Release with the build files attached.
+#
+# Off until a repo opts in: every job runs only when the repository variable
+# RELEASE_ENABLED is 'true' (a job-level `if` can't read secrets), so the
+# template, which sets nothing, skips cleanly. Every secret and variable, and
+# the one-time setup, are in the README's "Releases" section.
+#
+# The version comes from app/pubspec.yaml (`version: <name>+<build>`); the tag
+# must be `v<name>`. Bump the build number for every release: the stores
+# reject a build number they have already seen.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+# One release per tag at a time; a release in progress is never cancelled.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: version
+    if: vars.RELEASE_ENABLED == 'true'
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    outputs:
+      name: ${{ steps.read.outputs.name }}
+      build: ${{ steps.read.outputs.build }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - id: read
+        name: Read the version and check the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="$(awk '/^version:/ { print $2; exit }' app/pubspec.yaml | tr -d "\"'\r")"
+          name="${version%%+*}"
+          build="${version#*+}"
+          if [ -z "$name" ] || [ "$build" = "$version" ] || [ -z "$build" ]; then
+            echo "::error::app/pubspec.yaml needs 'version: <name>+<build>', found '$version'."
+            exit 1
+          fi
+          if [ "$TAG" != "v$name" ]; then
+            echo "::error::Tag $TAG doesn't match the pubspec version $name. Tag v$name, or bump the version."
+            exit 1
+          fi
+          echo "Releasing $name+$build"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+
+  release-android:
+    name: release-android
+    needs: version
+    if: vars.RELEASE_ENABLED == 'true'
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/Gemfile
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      # The keystore goes to the runner's temp folder, outside the checkout,
+      # and is deleted at the end of the job (self-hosted runners keep files).
+      - name: Decode the upload keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::error::The ANDROID_KEYSTORE_BASE64 secret is not set."
+            exit 1
+          fi
+          keystore="$RUNNER_TEMP/upload-keystore.jks"
+          (umask 077 && printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore")
+          echo "ANDROID_KEYSTORE_PATH=$keystore" >> "$GITHUB_ENV"
+
+      # Builds the obfuscated prod App Bundle, signed by build.gradle.kts with
+      # the keystore above, and uploads it to the internal track.
+      - name: Build and upload to Play (fastlane)
+        working-directory: app/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: bundle exec fastlane android release
+
+      - name: Remove the keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload-keystore.jks"
+
+      # The release must be the one sentry_flutter reports on Android:
+      # <application id>@<version name>+<version code>, dist <version code>.
+      - name: Upload debug symbols to Sentry
+        if: vars.SENTRY_PROJECT != ''
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          VERSION_NAME: ${{ needs.version.outputs.name }}
+          BUILD_NUMBER: ${{ needs.version.outputs.build }}
+        run: |
+          property() { sed -n "s/^app\.$1=//p" android/gradle.properties | tr -d '[:space:]'; }
+          app_id="$(property applicationId)$(property prod.applicationIdSuffix)"
+          dart run sentry_dart_plugin \
+            --sentry-define=release="$app_id@$VERSION_NAME+$BUILD_NUMBER" \
+            --sentry-define=dist="$BUILD_NUMBER" \
+            --sentry-define=upload_debug_symbols=true \
+            --sentry-define=symbols_path=build/symbols/android \
+            --sentry-define=upload_source_maps=false \
+            --sentry-define=commits=false
+
+      - name: Collect the release files
+        run: |
+          out="$RUNNER_TEMP/release"
+          mkdir -p "$out"
+          cp build/app/outputs/bundle/prodRelease/app-prod-release.aab "$out/"
+          (cd build/symbols && zip -qr "$out/android-debug-symbols.zip" android)
+          mapping=build/app/outputs/mapping/prodRelease/mapping.txt
+          if [ -f "$mapping" ]; then
+            zip -qj "$out/android-debug-symbols.zip" "$mapping"
+          fi
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-android
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          retention-days: 7
+
+  release-ios:
+    name: release-ios
+    needs: version
+    if: vars.RELEASE_ENABLED == 'true'
+    runs-on: ${{ vars.MACOS_RUNNER || 'macos-latest' }}
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/Gemfile
+      # firebase_module: link Firebase Analytics without the advertising id.
+      # firebase_analytics' Package.swift reads this while packages resolve.
+      FIREBASE_ANALYTICS_WITHOUT_ADID: 'true'
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      # Once an app configures Firebase, the Runner build phase calls
+      # flutterfire. The template has no app/firebase.json, so it skips this.
+      - name: Install the FlutterFire CLI
+        if: hashFiles('app/firebase.json') != ''
+        run: |
+          dart pub global activate flutterfire_cli
+          echo "${PUB_CACHE:-$HOME/.pub-cache}/bin" >> "$GITHUB_PATH"
+
+      # match (readonly) fetches the App Store certificate and profile, the
+      # lane applies them to Release-prod, gym archives the obfuscated prod
+      # build and the IPA goes to TestFlight.
+      - name: Build and upload to TestFlight (fastlane)
+        working-directory: app/ios
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          MATCH_GIT_URL: ${{ vars.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: bundle exec fastlane ios release
+
+      # The release must be the one sentry_flutter reports on iOS:
+      # <bundle id>@<version>+<build>, dist <build>. The plugin finds the
+      # dSYMs in build/ios/archive and the Dart symbols in build/symbols/ios.
+      - name: Upload debug symbols to Sentry
+        if: vars.SENTRY_PROJECT != ''
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          VERSION_NAME: ${{ needs.version.outputs.name }}
+          BUILD_NUMBER: ${{ needs.version.outputs.build }}
+        run: |
+          bundle_id="$(sed -n 's/^IDENTITY_BUNDLE_ID[[:space:]]*=[[:space:]]*//p' Identity.xcconfig | tr -d '[:space:]')"
+          dart run sentry_dart_plugin \
+            --sentry-define=release="$bundle_id@$VERSION_NAME+$BUILD_NUMBER" \
+            --sentry-define=dist="$BUILD_NUMBER" \
+            --sentry-define=upload_debug_symbols=true \
+            --sentry-define=symbols_path=build/symbols/ios \
+            --sentry-define=upload_source_maps=false \
+            --sentry-define=commits=false
+
+      - name: Collect the release files
+        run: |
+          out="$RUNNER_TEMP/release"
+          mkdir -p "$out"
+          ditto -c -k --keepParent build/ios/archive/Runner.xcarchive "$out/Runner.xcarchive.zip"
+          (cd build/symbols && zip -qr "$out/ios-debug-symbols.zip" ios)
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-ios
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          retention-days: 7
+
+  release-web:
+    name: release-web
+    needs: version
+    if: vars.RELEASE_ENABLED == 'true'
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      # Hosting is up to the app; the build is attached to the GitHub Release.
+      - name: Build web (prod, release, source maps)
+        run: flutter build web --release --source-maps -t lib/main_prod.dart
+
+      # The release must be the one sentry_flutter reports on web:
+      # <pubspec name>@<version>+<build> (web has no package id), dist <build>.
+      # The plugin also writes debug ids into the JS files, so it runs before
+      # the build is packed.
+      - name: Upload source maps to Sentry
+        if: vars.SENTRY_PROJECT != ''
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          VERSION_NAME: ${{ needs.version.outputs.name }}
+          BUILD_NUMBER: ${{ needs.version.outputs.build }}
+        run: |
+          package="$(awk '/^name:/ { print $2; exit }' pubspec.yaml | tr -d "\"'\r")"
+          dart run sentry_dart_plugin \
+            --sentry-define=release="$package@$VERSION_NAME+$BUILD_NUMBER" \
+            --sentry-define=dist="$BUILD_NUMBER" \
+            --sentry-define=upload_debug_symbols=false \
+            --sentry-define=upload_source_maps=true \
+            --sentry-define=upload_sources=true \
+            --sentry-define=commits=false
+
+      # Source maps stay out of the zip: Sentry has them, a host doesn't need
+      # them.
+      - name: Collect the release files
+        run: |
+          out="$RUNNER_TEMP/release"
+          mkdir -p "$out"
+          (cd build/web && zip -qr "$out/web.zip" . -x '*.map')
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-web
+          path: ${{ runner.temp }}/release/
+          if-no-files-found: error
+          retention-days: 7
+
+  # Runs once all three platforms have shipped, so the release is created
+  # once (three jobs creating it would race).
+  github-release:
+    name: github-release
+    needs: [release-android, release-ios, release-web]
+    if: vars.RELEASE_ENABLED == 'true'
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          path: release
+          merge-multiple: true
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        # A rerun after the release was created uploads the files again
+        # (replacing any with the same name) instead of failing.
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" release/* --clobber
+            exit 0
+          fi
+          prerelease=()
+          case "$TAG" in *-*) prerelease=(--prerelease) ;; esac
+          gh release create "$TAG" release/* --verify-tag --title "$TAG" --generate-notes "${prerelease[@]}"

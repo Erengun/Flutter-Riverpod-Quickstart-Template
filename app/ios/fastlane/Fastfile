@@ -1,0 +1,80 @@
+# TestFlight release lane. The release workflow (.github/workflows/
+# release.yaml) runs it from app/ios with `bundle exec fastlane ios release`;
+# see the README's "Releases" section.
+#
+# It fetches the App Store certificate and profile with match (readonly),
+# applies them to the Runner target's Release-prod configuration, builds the
+# prod flavor (obfuscated, Dart debug symbols split into
+# app/build/symbols/ios), archives it with gym into app/build/ios/archive and
+# uploads the IPA to TestFlight. The gitignored Signing.xcconfig is not used.
+#
+# Environment:
+#   APP_STORE_CONNECT_API_KEY_ID, APP_STORE_CONNECT_ISSUER_ID,
+#   APP_STORE_CONNECT_API_KEY      the App Store Connect API key (.p8 text)
+#   MATCH_GIT_URL, MATCH_PASSWORD, MATCH_GIT_BASIC_AUTHORIZATION
+#                                  read by match (see Matchfile)
+
+default_platform(:ios)
+
+# app/, the Flutter project, and app/ios. Lane code runs inside this fastlane
+# folder.
+APP_DIR = File.expand_path("../..", __dir__)
+IOS_DIR = File.expand_path("..", __dir__)
+SCHEME = "prod"
+CONFIGURATION = "Release-prod"
+TEMPLATE_APP_ID = "com.example.temp"
+
+platform :ios do
+  desc "Build the prod flavor and upload it to TestFlight"
+  lane :release do
+    app_id = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+    if app_id.to_s.empty? || app_id == TEMPLATE_APP_ID
+      UI.user_error!("Set your bundle id in app/Identity.xcconfig (IDENTITY_BUNDLE_ID) first.")
+    end
+
+    # A temporary keychain for the certificate; does nothing outside CI.
+    setup_ci
+
+    # match and the TestFlight upload both use this key.
+    app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_API_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+      key_content: ENV.fetch("APP_STORE_CONNECT_API_KEY")
+    )
+
+    match(type: "appstore", readonly: true)
+
+    update_code_signing_settings(
+      path: File.join(IOS_DIR, "Runner.xcodeproj"),
+      use_automatic_signing: false,
+      targets: ["Runner"],
+      build_configurations: [CONFIGURATION],
+      team_id: ENV.fetch("sigh_#{app_id}_appstore_team-id"),
+      profile_name: ENV.fetch("sigh_#{app_id}_appstore_profile-name"),
+      code_sign_identity: "Apple Distribution"
+    )
+
+    # Writes the build settings (target, flavor, obfuscation, symbols path)
+    # into Generated.xcconfig; gym's Xcode build then compiles the Dart code
+    # with them.
+    Dir.chdir(APP_DIR) do
+      sh(
+        "flutter", "build", "ios", "--config-only", "--release",
+        "--flavor", "prod", "-t", "lib/main_prod.dart",
+        "--obfuscate", "--split-debug-info=#{File.join(APP_DIR, 'build/symbols/ios')}"
+      )
+    end
+
+    build_app(
+      workspace: File.join(IOS_DIR, "Runner.xcworkspace"),
+      scheme: SCHEME,
+      configuration: CONFIGURATION,
+      export_method: "app-store",
+      archive_path: File.join(APP_DIR, "build/ios/archive/Runner.xcarchive"),
+      output_directory: File.join(APP_DIR, "build/ios/ipa"),
+      output_name: "Runner.ipa"
+    )
+
+    upload_to_testflight(skip_waiting_for_build_processing: true)
+  end
+end
