@@ -40,9 +40,12 @@ final Logger _log = Logger('update');
 /// - An empty store link turns the check off on that platform; web is never
 ///   checked.
 /// - Startup never waits on a fetch: the cached values are checked straight
-///   away while `RemoteFlags.refresh` runs in the background. The check runs
-///   again when the app resumes and whenever `RemoteFlags.onChanged` emits.
+///   away while `RemoteFlags.refresh` runs in the background. When the app
+///   resumes, the cached values are checked again and `RemoteFlags.refresh`
+///   runs again; the check also runs whenever `RemoteFlags.onChanged` emits.
 ///   A failed check lets the user in.
+/// - The dialog is a route on the router's navigator. When a redirect
+///   replaces the page below it without a button tap, it is shown again.
 class KonteynerUpdateGate extends ConsumerStatefulWidget {
   const KonteynerUpdateGate({
     super.key,
@@ -65,6 +68,7 @@ class _KonteynerUpdateGateState extends ConsumerState<KonteynerUpdateGate> {
   late final KonteynerPlatform _platform;
   _KonteynerUpgrader? _upgrader;
   StreamSubscription<void>? _flagChanges;
+  AppLifecycleListener? _lifecycle;
 
   @override
   void initState() {
@@ -93,6 +97,10 @@ class _KonteynerUpdateGateState extends ConsumerState<KonteynerUpdateGate> {
         error,
         stackTrace,
       ),
+    );
+    // upgrader re-reads the cached values on resume; fetch newer ones too.
+    _lifecycle = AppLifecycleListener(
+      onResume: () => unawaited(_refresh(flags, upgrader)),
     );
     unawaited(_refresh(flags, upgrader));
   }
@@ -148,6 +156,7 @@ class _KonteynerUpdateGateState extends ConsumerState<KonteynerUpdateGate> {
   @override
   void dispose() {
     unawaited(_flagChanges?.cancel());
+    _lifecycle?.dispose();
     _upgrader?.dispose();
     super.dispose();
   }
@@ -213,7 +222,10 @@ class _KonteynerUpgradeAlertState extends UpgradeAlertState {
     required bool barrierDismissible,
     required UpgraderMessages messages,
   }) {
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      _checkAgain();
+      return;
+    }
     unawaited(widget.upgrader.saveLastAlerted());
     unawaited(
       showDialog<void>(
@@ -231,8 +243,20 @@ class _KonteynerUpgradeAlertState extends UpgradeAlertState {
             messages,
           ),
         ),
-      ),
+      ).then((_) {
+        // A button tap pops through popNavigator, which clears `displayed`.
+        // Still set means the navigator removed the dialog itself, e.g. when
+        // a redirect replaced the page below it.
+        if (displayed) _checkAgain();
+      }),
     );
+  }
+
+  /// Lets upgrader decide again whether to show the dialog. A hard update
+  /// comes back; a soft one waits for its usual three days.
+  void _checkAgain() {
+    displayed = false;
+    if (mounted) widget.upgrader.updateStream();
   }
 
   @override
