@@ -90,6 +90,14 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
 
+      # Once an app configures Firebase, the Runner build phase calls
+      # flutterfire. The template has no app/firebase.json, so it skips this.
+      - name: Install the FlutterFire CLI
+        if: hashFiles('app/firebase.json') != ''
+        run: |
+          dart pub global activate flutterfire_cli
+          echo "${PUB_CACHE:-$HOME/.pub-cache}/bin" >> "$GITHUB_PATH"
+
       - name: Build iOS (prod, release, no codesign)
         run: flutter build ios --release --no-codesign --flavor prod -t lib/main_prod.dart
 
