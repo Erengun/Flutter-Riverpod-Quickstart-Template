@@ -87,7 +87,7 @@ app/lib/
 Start from everything, then remove what you don't need. Each step links to the section with the details.
 
 1. **Use this template.** Click **Use this template** on this repo (or on your organization's copy, see below). The new repo gets its own fresh history and never merges template updates; later template fixes reach it by hand.
-2. **Set your identity.** Edit the ids and names listed in [Customize names and IDs](#customize-names-and-ids): `app/android/gradle.properties`, `app/Identity.xcconfig`, `app/web/manifest.json`, `app/windows/CMakeLists.txt` and `app/linux/CMakeLists.txt`. The Dart package name and the Kotlin namespace stay as they are.
+2. **Set your identity.** Edit the ids and names listed in [Customize names and IDs](#customize-names-and-ids): `app/android/gradle.properties`, `app/Identity.xcconfig`, `app/web/manifest.json`, `app/web/index.html`, `app/windows/CMakeLists.txt` and `app/linux/CMakeLists.txt`. The Dart package name and the Kotlin namespace stay as they are.
 3. **Point at your backend.** Set `apiBaseUrl` and `apiKey` per flavor in `app/lib/app/config.dart`, then replace the demo login (reqres.in) and the demo permission loader (`app/lib/features/authentication/data/demo_permissions.dart`) with your own.
 4. **Register the ids.** Register the bundle ids with Apple (Certificates, Identifiers & Profiles; `.dev` and `.staging` too if you run those flavors on devices) and create the app in Play Console. For local device builds, add your Apple team id as in [Signing on iOS and macOS](#signing-on-ios-and-macos).
 5. **Firebase.** Edit and run the `firebase:configure:<flavor>` scripts as in [Set up Firebase](#set-up-firebase), or [remove the Firebase Module](#remove-firebase).
@@ -155,10 +155,11 @@ Run these from `app/`, or use the dev/staging/prod configs in `.vscode/launch.js
 ### Customize names and IDs
 
 - Android application id, flavor suffixes and app names: the `app.*` keys in [app/android/gradle.properties](app/android/gradle.properties) (the Kotlin namespace stays as it is)
-- Web app name: `name` in [app/web/manifest.json](app/web/manifest.json)
+- Web app name: `name` in [app/web/manifest.json](app/web/manifest.json). The description is in two places that can't share one value: `description` in `manifest.json` and the `description` meta tag in [app/web/index.html](app/web/index.html).
 - Windows app name: `APP_NAME` in [app/windows/CMakeLists.txt](app/windows/CMakeLists.txt)
-- Linux application id: `APPLICATION_ID` in [app/linux/CMakeLists.txt](app/linux/CMakeLists.txt)
-- iOS and macOS bundle id and display name: [app/Identity.xcconfig](app/Identity.xcconfig), included by every flavor xcconfig. The iOS dev and staging flavors add their suffixes (`.dev`, ` Dev`) in `app/ios/Flutter/<Config>-<flavor>.xcconfig`.
+- Linux application id and window title: `APPLICATION_ID` and `APP_NAME` in [app/linux/CMakeLists.txt](app/linux/CMakeLists.txt)
+- Windows and Linux executable file name (`temp.exe`, `temp`): `BINARY_NAME` in the same two files. The Flutter tool reads it from that line, so it can't come from another value; change it only if the file name matters to you.
+- iOS and macOS bundle id, display name and the macOS copyright (About panel): [app/Identity.xcconfig](app/Identity.xcconfig), included by every flavor xcconfig. The iOS dev and staging flavors add their suffixes (`.dev`, ` Dev`) in `app/ios/Flutter/<Config>-<flavor>.xcconfig`.
 - Per-flavor backend URL and settings: [app/lib/app/config.dart](app/lib/app/config.dart). A plain `flutter run` without `--flavor` uses dev.
 
 ### Signing on iOS and macOS
@@ -255,7 +256,7 @@ Each flavor uses its own Firebase project. Two flavors can share one by passing 
     ```
    Each script runs `flutterfire configure` in `app/` once per iOS build configuration (`Debug-<flavor>`, `Profile-<flavor>`, `Release-<flavor>`). It writes the Dart options file over the placeholder, `app/android/app/src/<flavor>/google-services.json`, `app/ios/flavors/<flavor>/GoogleService-Info.plist` and `app/firebase.json`, adds the google-services Gradle plugin, and adds a "FlutterFire: bundle-service-file" build phase to the Runner target.
 4. Commit every generated file. Firebase options are identifiers, not secrets; restrict the API keys in Google Cloud instead.
-5. Install `flutterfire` on every Mac that builds iOS: the Xcode build phase calls it. `release.yaml` already installs it once `app/firebase.json` exists; add the same "Install the FlutterFire CLI" step to the `build-ios` job in `ci.yaml`. Add SHA fingerprints for each Android app, and link each flavor's web app to Google Analytics.
+5. Install `flutterfire` on every Mac that builds iOS: the Xcode build phase calls it. The `build-ios` job in `ci.yaml` and `release.yaml` already install it once `app/firebase.json` exists. Add SHA fingerprints for each Android app, and link each flavor's web app to Google Analytics.
 
 ### iOS advertising id
 
@@ -273,7 +274,8 @@ Follow [Remove a Module](#remove-a-module) for `firebase_module`, then also dele
 
 - the `firebase:configure:*` scripts in the root `pubspec.yaml`
 - `FIREBASE_ANALYTICS_WITHOUT_ADID` in `.github/workflows/ci.yaml` and `.github/workflows/release.yaml` (and in your shell or `launchctl`)
-- the "Install the FlutterFire CLI" step in `.github/workflows/release.yaml` (and in `ci.yaml`, if you added it)
+- the "Install the FlutterFire CLI" steps in `.github/workflows/ci.yaml` and `.github/workflows/release.yaml`
+- the "Read the firebase_core version" and "Cache the Firebase C++ SDK" steps in the `build-windows` job of `.github/workflows/desktop.yaml`
 - the `firebase-dependencies` group in `.github/dependabot.yml`
 
 Once Firebase has been configured, also delete:
@@ -288,7 +290,7 @@ Once Firebase has been configured, also delete:
 
 ## Sentry Module
 
-[packages/sentry_module](packages/sentry_module) reports errors and crash-free statistics to Sentry through Core's `ErrorReporter`, on all six platforms. Staging and prod report, with the flavor name as the Sentry `environment`; dev never starts Sentry. There is no tracing, session replay, screenshots, personal data or HTTP capture.
+[packages/sentry_module](packages/sentry_module) reports errors to Sentry through Core's `ErrorReporter` on all six platforms, and crash-free statistics on every platform except web (sentry_flutter starts web sessions only from its `SentryNavigatorObserver`, which the template does not add). Staging and prod report, with the flavor name as the Sentry `environment`; dev never starts Sentry. There is no tracing, session replay, screenshots, personal data or HTTP capture.
 
 **As shipped, Sentry is off.** Set `sentryDsn` in [packages/sentry_module/lib/src/sentry_options.dart](packages/sentry_module/lib/src/sentry_options.dart) to your project's DSN (Sentry project settings > Client Keys). One Sentry project serves every flavor. A DSN is not a secret. To get readable prod stack traces, set up the symbol upload in [Releases](#releases).
 
@@ -352,7 +354,7 @@ class LoginController extends _$LoginController {
 
 ## Widgetbook
 
-`widgetbook/` is a web-only [Widgetbook](https://www.widgetbook.io/) catalog where designers can browse Core's screens and the demo screens: the no-permission and under-construction pages, the force-update dialog (blocking and dismissible), the error snackbar and error view for each `ApiException` kind, `PermissionGate`'s states, and the demo login and home screens running on fake repositories. Its toolbar switches the theme (the app's light and dark themes), the locale (en, tr), the device frame (phone, tablet, desktop), the text scale, and turns on accessibility checks.
+`widgetbook/` is a web-only [Widgetbook](https://www.widgetbook.io/) catalog where designers can browse Core's screens and the demo screens: the no-permission and under-construction pages, the force-update dialog (blocking and dismissible), the error snackbar and error view for each `ApiException` kind, `PermissionGate`'s states, and the demo login and home screens running on fake repositories. Its toolbar switches the theme (the app's light and dark themes), the locale (en, tr), the device frame (phone, tablet, desktop) and the text scale. When you run it locally (`dart run melos run widgetbook`, a debug build) it also turns on accessibility checks; the catalog published to GitHub Pages is a release build, where `accessibility_tools` checks nothing, so it has no accessibility addon.
 
 It is its own workspace member that depends on the app, Core and each Module; the app never depends on it.
 

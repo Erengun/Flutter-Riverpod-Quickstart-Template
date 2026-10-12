@@ -46,6 +46,34 @@ void main() {
     expect(own[3], isA<RedactedLogInterceptor>());
   });
 
+  test(
+    'retries a failed idempotent request the given number of times',
+    () async {
+      Future<int> attempts({int? retries}) async {
+        final FakeHttpAdapter adapter = FakeHttpAdapter(<FakeReply>[
+          jsonReply(503, null),
+        ]);
+        final Dio dio =
+            (retries == null
+                  ? createDio(
+                      'https://api.example.com',
+                      retryDelays: const <Duration>[],
+                    )
+                  : createDio(
+                      'https://api.example.com',
+                      retries: retries,
+                      retryDelays: const <Duration>[],
+                    ))
+              ..httpClientAdapter = adapter;
+        await expectLater(dio.get<Object?>('/a'), throwsA(isA<DioException>()));
+        return adapter.requests.length;
+      }
+
+      expect(await attempts(), dioRetries + 1);
+      expect(await attempts(retries: 1), 2);
+    },
+  );
+
   test('no logging interceptor unless asked', () {
     final Dio dio = createDio('https://api.example.com');
     expect(dio.interceptors.whereType<RedactedLogInterceptor>(), isEmpty);
@@ -87,6 +115,46 @@ void main() {
       expect(logs(Flavor.staging), isTrue);
       expect(logs(Flavor.prod), isFalse);
     });
+
+    for (final Flavor flavor in Flavor.values) {
+      final bool expected = flavor != Flavor.prod;
+      test('${flavor.name} ${expected ? 'prints' : 'never prints'} a request '
+          'under its own log policy', () async {
+        final List<LogRecord> printed = <LogRecord>[];
+        configureLogging(
+          // prod has no console; print anyway to prove nothing is logged.
+          LogPolicy(
+            level: LogPolicy.forFlavor(flavor).level,
+            console: true,
+            loggerLevels: LogPolicy.forFlavor(flavor).loggerLevels,
+          ),
+          reporter: RecordingReporter(),
+          printer: printed.add,
+        );
+        addTearDown(resetLogging);
+        final Dio dio =
+            container(
+                AppConfig(
+                  flavor: flavor,
+                  apiBaseUrl: _dev.apiBaseUrl,
+                  apiKey: _dev.apiKey,
+                ),
+              ).read(dioProvider)
+              ..httpClientAdapter = FakeHttpAdapter(<FakeReply>[
+                jsonReply(200, null),
+              ]);
+
+        await dio.get<Object?>('/me');
+
+        expect(
+          printed.any(
+            (LogRecord r) =>
+                r.loggerName == 'network' && r.message.startsWith('--> GET'),
+          ),
+          expected,
+        );
+      });
+    }
 
     test('puts the app extras first', () {
       final _ExtraInterceptor extra = _ExtraInterceptor();

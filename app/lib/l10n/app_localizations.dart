@@ -104,6 +104,108 @@ abstract class AppLocalizations {
   /// **'Flutter Production Boilerplate'**
   String get appTitle;
 
+  /// No description provided for @authCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create an account'**
+  String get authCreateAccount;
+
+  /// No description provided for @authCredentialsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email and password.'**
+  String get authCredentialsRequired;
+
+  /// No description provided for @authEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email'**
+  String get authEmailHint;
+
+  /// No description provided for @authEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email address'**
+  String get authEmailInvalid;
+
+  /// No description provided for @authEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an email address'**
+  String get authEmailRequired;
+
+  /// No description provided for @authLoginButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get authLoginButton;
+
+  /// No description provided for @authLoginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong email or password.'**
+  String get authLoginFailed;
+
+  /// No description provided for @authLoginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You can login with your email and password'**
+  String get authLoginSubtitle;
+
+  /// No description provided for @authLoginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get authLoginTitle;
+
+  /// No description provided for @authPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get authPasswordHint;
+
+  /// No description provided for @authPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get authPasswordLabel;
+
+  /// No description provided for @authRegisterButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get authRegisterButton;
+
+  /// No description provided for @authRegisterCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get authRegisterCancel;
+
+  /// No description provided for @authRegisterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New Profile'**
+  String get authRegisterTitle;
+
+  /// No description provided for @authUsernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your username'**
+  String get authUsernameHint;
+
+  /// No description provided for @authUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get authUsernameLabel;
+
+  /// No description provided for @authWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to the app'**
+  String get authWelcome;
+
   /// Body of the permission demo screens.
   ///
   /// In en, this message translates to:

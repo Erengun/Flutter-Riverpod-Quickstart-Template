@@ -13,6 +13,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Flutter Production Boilerplate';
 
   @override
+  String get authCreateAccount => 'Create an account';
+
+  @override
+  String get authCredentialsRequired => 'Please enter your email and password.';
+
+  @override
+  String get authEmailHint => 'Enter your email';
+
+  @override
+  String get authEmailInvalid => 'Please enter a valid email address';
+
+  @override
+  String get authEmailRequired => 'Please enter an email address';
+
+  @override
+  String get authLoginButton => 'Login';
+
+  @override
+  String get authLoginFailed => 'Wrong email or password.';
+
+  @override
+  String get authLoginSubtitle => 'You can login with your email and password';
+
+  @override
+  String get authLoginTitle => 'Login';
+
+  @override
+  String get authPasswordHint => 'Enter your password';
+
+  @override
+  String get authPasswordLabel => 'Password';
+
+  @override
+  String get authRegisterButton => 'Register';
+
+  @override
+  String get authRegisterCancel => 'Cancel';
+
+  @override
+  String get authRegisterTitle => 'New Profile';
+
+  @override
+  String get authUsernameHint => 'Enter your username';
+
+  @override
+  String get authUsernameLabel => 'Username';
+
+  @override
+  String get authWelcome => 'Welcome to the app';
+
+  @override
   String demoAreaBody(String area) {
     return 'You can see this page because your permissions include the \"$area\" area.';
   }

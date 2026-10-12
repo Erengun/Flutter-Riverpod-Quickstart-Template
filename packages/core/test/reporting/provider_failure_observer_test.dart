@@ -21,6 +21,21 @@ final Provider<int> _apiFailing = Provider<int>(
   name: 'apiFailingProvider',
 );
 
+final Provider<int> _watchesApiFailing = Provider<int>(
+  (Ref ref) => ref.watch(_apiFailing) + 1,
+  name: 'watchesApiFailingProvider',
+);
+
+final Provider<int> _watchesFailing = Provider<int>(
+  (Ref ref) => ref.watch(_failing) + 1,
+  name: 'watchesFailingProvider',
+);
+
+final Provider<int> _watchesWatchesFailing = Provider<int>(
+  (Ref ref) => ref.watch(_watchesFailing) + 1,
+  name: 'watchesWatchesFailingProvider',
+);
+
 class _GuardedNotifier extends AsyncNotifier<int> {
   @override
   Future<int> build() async => 0;
@@ -111,6 +126,22 @@ void main() {
     readAndIgnore(_apiFailing);
 
     expect(reporter.reports, isEmpty);
+  });
+
+  test('a provider rethrowing an ApiException it watches is skipped', () {
+    readAndIgnore(_watchesApiFailing);
+
+    expect(reporter.reports, isEmpty);
+  });
+
+  test('a failure is reported once, for its source, not per dependent', () {
+    readAndIgnore(_watchesWatchesFailing);
+
+    expect(reporter.reports, hasLength(1));
+    expect(reporter.reports.single.error, isA<StateError>());
+    expect(reporter.reports.single.tags, <String, String>{
+      'provider': 'failingProvider',
+    });
   });
 
   test('an AsyncError set by a notifier is reported', () async {

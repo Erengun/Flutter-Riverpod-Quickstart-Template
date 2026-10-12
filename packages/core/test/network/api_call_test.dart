@@ -166,7 +166,7 @@ void main() {
     test('a GET 503 is retried 3 times, then fails as server', () async {
       final _Harness h = _Harness(<FakeReply>[jsonReply(503, null)]);
       expect(await h.failure('/a'), isA<ApiServerException>());
-      expect(h.adapter.requests, hasLength(4));
+      expect(h.adapter.requests, hasLength(dioRetries + 1));
     });
 
     test('a POST 503 is not retried', () async {
@@ -200,11 +200,11 @@ void main() {
     test('connection errors and connect timeouts are retried', () async {
       final _Harness h = _Harness(<FakeReply>[connectionErrorReply()]);
       await h.failure('/a');
-      expect(h.adapter.requests, hasLength(4));
+      expect(h.adapter.requests, hasLength(dioRetries + 1));
 
       final _Harness t = _Harness(<FakeReply>[connectTimeoutReply()]);
       await t.failure('/a');
-      expect(t.adapter.requests, hasLength(4));
+      expect(t.adapter.requests, hasLength(dioRetries + 1));
     });
 
     test('a GET 429 then 200 succeeds on the retry', () async {
@@ -222,7 +222,7 @@ void main() {
           jsonReply(408, null),
         ], method: method);
         await h.failure('/a');
-        expect(h.adapter.requests, hasLength(4));
+        expect(h.adapter.requests, hasLength(dioRetries + 1));
       });
     }
   });
@@ -261,7 +261,7 @@ void main() {
     test('a retried 5xx is one report', () async {
       final _Harness h = _Harness(<FakeReply>[jsonReply(502, null)]);
       await h.failure('/a');
-      expect(h.adapter.requests, hasLength(4));
+      expect(h.adapter.requests, hasLength(dioRetries + 1));
       expect(h.reporter.reports, hasLength(1));
     });
 
@@ -334,6 +334,35 @@ void main() {
           'cancelled',
         ],
       );
+    });
+
+    test('errors without a request are told apart by kind and cause, and '
+        'grouped by the tracker', () async {
+      final RecordingReporter reporter = RecordingReporter();
+      final ApiCall apiCall = ApiCall(reporter);
+      Future<void> fail(Future<int> Function() request) =>
+          expectLater(apiCall<int>(request), throwsA(isA<ApiException>()));
+
+      await fail(() async => throw StateError('endpoint A'));
+      await fail(() async => throw ArgumentError('endpoint B'));
+      await fail(() async => throw const FormatException('endpoint C'));
+      await fail(() async => throw StateError('endpoint A again'));
+
+      expect(
+        reporter.reports.map(
+          (RecordedReport r) => (r.error as ApiException).cause.toString(),
+        ),
+        <Matcher>[
+          contains('endpoint A'),
+          contains('endpoint B'),
+          contains('endpoint C'),
+        ],
+      );
+      for (final RecordedReport report in reporter.reports) {
+        expect(report.groupKey, isNull);
+        expect(report.tags, isEmpty);
+      }
+      expect(reporter.breadcrumbs.single.message, contains('StateError'));
     });
 
     test('a nested apiCall records the error once', () async {
