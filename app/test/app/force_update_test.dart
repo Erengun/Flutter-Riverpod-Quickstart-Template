@@ -23,6 +23,10 @@ class FakeRemoteFlags implements RemoteFlags {
   /// fetch that finds newer values while the real-time listener is silent.
   Map<String, String>? nextFetch;
 
+  /// While set, [refresh] waits for it before applying [nextFetch], like a
+  /// fetch still on the network.
+  Completer<void>? refreshGate;
+
   /// Changes the values and emits [onChanged], like a real-time update.
   void change(Map<String, String> newValues) {
     values
@@ -44,6 +48,7 @@ class FakeRemoteFlags implements RemoteFlags {
   @override
   Future<void> refresh() async {
     refreshCount++;
+    await refreshGate?.future;
     final Map<String, String>? fetched = nextFetch;
     if (fetched == null) return;
     nextFetch = null;
@@ -114,6 +119,7 @@ void main() {
     WidgetTester tester, {
     AppConfig config = _listedConfig,
     GoRouter? router,
+    List<Override> overrides = const <Override>[],
   }) async {
     final GoRouter appRouter =
         router ??
@@ -134,6 +140,7 @@ void main() {
           goRouterProvider.overrideWithValue(appRouter),
           appConfigProvider.overrideWithValue(config),
           remoteFlagsProvider.overrideWithValue(flags),
+          ...overrides,
         ],
         child: const MyApp(),
       ),
@@ -239,6 +246,58 @@ void main() {
       await settle(tester);
 
       expect(flags.refreshCount, 2);
+      expect(find.text(en.updateBodyRequired), findsOneWidget);
+    },
+    variant: _ios,
+  );
+
+  testWidgets(
+    "a slow lookup from before a resume refresh can't overwrite the newer one",
+    (WidgetTester tester) async {
+      // Reads the flags when called, like the default source, but answers only
+      // when the test releases it while [hold] is set.
+      final AppVersionSource cached = remoteFlagsAppVersionSource(flags);
+      final List<Completer<void>> gates = <Completer<void>>[];
+      bool hold = false;
+      Future<AppVersionConstraints> source(KonteynerPlatform platform) async {
+        final AppVersionConstraints read = await cached(platform);
+        if (hold) {
+          final Completer<void> gate = Completer<void>();
+          gates.add(gate);
+          await gate.future;
+        }
+        return read;
+      }
+
+      await pumpApp(
+        tester,
+        overrides: <Override>[
+          appVersionSourceProvider.overrideWithValue(source),
+        ],
+      );
+      expect(find.byType(AlertDialog), findsNothing);
+
+      hold = true;
+      flags
+        ..nextFetch = <String, String>{'app_min_version_ios': '1.1.0'}
+        ..refreshGate = Completer<void>();
+      backgroundAndResume(tester);
+      await tester.pump();
+      // The resume check has read the old cached values; now the fetch lands.
+      flags.refreshGate!.complete();
+      await tester.pump();
+      // Answer the newest lookup first and the older cached one last, as a
+      // slow first lookup would, until none is waiting.
+      while (gates.isNotEmpty) {
+        final List<Completer<void>> waiting = gates.reversed.toList();
+        gates.clear();
+        for (final Completer<void> gate in waiting) {
+          gate.complete();
+        }
+        await tester.pump();
+      }
+      await settle(tester);
+
       expect(find.text(en.updateBodyRequired), findsOneWidget);
     },
     variant: _ios,

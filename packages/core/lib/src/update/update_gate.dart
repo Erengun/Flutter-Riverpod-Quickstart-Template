@@ -188,6 +188,23 @@ class _KonteynerUpgrader extends Upgrader {
         ),
       );
 
+  /// The lookup started last; the next one waits for it.
+  Future<UpgraderVersionInfo?> _lastLookup =
+      Future<UpgraderVersionInfo?>.value();
+
+  /// Runs lookups one at a time, in the order they start. Resume, the
+  /// post-refresh check and `onChanged` each start one, and an older lookup
+  /// that answers late would otherwise overwrite a newer result.
+  @override
+  Future<UpgraderVersionInfo?> updateVersionInfo() {
+    return _lastLookup = _lastLookup
+        .then<UpgraderVersionInfo?>(
+          (UpgraderVersionInfo? _) => null,
+          onError: (Object _) => null,
+        )
+        .then((Object? _) => super.updateVersionInfo());
+  }
+
   @override
   UpgraderMessages determineMessages(BuildContext context) {
     return KonteynerUpgraderMessages.forLocale(
