@@ -10,6 +10,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:widgetbook/widgetbook.dart';
 import 'package:widgetbook_catalog/catalog/catalog_addons.dart';
 import 'package:widgetbook_catalog/catalog/catalog_app.dart';
+import 'package:widgetbook_catalog/main.dart';
 import 'package:widgetbook_catalog/main.directories.g.dart';
 
 /// Every use case in the generated catalog, by `Component/use case`.
@@ -323,5 +324,22 @@ void main() {
       expect(find.text(l10n.demoEmailReadonly), findsOneWidget);
       expect(find.text(l10n.demoDeleteAccountHidden), findsNothing);
     });
+  });
+
+  testWidgets('the Widgetbook shell opens a use case without an error', (
+    WidgetTester tester,
+  ) async {
+    // Through the real shell and its app builder, as in the browser; the
+    // tests above build use cases inside CatalogApp directly.
+    await tester.pumpWidget(
+      WidgetbookApp(
+        theme: theme,
+        initialRoute: '/?path=core/network/apierrorview/decode',
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(ApiErrorView), findsOneWidget);
   });
 }
