@@ -17,6 +17,9 @@ import 'error_reporter.dart';
 ///   so repeats become breadcrumbs.
 /// - [ApiException]s are skipped: the network layer already reported them
 ///   or recorded them as breadcrumbs.
+/// - [ProviderException]s are skipped: Riverpod wraps an error in one when
+///   a provider rethrows the failure of a provider it watches, and the
+///   source provider is reported on its own.
 final class ProviderFailureObserver extends ProviderObserver {
   ProviderFailureObserver(this._reporter);
 
@@ -31,7 +34,7 @@ final class ProviderFailureObserver extends ProviderObserver {
     Object error,
     StackTrace stackTrace,
   ) {
-    if (error is ApiException) return;
+    if (error is ApiException || error is ProviderException) return;
     final ProviderBase<Object?> provider = context.provider;
     final String name = provider.name ?? provider.runtimeType.toString();
     if (_reported.add(provider)) {

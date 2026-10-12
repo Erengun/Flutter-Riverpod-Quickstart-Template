@@ -288,7 +288,7 @@ Once Firebase has been configured, also delete:
 
 ## Sentry Module
 
-[packages/sentry_module](packages/sentry_module) reports errors and crash-free statistics to Sentry through Core's `ErrorReporter`, on all six platforms. Staging and prod report, with the flavor name as the Sentry `environment`; dev never starts Sentry. There is no tracing, session replay, screenshots, personal data or HTTP capture.
+[packages/sentry_module](packages/sentry_module) reports errors to Sentry through Core's `ErrorReporter` on all six platforms, and crash-free statistics on every platform except web (sentry_flutter starts web sessions only from its `SentryNavigatorObserver`, which the template does not add). Staging and prod report, with the flavor name as the Sentry `environment`; dev never starts Sentry. There is no tracing, session replay, screenshots, personal data or HTTP capture.
 
 **As shipped, Sentry is off.** Set `sentryDsn` in [packages/sentry_module/lib/src/sentry_options.dart](packages/sentry_module/lib/src/sentry_options.dart) to your project's DSN (Sentry project settings > Client Keys). One Sentry project serves every flavor. A DSN is not a secret. To get readable prod stack traces, set up the symbol upload in [Releases](#releases).
 

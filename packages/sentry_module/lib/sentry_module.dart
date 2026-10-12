@@ -1,4 +1,5 @@
-/// Sends errors and crash-free statistics to Sentry on staging and prod.
+/// Sends errors and crash-free statistics (not on web) to Sentry on staging
+/// and prod.
 library;
 
 export 'src/sentry_error_reporter.dart';
