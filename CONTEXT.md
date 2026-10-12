@@ -68,6 +68,10 @@ _Avoid_: storybook, gallery
 One example in the **Catalog**: a widget or screen shown in one particular state.
 _Avoid_: story, scenario; never a business operation
 
+**Fake**:
+A hand-written stand-in for a repository or for storage that answers from code instead of the backend or the device. The tests and the **Catalog** use the same **Fakes**.
+_Avoid_: mock (a test-only double scripted per test), stub, demo data
+
 **Session**:
 A user's signed-in state on one device. It begins at login and ends at logout or when it can no longer be renewed.
 _Avoid_: login, auth state
@@ -112,3 +116,4 @@ _Avoid_: crash (only for fatal ones), event, issue
 - A **Derived app** is created once and never merges later updates from its **Company copy**
 - A **Derived app** starts with every **Module** and removes the ones it doesn't use; **Core** always stays
 - A **Designer** works in the **Catalog**; every **Shared widget** and screen has at least one **Use case**
+- Each **Feature** owns the **Fakes** of its repositories; a screen renders in the **Catalog** on **Fakes** alone
