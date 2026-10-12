@@ -9,5 +9,5 @@
 // flavor xcconfigs. Do not set them here: this file is the target-level base
 // and would override them.
 
-// The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 com.example. All rights reserved.
+// The copyright shown in the About panel. Edit it in app/Identity.xcconfig.
+PRODUCT_COPYRIGHT = $(IDENTITY_MACOS_COPYRIGHT)

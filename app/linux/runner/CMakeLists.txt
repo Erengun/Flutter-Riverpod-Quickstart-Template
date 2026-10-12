@@ -18,8 +18,8 @@ apply_standard_settings(${BINARY_NAME})
 
 # Add preprocessor definitions for the application ID.
 add_definitions(-DAPPLICATION_ID="${APPLICATION_ID}")
-# The window title follows the executable name.
-add_definitions(-DAPPLICATION_TITLE="${BINARY_NAME}")
+# The window title is APP_NAME from the top-level CMakeLists.txt.
+target_compile_definitions(${BINARY_NAME} PRIVATE "APPLICATION_TITLE=\"${APP_NAME}\"")
 
 # Add dependency libraries. Add any application-specific dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter)

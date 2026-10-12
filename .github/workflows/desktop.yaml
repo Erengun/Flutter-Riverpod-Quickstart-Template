@@ -72,6 +72,27 @@ jobs:
 
       - run: flutter pub get
 
+      # firebase_module: firebase_core's Windows plugin downloads the Firebase
+      # C++ SDK zip into the CMake build folder unless the zip is already
+      # there. Cache the zip only (the extracted SDK is several times larger
+      # and is unpacked again each run). The SDK version is fixed by
+      # firebase_core's version, so that version is the key; no restore-keys,
+      # so a bump never reuses an older zip. Skipped once Firebase is removed.
+      - name: Read the firebase_core version
+        id: firebase-core
+        shell: bash
+        run: |
+          # tr: the Windows checkout may have CRLF line endings.
+          version="$(tr -d '\r' < ../pubspec.lock | sed -n '/^  firebase_core:$/,/^    version:/s/^    version: "\(.*\)"$/\1/p')"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the Firebase C++ SDK
+        if: steps.firebase-core.outputs.version != ''
+        uses: actions/cache@v6
+        with:
+          path: app/build/windows/x64/firebase_cpp_sdk_windows_*.zip
+          key: firebase-cpp-sdk-windows-${{ steps.firebase-core.outputs.version }}
+
       - run: flutter build windows --release -t lib/main_prod.dart
 
   build-linux:

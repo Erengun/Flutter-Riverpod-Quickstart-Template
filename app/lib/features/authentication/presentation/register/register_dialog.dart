@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../utils/context_extensions.dart';
 import '../../domain/register_response.dart';
 import '../login/login_controller.dart';
@@ -33,6 +34,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
     final Size size = MediaQuery.sizeOf(context);
     return Dialog(
       child: Container(
@@ -49,7 +51,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
                 Icon(Icons.person, color: context.colorScheme.primary),
                 const SizedBox(width: 10),
                 Text(
-                  'New Profile',
+                  l10n.authRegisterTitle,
                   style: context.textTheme.titleMedium?.copyWith(
                     color: context.colorScheme.primary,
                   ),
@@ -58,7 +60,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
             ),
             const Gap(20),
             Text(
-              'Username',
+              l10n.authUsernameLabel,
               style: context.textTheme.titleMedium?.copyWith(
                 color: context.colorScheme.primary,
               ),
@@ -67,7 +69,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
-                hintText: 'Enter your username',
+                hintText: l10n.authUsernameHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: context.colorScheme.primary),
@@ -76,7 +78,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
             ),
             const Gap(20),
             Text(
-              'Password',
+              l10n.authPasswordLabel,
               style: context.textTheme.titleMedium?.copyWith(
                 color: context.colorScheme.primary,
               ),
@@ -86,7 +88,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
               controller: _passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'Enter your password',
+                hintText: l10n.authPasswordHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: context.colorScheme.primary),
@@ -102,7 +104,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
                     Navigator.pop(context);
                   },
                   child: Text(
-                    'Cancel',
+                    l10n.authRegisterCancel,
                     style: context.textTheme.titleMedium?.copyWith(
                       color: context.colorScheme.primary,
                     ),
@@ -138,7 +140,7 @@ class _RegisterDialogState extends ConsumerState<RegisterDialog> {
                         });
                   },
                   child: Text(
-                    'Register',
+                    l10n.authRegisterButton,
                     style: context.textTheme.titleMedium?.copyWith(
                       color: context.colorScheme.onPrimary,
                     ),

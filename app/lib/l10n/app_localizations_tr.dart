@@ -13,6 +13,59 @@ class AppLocalizationsTr extends AppLocalizations {
   String get appTitle => 'Flutter Production Boilerplate';
 
   @override
+  String get authCreateAccount => 'Hesap oluştur';
+
+  @override
+  String get authCredentialsRequired =>
+      'Lütfen e-posta adresinizi ve şifrenizi girin.';
+
+  @override
+  String get authEmailHint => 'E-posta adresinizi girin';
+
+  @override
+  String get authEmailInvalid => 'Lütfen geçerli bir e-posta adresi girin';
+
+  @override
+  String get authEmailRequired => 'Lütfen bir e-posta adresi girin';
+
+  @override
+  String get authLoginButton => 'Giriş yap';
+
+  @override
+  String get authLoginFailed => 'E-posta adresi veya şifre hatalı.';
+
+  @override
+  String get authLoginSubtitle =>
+      'E-posta adresiniz ve şifrenizle giriş yapabilirsiniz';
+
+  @override
+  String get authLoginTitle => 'Giriş';
+
+  @override
+  String get authPasswordHint => 'Şifrenizi girin';
+
+  @override
+  String get authPasswordLabel => 'Şifre';
+
+  @override
+  String get authRegisterButton => 'Kaydol';
+
+  @override
+  String get authRegisterCancel => 'İptal';
+
+  @override
+  String get authRegisterTitle => 'Yeni Profil';
+
+  @override
+  String get authUsernameHint => 'Kullanıcı adınızı girin';
+
+  @override
+  String get authUsernameLabel => 'Kullanıcı adı';
+
+  @override
+  String get authWelcome => 'Uygulamaya hoş geldiniz';
+
+  @override
   String demoAreaBody(String area) {
     return 'Bu sayfayı görebiliyorsunuz çünkü yetkileriniz \"$area\" alanını içeriyor.';
   }
