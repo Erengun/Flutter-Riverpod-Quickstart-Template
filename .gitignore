@@ -112,8 +112,9 @@ yarn.lock
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
-# Local commit conventions (kept out of the public repo)
+# Local commit and worklog conventions (kept out of the public repo)
 commit_style.md
+jira.md
 
 # Local agent and tooling files
 CLAUDE.local.md
