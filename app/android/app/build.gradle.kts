@@ -27,11 +27,10 @@ fun signingValue(env: String, key: String): String? =
     providers.environmentVariable(env).orNull?.takeIf { it.isNotBlank() }
         ?: keyProperties.getProperty(key)?.takeIf { it.isNotBlank() }
 
-val releaseKeystore: File? = signingValue("ANDROID_KEYSTORE_PATH", "storeFile")?.let { path ->
-    rootProject.file(path).also { file ->
-        if (!file.isFile) throw GradleException("Release keystore not found: $path")
-    }
-}
+// A path is not checked here: a stale one would stop every Gradle run, debug
+// builds and IDE sync included. AGP's validateSigning task fails a release
+// build whose keystore is missing.
+val releaseKeystore: File? = signingValue("ANDROID_KEYSTORE_PATH", "storeFile")?.let { rootProject.file(it) }
 
 android {
     namespace = "com.example.temp"

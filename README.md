@@ -300,7 +300,7 @@ Removing a Module also removes its dependency from `widgetbook/pubspec.yaml` and
 
 It does nothing until you opt in: every job runs only when the repository variable `RELEASE_ENABLED` is `true`. The template sets nothing, so its tags skip cleanly.
 
-The lanes are in [app/android/fastlane](app/android/fastlane) and [app/ios/fastlane](app/ios/fastlane); fastlane is pinned by the root `Gemfile` and `Gemfile.lock` (Dependabot updates them). Each lane runs `flutter build` itself, then signs and uploads. To run one locally: `bundle install` at the root, then `bundle exec fastlane android release` from `app/android` (or `ios release` from `app/ios`) with the same environment variables set.
+The lanes are in [app/android/fastlane](app/android/fastlane) and [app/ios/fastlane](app/ios/fastlane); fastlane is pinned by the root `Gemfile` and `Gemfile.lock` (Dependabot updates them). Each lane runs `flutter build` itself, then signs and uploads. To run one locally: `bundle install` at the root, then `bundle exec fastlane android release` from `app/android` (or `ios release` from `app/ios`) with the same environment variables set. The Android lane also takes the keystore from `app/android/key.properties` (below) and the Play key from `json_key_file` in its [Appfile](app/android/fastlane/Appfile).
 
 ### Versions and tags
 

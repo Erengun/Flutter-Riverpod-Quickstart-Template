@@ -303,7 +303,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.ref_name }}
+        # A rerun after the release was created uploads the files again
+        # (replacing any with the same name) instead of failing.
         run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" release/* --clobber
+            exit 0
+          fi
           prerelease=()
           case "$TAG" in *-*) prerelease=(--prerelease) ;; esac
           gh release create "$TAG" release/* --verify-tag --title "$TAG" --generate-notes "${prerelease[@]}"
