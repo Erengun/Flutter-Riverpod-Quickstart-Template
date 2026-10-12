@@ -14,8 +14,8 @@ import 'session.dart';
 /// `@Extra(<String, Object>{skipAuthKey: true})`.
 const String skipAuthKey = 'skipAuth';
 
-// The access token the interceptor attached; only these requests are
-// refreshed on a 401.
+// The current access token the request went out with; only these requests
+// are refreshed on a 401.
 const String _sentTokenKey = 'core.auth.sentToken';
 
 // Set on a replayed request, so its own 401 never refreshes again.
@@ -44,9 +44,11 @@ class UnauthorizedAfterRefreshException implements Exception {
 ///
 /// The token is read per request, so the shared Dio never changes. Skips
 /// requests marked with [skipAuthKey] and never replaces an
-/// `Authorization` header the request already has.
+/// `Authorization` header the request already has. A request whose own
+/// header is `Bearer <the current access token>` (a permission loader's) is
+/// treated as one it authenticated.
 ///
-/// On a 401 for a request it added the token to:
+/// On a 401 for a request it authenticated:
 /// - When the request went out with an older token than the current one,
 ///   it is replayed with the current token, without a refresh.
 /// - Otherwise one refresh runs (all failing requests share it) through the
@@ -91,13 +93,21 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final bool hasHeader = options.headers.keys.any(
-      (String name) => name.toLowerCase() == 'authorization',
-    );
-    if (options.extra[skipAuthKey] != true && !hasHeader) {
-      final String? token = _session()?.accessToken;
-      if (token != null && token.isNotEmpty) {
+    final String? token = _session()?.accessToken;
+    if (options.extra[skipAuthKey] != true &&
+        token != null &&
+        token.isNotEmpty) {
+      final MapEntry<String, dynamic>? own = options.headers.entries
+          .where(
+            (MapEntry<String, dynamic> header) =>
+                header.key.toLowerCase() == 'authorization',
+          )
+          .firstOrNull;
+      if (own == null) {
         options.headers['Authorization'] = 'Bearer $token';
+        options.extra[_sentTokenKey] = token;
+      } else if (own.value == 'Bearer $token') {
+        // Sent with the current token anyway: refresh it on a 401 too.
         options.extra[_sentTokenKey] = token;
       }
     }
@@ -111,8 +121,9 @@ class AuthInterceptor extends Interceptor {
   ) async {
     final RequestOptions request = err.requestOptions;
     final Object? sent = request.extra[_sentTokenKey];
-    // Only requests this interceptor authenticated: never the refresh call
-    // itself (skipAuth) or a request with its own header (logout hook).
+    // Only requests sent with the current token: never the refresh call
+    // itself (skipAuth) or one with another token in its own header (the
+    // logout hook, which runs once the session is gone).
     if (err.response?.statusCode != 401 || sent is! String) {
       handler.next(err);
       return;

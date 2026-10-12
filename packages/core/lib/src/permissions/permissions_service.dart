@@ -37,7 +37,7 @@ final Provider<Permissions?> permissionsProvider = Provider<Permissions?>((
   if (ref.watch(sessionHooksProvider).loadPermissions == null) {
     return Permissions.unrestricted;
   }
-  return service._resolve(current, ref.watch(sessionBoxProvider).value);
+  return service._resolve(ref.watch(sessionBoxProvider).value);
 }, name: 'permissionsProvider');
 
 /// [permissionsProvider]'s current value as a [Listenable], for go_router's
@@ -88,6 +88,9 @@ class _Revision extends Notifier<int> {
 /// - [reloadAfterForbidden] reloads at most once per launch after a 403.
 /// - One reload at a time; a failed reload keeps the current list. Nothing
 ///   reloads on app foreground.
+/// - Results belong to the signed-in user, not to one access token: a token
+///   refresh keeps them, a sign-out drops them (see
+///   `sessionGenerationProvider`).
 class PermissionsService {
   PermissionsService(this._ref);
 
@@ -95,9 +98,9 @@ class PermissionsService {
 
   final Ref _ref;
 
-  /// The permissions loaded during this run, for the session they belong
-  /// to.
-  ({Session session, Permissions permissions})? _loaded;
+  /// The permissions loaded during this run, for the session generation
+  /// they belong to.
+  ({int generation, Permissions permissions})? _loaded;
 
   bool _launchReloadStarted = false;
   bool _forbiddenReloadUsed = false;
@@ -129,7 +132,8 @@ class PermissionsService {
       permissions = saved;
     }
     await _save(box, permissions);
-    _loaded = (session: session, permissions: permissions);
+    // signIn keeps the generation when nobody is signed in.
+    _loaded = (generation: _generation, permissions: permissions);
     // A fresh load counts as this launch's load.
     _launchReloadStarted = true;
   }
@@ -138,26 +142,34 @@ class PermissionsService {
   /// for every `ApiForbiddenException`; the user still sees Core's default
   /// "no permission" message.
   void reloadAfterForbidden() {
-    final Session? session = _ref.read(sessionProvider).value;
-    if (session == null) return;
+    if (_ref.read(sessionProvider).value == null) return;
     if (_ref.read(sessionHooksProvider).loadPermissions == null) return;
     if (_forbiddenReloadUsed) return;
     _forbiddenReloadUsed = true;
     _log.info('Reloading permissions after a 403.');
-    unawaited(_reload(session));
+    unawaited(_reload());
   }
 
-  Permissions? _resolve(Session session, Box<String>? box) {
-    final ({Session session, Permissions permissions})? loaded = _loaded;
-    if (loaded != null && loaded.session == session) {
+  int get _generation => _ref.read(sessionGenerationProvider).value;
+
+  /// Whether someone is signed in and it is still [generation]'s user.
+  bool _isCurrent(int generation) =>
+      _ref.read(sessionProvider).value != null && _generation == generation;
+
+  Permissions? _resolve(Box<String>? box) {
+    final int generation = _generation;
+    final ({int generation, Permissions permissions})? loaded = _loaded;
+    if (loaded != null && loaded.generation == generation) {
       return loaded.permissions;
     }
     final Permissions? saved = box == null ? null : _read(box);
-    if (saved != null) _loaded = (session: session, permissions: saved);
+    if (saved != null) {
+      _loaded = (generation: generation, permissions: saved);
+    }
     if (!_launchReloadStarted) {
       _launchReloadStarted = true;
       // Never during a provider build: a landed reload rebuilds it.
-      scheduleMicrotask(() => unawaited(_reload(session)));
+      scheduleMicrotask(() => unawaited(_reload()));
     }
     // Nothing saved: unknown until the reload lands.
     return saved;
@@ -171,39 +183,48 @@ class PermissionsService {
   Future<void>? get reloading => _reloading;
 
   /// One reload at a time: a second caller joins the running one.
-  Future<void> _reload(Session session) {
-    return _reloading ??= _runReload(session).whenComplete(
-      () => _reloading = null,
-    );
+  Future<void> _reload() {
+    return _reloading ??= _runReload().whenComplete(() => _reloading = null);
   }
 
   /// After every await it checks `_ref.mounted`: the provider is keep-alive
   /// and never rebuilt, so it is only disposed with its container (the app
   /// closing, a test ending). Nothing is left to update then; the reload
   /// stops instead of using the disposed [Ref].
-  Future<void> _runReload(Session session) async {
+  Future<void> _runReload() async {
     if (!_ref.mounted) return;
     final LoadPermissionsHook? hook = _ref
         .read(sessionHooksProvider)
         .loadPermissions;
-    if (hook == null) return;
+    // The session as it is now: a refresh may have run since it was asked
+    // for.
+    final Session? session = _ref.read(sessionProvider).value;
+    if (hook == null || session == null) return;
+    final int generation = _generation;
     try {
       final Permissions permissions = await hook(session);
       if (!_ref.mounted) return;
       final Box<String> box = await _ref.read(sessionBoxProvider.future);
       if (!_ref.mounted) return;
-      // Signed out (or in as someone else) meanwhile: drop the result.
-      if (_ref.read(sessionProvider).value != session) return;
-      _loaded = (session: session, permissions: permissions);
+      // Signed out (or in as someone else) meanwhile: drop the result. A
+      // token refresh keeps it. Checked right before the write is issued,
+      // and a sign-out marks itself before it clears the box, so the clear
+      // always comes after this write.
+      if (!_isCurrent(generation)) return;
+      _loaded = (generation: generation, permissions: permissions);
       await _save(box, permissions);
+      if (!_ref.mounted) return;
+      if (_ref.read(sessionProvider).value == null) {
+        // Signed out while it was written: never leave it on disk.
+        await _delete(box);
+      }
     } catch (error, stackTrace) {
       if (!_ref.mounted) return;
       _log.info('Reloading permissions failed; keeping the current list.');
       _reportUnhandled(error, stackTrace);
       // Nothing was known (a cold start with nothing saved): fail closed.
-      if (_loaded?.session != session &&
-          _ref.read(sessionProvider).value == session) {
-        _loaded = (session: session, permissions: Permissions.none);
+      if (_loaded?.generation != generation && _isCurrent(generation)) {
+        _loaded = (generation: generation, permissions: Permissions.none);
       }
     }
     if (!_ref.mounted) return;
@@ -221,6 +242,15 @@ class PermissionsService {
     } catch (_) {
       // Kept in memory for this run; the next launch loads them again.
       _log.warning('Permissions could not be saved.');
+    }
+  }
+
+  Future<void> _delete(Box<String> box) async {
+    try {
+      await box.delete(permissionsKey);
+    } catch (_) {
+      // The box was deleted from disk instead of cleared; nothing is left.
+      _log.warning('Permissions could not be deleted.');
     }
   }
 
