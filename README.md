@@ -19,6 +19,7 @@ A production-ready Flutter template built with the latest packages and best prac
 - ⚡ Modern navigation with GoRouter 18
 - 🚀 CI on every PR, and a tag-driven release workflow with fastlane
 - 🛠️ Custom linting and devtools configuration
+- 🤖 Claude Code rules: a short root `CLAUDE.md`, path-scoped rules per area and a `test-writer` agent
 
 ---
 
@@ -94,11 +95,14 @@ Start from everything, then remove what you don't need. Each step links to the s
 9. **Release secrets, variables and match.** Follow [One-time setup](#one-time-setup): the Play upload keystore and service account, the App Store Connect API key, the first `match` run that creates the certificate and profile, the secrets and variables, then `RELEASE_ENABLED`.
 10. **Widgetbook on Pages.** Set the Pages source to GitHub Actions and the `WIDGETBOOK_PUBLISH` variable as in [Publish it to GitHub Pages](#publish-it-to-github-pages), or [remove Widgetbook](#remove-widgetbook).
 11. **Runners (optional).** Set the repository variables `LINUX_RUNNER`, `MACOS_RUNNER` and `WINDOWS_RUNNER` to use other runner labels. See [CI](#ci).
-12. **Clean up.** Delete the open-source files a private app doesn't need: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `.github/FUNDING.yml` and `.github/ISSUE_TEMPLATE/`.
+12. **Your own Claude Code rules (optional).** Add them as `.claude/rules/app-*.md`, or edit the template's rules freely: your app never merges template updates. See [Claude Code](#claude-code).
+13. **Clean up.** Delete the open-source files a private app doesn't need: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `.github/FUNDING.yml` and `.github/ISSUE_TEMPLATE/`.
 
 ### Keeping your own copy of the template
 
 If your organization keeps its own copy of this repo (to add its own rules or Modules and merge updates from here), mark that copy as a template repository: Settings > General > **Template repository**. Without it, the copy has no **Use this template** button.
+
+Put your company's Claude Code rules in `.claude/rules/company-*.md` and leave the template's own files untouched, so updates from here merge without conflicts. See [Claude Code](#claude-code).
 
 ---
 
@@ -475,10 +479,41 @@ The upload runs with `commits=false`, so Sentry doesn't link commits to the rele
 
 ---
 
+## Claude Code
+
+The repo ships instructions for [Claude Code](https://claude.com/claude-code), which people can read too:
+
+- **[CLAUDE.md](CLAUDE.md)** is short and loads in every session: the working style, the rules that always apply, the repo layout and the commands.
+- **[`.claude/rules/`](.claude/rules)** holds the detailed rules, one file per area. Each file loads only when Claude reads or edits a file its `paths:` match, so a session pays only for the rules it needs. A rule drops out of the context at `/compact` and loads again on the next matching read.
+
+| File | Covers |
+|---|---|
+| `presentation.md` | UI files (screens and their widgets, Shared widgets), the catalog's use cases, controllers and UI models |
+| `theming.md` | The theme, design tokens, fonts, strings and ARB files |
+| `networking.md` | The shared Dio, retrofit clients, `ApiException` and showing errors |
+| `session-permissions.md` | The Session, token refresh, permissions and local storage |
+| `routing.md` | GoRouter, the redirects and the permission guard |
+| `logging.md` | Logging, breadcrumbs and error reporting, the Sentry Module |
+| `shell.md` | Entry points, flavors, config, Modules, force update, platforms and minimum OS |
+| `widgetbook.md` | The Widgetbook catalog and its publish workflow |
+| `ci-release.md` | CI, desktop builds, releases, fastlane and Dependabot |
+| `lint-plugins.md` | The `app_lints` analyzer plugin |
+| `testing.md` | Tests and their helpers |
+
+- **[`.claude/agents/test-writer.md`](.claude/agents/test-writer.md)** is a subagent that writes tests from requirements (a new feature, a bug reproduction) without reading the implementation. Claude hands work to it on its own, or ask for it by name.
+- **Personal files** are gitignored: `CLAUDE.local.md` for your own instructions and `.claude/settings.local.json` for your own permissions. They never reach anyone else, and Claude Code on the web doesn't see them.
+
+### Your own rules
+
+- **A Company copy** commits its rules as `.claude/rules/company-*.md` and never edits the template's files, so updates from the Public template merge without conflicts.
+- **A Derived app** adds `.claude/rules/app-*.md`, or edits the template's rules freely, since it never merges updates.
+
+---
+
 ## Documentation
 
 - Up-to-date documentation in this README
-- [CLAUDE.md](CLAUDE.md): the architecture, commands and the rules the code follows
+- [CLAUDE.md](CLAUDE.md) and [`.claude/rules/`](.claude/rules): the architecture, commands and the rules the code follows (see [Claude Code](#claude-code))
 - [CONTEXT.md](CONTEXT.md): the project's vocabulary (Module, Feature, Flavor, Session, ...)
 - Code comments and examples throughout
 
