@@ -93,7 +93,7 @@ Start from everything, then remove what you don't need. Each step links to the s
 7. **Protect `main`.** In Settings > Rules > Rulesets (or Settings > Branches), protect `main` and require the status checks `check`, `build-android`, `build-ios` and `build-web` from `ci.yaml`. "Use this template" doesn't copy this setting, and the checks only appear in the picker after `ci.yaml` has run once. See [CI](#ci).
 8. **fastlane placeholders.** Replace the certificates repo URL in [app/ios/fastlane/Matchfile](app/ios/fastlane/Matchfile) (or set `MATCH_GIT_URL`); for local runs, also `team_id` in [app/ios/fastlane/Appfile](app/ios/fastlane/Appfile) and `json_key_file` in [app/android/fastlane/Appfile](app/android/fastlane/Appfile). The lanes refuse to upload while the id is still `com.example.temp`.
 9. **Release secrets, variables and match.** Follow [One-time setup](#one-time-setup): the Play upload keystore and service account, the App Store Connect API key, the first `match` run that creates the certificate and profile, the secrets and variables, then `RELEASE_ENABLED`.
-10. **Widgetbook on Pages.** Set the Pages source to GitHub Actions and the `WIDGETBOOK_PUBLISH` variable as in [Publish it to GitHub Pages](#publish-it-to-github-pages), or [remove Widgetbook](#remove-widgetbook).
+10. **Widgetbook hosting.** Two optional opt-ins, independent of each other: publish `main`'s catalog to Pages (the Pages source and the `WIDGETBOOK_PUBLISH` variable, as in [Publish it to GitHub Pages](#publish-it-to-github-pages)), and host a preview for every PR (a Firebase project, its service-account key and the `WIDGETBOOK_PR_PREVIEW` variable, as in [Preview every PR](#preview-every-pr)). Or [remove Widgetbook](#remove-widgetbook).
 11. **Runners (optional).** Set the repository variables `LINUX_RUNNER`, `MACOS_RUNNER` and `WINDOWS_RUNNER` to use other runner labels. See [CI](#ci).
 12. **Your own Claude Code rules (optional).** Add them as `.claude/rules/app-*.md`, or edit the template's rules freely: your app never merges template updates. See [Claude Code](#claude-code).
 13. **Clean up.** Delete the open-source files a private app doesn't need: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `.github/FUNDING.yml` and `.github/ISSUE_TEMPLATE/`.
@@ -194,7 +194,7 @@ Android, iOS and web are first-class: every feature works there, and CI builds t
 
 ## CI
 
-Four workflows live in `.github/workflows/`. None of them needs a secret until you turn releases on.
+Five workflows live in `.github/workflows/`. None of them needs a secret until you turn on releases or per-PR previews.
 
 | Workflow | Runs on | Jobs |
 |---|---|---|
@@ -202,6 +202,7 @@ Four workflows live in `.github/workflows/`. None of them needs a secret until y
 | `desktop.yaml` | push to `main`, weekly (Monday 03:00 UTC), manual | `build-macos`, `build-windows`, `build-linux` |
 | `release.yaml` | a `v*` tag, only when `RELEASE_ENABLED` is `true` | `version`, `release-android`, `release-ios`, `release-web`, `github-release` |
 | `widgetbook.yaml` | push to `main`, manual, only when `WIDGETBOOK_PUBLISH` is `true` | `publish` |
+| `widgetbook-preview.yaml` | a PR to `main` from this repo (opened, pushed to, reopened, closed), only when `WIDGETBOOK_PR_PREVIEW` is `true` | `deploy`, `cleanup` (on close) |
 
 - **`check`** runs `melos run gen` and fails when a generated file (`*.g.dart`, `*.freezed.dart`, generated localizations) is out of date, then `melos run analyze` (any lint info fails) and `melos run test`. There is no format check.
 - **Build jobs** make unsigned prod release builds, so R8 and tree-shaking problems show up before a release. `build-ios` (and `build-macos`) fails if a `Podfile` appears: every plugin must support Swift Package Manager.
@@ -355,7 +356,7 @@ class LoginController extends _$LoginController {
 
 ## Widgetbook
 
-`widgetbook/` is a web-only [Widgetbook](https://www.widgetbook.io/) catalog where designers can browse Core's screens and the demo screens: the no-permission and under-construction pages, the force-update dialog (blocking and dismissible), the error snackbar and error view for each `ApiException` kind, `PermissionGate`'s states, and the demo login and home screens running on fake repositories. Its toolbar switches the theme (the app's light and dark themes), the locale (en, tr), the device frame (phone, tablet, desktop) and the text scale. When you run it locally (`dart run melos run widgetbook`, a debug build) it also turns on accessibility checks; the catalog published to GitHub Pages is a release build, where `accessibility_tools` checks nothing, so it has no accessibility addon.
+`widgetbook/` is a web-only [Widgetbook](https://www.widgetbook.io/) catalog where designers can browse Core's screens and the demo screens: the no-permission and under-construction pages, the force-update dialog (blocking and dismissible), the error snackbar and error view for each `ApiException` kind, `PermissionGate`'s states, and the demo login and home screens running on fake repositories. Its toolbar switches the theme (the app's light and dark themes), the locale (en, tr), the device frame (phone, tablet, desktop) and the text scale. When you run it locally (`dart run melos run widgetbook`, a debug build) it also turns on accessibility checks; the catalog published to GitHub Pages and the per-PR previews are release builds, where `accessibility_tools` checks nothing, so they have no accessibility addon.
 
 It is its own workspace member that depends on the app, Core and each Module; the app never depends on it.
 
@@ -380,17 +381,37 @@ Write a function annotated with `@UseCase` in a file whose path mirrors the widg
 
 No secrets are needed.
 
+### Preview every PR
+
+`.github/workflows/widgetbook-preview.yaml` builds the catalog for the web (a release build) on every push to a pull request and deploys it to a [Firebase Hosting preview channel](https://firebase.google.com/docs/hosting/test-preview-deploy) named `pr-<number>`. The deploy posts a comment on the PR with the preview link, updates that comment on later pushes, and adds a check run. It is never a required check, so a preview outage doesn't block a merge. It is separate from the Pages publish above: you can turn on either one, both, or neither.
+
+It does nothing until you opt in. One-time setup:
+
+1. **A Firebase project for the catalog.** Create a separate project in the [Firebase console](https://console.firebase.google.com/) by default, not the one the Firebase Module uses: the preview belongs to Widgetbook, and removing either one then leaves the other alone. The no-cost Spark plan is enough.
+2. **Hosting.** In that project, open Hosting and click Get started, so the project has its default Hosting site. You don't need to deploy anything: the workflow's `widgetbook/firebase.json` already serves `build/web`.
+3. **A service account.** In the Google Cloud console for the same project (IAM & Admin > Service accounts), create a service account with the role **Firebase Hosting Admin**, then create a JSON key for it (Keys > Add key > JSON) and download the file.
+4. **The variable and the secret.** In Settings > Secrets and variables > Actions, add the repository variable `WIDGETBOOK_FIREBASE_PROJECT_ID` (the project id, not its display name) and the repository secret `WIDGETBOOK_FIREBASE_SERVICE_ACCOUNT_JSON` (paste the whole JSON key as text). Then delete the downloaded key file.
+5. **Turn it on.** Add the repository variable `WIDGETBOOK_PR_PREVIEW` with the value `true`. The next push to an open PR deploys its preview.
+
+What to know:
+
+- **Fork PRs get no preview.** GitHub gives a PR from a fork no secrets, so the workflow only runs for PRs from a branch of this repo. Review a fork PR's catalog locally with `dart run melos run widgetbook`.
+- **Preview URLs are public.** Anyone with the link can open the catalog, so keep real data and secrets out of use cases (the template's use cases run on fakes).
+- **Channels clean themselves up.** Each channel expires 14 days after its last deploy, and closing or merging the PR deletes it.
+
 ### Remove Widgetbook
 
 Delete all of these, then run `flutter pub get`:
 
-- `widgetbook/`
+- `widgetbook/` (with it `widgetbook/firebase.json`, the preview's Hosting config)
 - `- widgetbook` in the root `pubspec.yaml` workspace list
 - the `dependency_overrides` block for `analyzer` in the root `pubspec.yaml` (it exists only for `widgetbook_generator`)
 - the `widgetbook` Melos script in the root `pubspec.yaml`
-- `.github/workflows/widgetbook.yaml`
+- `.github/workflows/widgetbook.yaml` and `.github/workflows/widgetbook-preview.yaml`
 - the `"/widgetbook"` line in `.github/dependabot.yml`
 - the `widgetbook/` line and the other Widgetbook mentions in `CLAUDE.md`, and this section of the README
+
+If you turned on previews, also delete the repository variables `WIDGETBOOK_PR_PREVIEW` and `WIDGETBOOK_FIREBASE_PROJECT_ID` and the secret `WIDGETBOOK_FIREBASE_SERVICE_ACCOUNT_JSON`, and delete the Firebase preview project (or at least its service account). If you turned on Pages, delete `WIDGETBOOK_PUBLISH` too.
 
 ---
 
@@ -495,7 +516,7 @@ The repo ships instructions for [Claude Code](https://claude.com/claude-code), w
 | `routing.md` | GoRouter, the redirects and the permission guard |
 | `logging.md` | Logging, breadcrumbs and error reporting, the Sentry Module |
 | `shell.md` | Entry points, flavors, config, Modules, force update, platforms and minimum OS |
-| `widgetbook.md` | The Widgetbook catalog and its publish workflow |
+| `widgetbook.md` | The Widgetbook catalog and its publish and per-PR preview workflows |
 | `ci-release.md` | CI, desktop builds, releases, fastlane and Dependabot |
 | `lint-plugins.md` | The `app_lints` analyzer plugin |
 | `testing.md` | Tests and their helpers |

@@ -50,7 +50,7 @@ Run from the repo root unless noted. Melos 7 is a root dev dependency, so call i
 
 Flutter must be `>=3.47.4` (root pubspec `environment`); CI always uses the latest stable.
 
-Four workflows in `.github/workflows/` (`ci.yaml`, `desktop.yaml`, `widgetbook.yaml`, `release.yaml`); none needs a secret until a repo turns releases on. Details in `.claude/rules/ci-release.md` and `.claude/rules/widgetbook.md`.
+Five workflows in `.github/workflows/` (`ci.yaml`, `desktop.yaml`, `widgetbook.yaml`, `widgetbook-preview.yaml`, `release.yaml`); none needs a secret until a repo turns on releases or per-PR previews. Details in `.claude/rules/ci-release.md` and `.claude/rules/widgetbook.md`.
 
 ## Lint rules
 
