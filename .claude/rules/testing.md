@@ -6,6 +6,7 @@ paths:
 
 # Testing
 
+- Test files mirror `lib/`: `lib/features/home/presentation/home_screen.dart` is tested in `test/features/home/presentation/home_screen_test.dart`. Tests that span several files go in `test/app/` (flows), `test/l10n/` or `test/conventions/`.
 - Controllers: a `ProviderContainer` with `overrides`, keeping autoDispose providers alive with `container.listen(...)`; see `login_controller_test.dart`.
 - Fakes: a Feature's in `lib/features/<feature>/fakes/`; storage and `FakeScope` in `lib/fakes/`. Tests and the Catalog use the same ones. A missing Fake is added next to the others, never replaced by a mock.
 - Storage: `FakeStorage` and its `overrides`. HTTP: swap `dio.httpClientAdapter` for a fake adapter (`packages/core/test/support/fake_http_adapter.dart`) and pass `retryDelays: const <Duration>[]` to `createDio`.
