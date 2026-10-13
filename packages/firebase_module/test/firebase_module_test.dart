@@ -13,10 +13,10 @@ void main() {
     const FirebaseModule module = FirebaseModule();
 
     expect(module.name, 'firebase');
-    expect(module.platforms, <KonteynerPlatform>{
-      KonteynerPlatform.android,
-      KonteynerPlatform.ios,
-      KonteynerPlatform.web,
+    expect(module.platforms, <CorePlatform>{
+      CorePlatform.android,
+      CorePlatform.ios,
+      CorePlatform.web,
     });
   });
 
@@ -43,9 +43,9 @@ void main() {
 
   test('an unconfigured Module leaves the no-op defaults in place', () async {
     final StartedModules started = await startModules(
-      <KonteynerModule>[const FirebaseModule()],
+      <CoreModule>[const FirebaseModule()],
       _configFor(Flavor.dev),
-      platform: KonteynerPlatform.android,
+      platform: CorePlatform.android,
     );
 
     expect(started.analytics, isA<NoopAnalytics>());
@@ -58,13 +58,13 @@ void main() {
   });
 
   test('is skipped on the build-only desktop platforms', () async {
-    for (final KonteynerPlatform platform in <KonteynerPlatform>[
-      KonteynerPlatform.macos,
-      KonteynerPlatform.windows,
-      KonteynerPlatform.linux,
+    for (final CorePlatform platform in <CorePlatform>[
+      CorePlatform.macos,
+      CorePlatform.windows,
+      CorePlatform.linux,
     ]) {
       final StartedModules started = await startModules(
-        <KonteynerModule>[const FirebaseModule()],
+        <CoreModule>[const FirebaseModule()],
         _configFor(Flavor.dev),
         platform: platform,
       );

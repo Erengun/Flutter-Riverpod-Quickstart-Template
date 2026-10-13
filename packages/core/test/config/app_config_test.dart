@@ -33,7 +33,7 @@ void main() {
     test('every link is empty by default, which means no check', () {
       const StoreLinks links = StoreLinks();
 
-      for (final KonteynerPlatform platform in KonteynerPlatform.values) {
+      for (final CorePlatform platform in CorePlatform.values) {
         expect(links.linkFor(platform), isEmpty);
       }
     });
@@ -48,31 +48,31 @@ void main() {
       );
 
       expect(
-        links.linkFor(KonteynerPlatform.android),
+        links.linkFor(CorePlatform.android),
         'https://play.google.com/store/apps/details?id=com.example.app',
       );
       expect(
-        links.linkFor(KonteynerPlatform.ios),
+        links.linkFor(CorePlatform.ios),
         'https://apps.apple.com/app/id123',
       );
       expect(
-        links.linkFor(KonteynerPlatform.windows),
+        links.linkFor(CorePlatform.windows),
         'ms-windows-store://pdp/?ProductId=9ABC',
       );
-      expect(links.linkFor(KonteynerPlatform.macos), 'https://example.com/mac');
+      expect(links.linkFor(CorePlatform.macos), 'https://example.com/mac');
       expect(
-        links.linkFor(KonteynerPlatform.linux),
+        links.linkFor(CorePlatform.linux),
         'https://example.com/linux',
       );
-      expect(links.linkFor(KonteynerPlatform.web), isEmpty);
+      expect(links.linkFor(CorePlatform.web), isEmpty);
     });
   });
 
   group('checkNativeFlavor', () {
     test('throws on Android and iOS when the native flavor differs', () {
-      for (final KonteynerPlatform platform in <KonteynerPlatform>[
-        KonteynerPlatform.android,
-        KonteynerPlatform.ios,
+      for (final CorePlatform platform in <CorePlatform>[
+        CorePlatform.android,
+        CorePlatform.ios,
       ]) {
         expect(
           () => checkNativeFlavor(
@@ -97,35 +97,35 @@ void main() {
       checkNativeFlavor(
         Flavor.staging,
         nativeFlavor: 'staging',
-        platform: KonteynerPlatform.android,
+        platform: CorePlatform.android,
       );
       checkNativeFlavor(
         Flavor.prod,
         nativeFlavor: 'prod',
-        platform: KonteynerPlatform.ios,
+        platform: CorePlatform.ios,
       );
     });
 
     test('is skipped on web and desktop, where the entrypoint decides', () {
-      for (final KonteynerPlatform platform in <KonteynerPlatform>[
-        KonteynerPlatform.web,
-        KonteynerPlatform.macos,
-        KonteynerPlatform.windows,
-        KonteynerPlatform.linux,
+      for (final CorePlatform platform in <CorePlatform>[
+        CorePlatform.web,
+        CorePlatform.macos,
+        CorePlatform.windows,
+        CorePlatform.linux,
       ]) {
         checkNativeFlavor(Flavor.prod, nativeFlavor: 'dev', platform: platform);
       }
     });
   });
 
-  group('KonteynerPlatform.current', () {
+  group('CorePlatform.current', () {
     tearDown(() => debugDefaultTargetPlatformOverride = null);
 
     test('follows the target platform', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      expect(KonteynerPlatform.current, KonteynerPlatform.ios);
+      expect(CorePlatform.current, CorePlatform.ios);
       debugDefaultTargetPlatformOverride = TargetPlatform.windows;
-      expect(KonteynerPlatform.current, KonteynerPlatform.windows);
+      expect(CorePlatform.current, CorePlatform.windows);
     });
   });
 }

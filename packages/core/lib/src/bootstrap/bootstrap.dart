@@ -6,10 +6,10 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:stack_trace/stack_trace.dart' as stack_trace;
 
 import '../config/app_config.dart';
+import '../config/core_platform.dart';
 import '../config/flavor_check.dart';
-import '../config/konteyner_platform.dart';
 import '../logging/log_setup.dart';
-import '../modules/konteyner_module.dart';
+import '../modules/core_module.dart';
 import '../reporting/provider_failure_observer.dart';
 import '../reporting/report_dispatcher.dart';
 import '../reporting/uncaught_errors.dart';
@@ -28,7 +28,7 @@ import 'app_shell.dart';
 /// 4. starts [modules] (see [startModules]); reports made until then are
 ///    buffered and sent once the Modules' reporter is up;
 /// 5. runs [app] inside a `ProviderScope` that overrides
-///    [appConfigProvider], [konteynerThemeProvider], [splashProvider] and the
+///    [appConfigProvider], [coreThemeProvider], [splashProvider] and the
 ///    interfaces the Modules contributed (`errorReporterProvider` is the
 ///    dispatcher), plus [overrides], and observes it with a
 ///    [ProviderFailureObserver].
@@ -41,13 +41,13 @@ import 'app_shell.dart';
 Future<void> bootstrap(
   AppConfig config, {
   required Widget app,
-  required KonteynerTheme theme,
-  Widget splash = const KonteynerSplash(),
-  List<KonteynerModule> modules = const <KonteynerModule>[],
+  required CoreTheme theme,
+  Widget splash = const CoreSplash(),
+  List<CoreModule> modules = const <CoreModule>[],
   List<Override> overrides = const <Override>[],
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
-  final KonteynerPlatform platform = KonteynerPlatform.current;
+  final CorePlatform platform = CorePlatform.current;
   checkNativeFlavor(config.flavor, nativeFlavor: appFlavor, platform: platform);
 
   final ReportDispatcher reports = ReportDispatcher();
@@ -78,7 +78,7 @@ Future<void> bootstrap(
       observers: <ProviderObserver>[ProviderFailureObserver(reports)],
       overrides: <Override>[
         appConfigProvider.overrideWithValue(config),
-        konteynerThemeProvider.overrideWithValue(theme),
+        coreThemeProvider.overrideWithValue(theme),
         splashProvider.overrideWithValue(splash),
         ...started.overrides,
         ...overrides,

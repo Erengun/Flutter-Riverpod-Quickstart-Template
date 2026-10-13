@@ -9,8 +9,8 @@ import 'package:material_ui/material_ui.dart';
 /// to its `ThemeData.extensions`. Core reads them only through [of], which
 /// falls back to [fallbackLight] / [fallbackDark] when the app hasn't set
 /// them, so Core never hardcodes a size or color.
-class KonteynerTokens extends ThemeExtension<KonteynerTokens> {
-  const KonteynerTokens({
+class CoreTokens extends ThemeExtension<CoreTokens> {
+  const CoreTokens({
     required this.spaceXs,
     required this.spaceSm,
     required this.spaceMd,
@@ -28,7 +28,7 @@ class KonteynerTokens extends ThemeExtension<KonteynerTokens> {
   });
 
   /// Core's defaults for a light theme.
-  static const KonteynerTokens fallbackLight = KonteynerTokens(
+  static const CoreTokens fallbackLight = CoreTokens(
     spaceXs: 4,
     spaceSm: 8,
     spaceMd: 16,
@@ -46,7 +46,7 @@ class KonteynerTokens extends ThemeExtension<KonteynerTokens> {
   );
 
   /// Core's defaults for a dark theme. Same sizes as [fallbackLight].
-  static const KonteynerTokens fallbackDark = KonteynerTokens(
+  static const CoreTokens fallbackDark = CoreTokens(
     spaceXs: 4,
     spaceSm: 8,
     spaceMd: 16,
@@ -64,10 +64,10 @@ class KonteynerTokens extends ThemeExtension<KonteynerTokens> {
   );
 
   /// The tokens of the nearest `Theme`, or Core's defaults for its
-  /// brightness when the app hasn't added a [KonteynerTokens] extension.
-  static KonteynerTokens of(BuildContext context) {
+  /// brightness when the app hasn't added a [CoreTokens] extension.
+  static CoreTokens of(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return theme.extension<KonteynerTokens>() ??
+    return theme.extension<CoreTokens>() ??
         (theme.brightness == Brightness.dark ? fallbackDark : fallbackLight);
   }
 
@@ -89,7 +89,7 @@ class KonteynerTokens extends ThemeExtension<KonteynerTokens> {
   final Color onInfo;
 
   @override
-  KonteynerTokens copyWith({
+  CoreTokens copyWith({
     double? spaceXs,
     double? spaceSm,
     double? spaceMd,
@@ -105,7 +105,7 @@ class KonteynerTokens extends ThemeExtension<KonteynerTokens> {
     Color? info,
     Color? onInfo,
   }) {
-    return KonteynerTokens(
+    return CoreTokens(
       spaceXs: spaceXs ?? this.spaceXs,
       spaceSm: spaceSm ?? this.spaceSm,
       spaceMd: spaceMd ?? this.spaceMd,
@@ -124,9 +124,9 @@ class KonteynerTokens extends ThemeExtension<KonteynerTokens> {
   }
 
   @override
-  KonteynerTokens lerp(ThemeExtension<KonteynerTokens>? other, double t) {
-    if (other is! KonteynerTokens) return this;
-    return KonteynerTokens(
+  CoreTokens lerp(ThemeExtension<CoreTokens>? other, double t) {
+    if (other is! CoreTokens) return this;
+    return CoreTokens(
       spaceXs: lerpDouble(spaceXs, other.spaceXs, t)!,
       spaceSm: lerpDouble(spaceSm, other.spaceSm, t)!,
       spaceMd: lerpDouble(spaceMd, other.spaceMd, t)!,

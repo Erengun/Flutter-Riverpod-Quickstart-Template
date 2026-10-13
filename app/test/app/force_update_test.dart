@@ -259,7 +259,7 @@ void main() {
       final AppVersionSource cached = remoteFlagsAppVersionSource(flags);
       final List<Completer<void>> gates = <Completer<void>>[];
       bool hold = false;
-      Future<AppVersionConstraints> source(KonteynerPlatform platform) async {
+      Future<AppVersionConstraints> source(CorePlatform platform) async {
         final AppVersionConstraints read = await cached(platform);
         if (hold) {
           final Completer<void> gate = Completer<void>();

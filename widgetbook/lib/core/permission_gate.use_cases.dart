@@ -19,7 +19,7 @@ Widget _gated(ComponentState? rule, String caption) {
     ],
     child: Builder(
       builder: (BuildContext context) {
-        final KonteynerTokens tokens = KonteynerTokens.of(context);
+        final CoreTokens tokens = CoreTokens.of(context);
         return Scaffold(
           body: Center(
             child: ConstrainedBox(

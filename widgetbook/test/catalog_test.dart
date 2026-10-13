@@ -48,7 +48,7 @@ const List<String> _apiErrorKinds = <String>[
 void main() {
   // The theme starts loading the bundled fonts, which needs the binding.
   TestWidgetsFlutterBinding.ensureInitialized();
-  final KonteynerTheme theme = buildAppTheme();
+  final CoreTheme theme = buildAppTheme();
   final Map<String, WidgetbookUseCase> useCases = _useCases();
   final CoreLocalizations en = lookupCoreLocalizations(const Locale('en'));
 
@@ -87,8 +87,8 @@ void main() {
         containsAll(<String>[
           'NoPermissionPage/Default',
           'UnderConstructionPage/Default',
-          'KonteynerUpdateDialog/Blocking',
-          'KonteynerUpdateDialog/Dismissible',
+          'CoreUpdateDialog/Blocking',
+          'CoreUpdateDialog/Dismissible',
           for (final String kind in _apiErrorKinds) 'ApiErrorView/$kind',
           'PermissionGate/No rule',
           'PermissionGate/Hidden',
@@ -192,7 +192,7 @@ void main() {
     testWidgets('blocking update dialog has only Update', (
       WidgetTester tester,
     ) async {
-      await pumpUseCase(tester, 'KonteynerUpdateDialog/Blocking');
+      await pumpUseCase(tester, 'CoreUpdateDialog/Blocking');
 
       expect(find.text(en.updateBodyRequired), findsOneWidget);
       expect(find.text(en.updateButtonUpdate), findsOneWidget);
@@ -202,7 +202,7 @@ void main() {
     testWidgets('dismissible update dialog has Ignore and Later', (
       WidgetTester tester,
     ) async {
-      await pumpUseCase(tester, 'KonteynerUpdateDialog/Dismissible');
+      await pumpUseCase(tester, 'CoreUpdateDialog/Dismissible');
 
       expect(find.text(en.updateBodyOptional), findsOneWidget);
       expect(find.text(en.updateButtonIgnore), findsOneWidget);

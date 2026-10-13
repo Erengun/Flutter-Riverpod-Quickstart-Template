@@ -41,17 +41,17 @@ FirebaseOptions firebaseOptionsFor(Flavor flavor) {
 /// Runs on android, ios and web; Core skips it on the desktop platforms.
 /// Each flavor uses its own Firebase project, whose options live in
 /// `lib/src/options/firebase_options_<flavor>.dart`.
-class FirebaseModule implements KonteynerModule {
+class FirebaseModule implements CoreModule {
   const FirebaseModule();
 
   @override
   String get name => 'firebase';
 
   @override
-  Set<KonteynerPlatform> get platforms => const <KonteynerPlatform>{
-    KonteynerPlatform.android,
-    KonteynerPlatform.ios,
-    KonteynerPlatform.web,
+  Set<CorePlatform> get platforms => const <CorePlatform>{
+    CorePlatform.android,
+    CorePlatform.ios,
+    CorePlatform.web,
   };
 
   @override

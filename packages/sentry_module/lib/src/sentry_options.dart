@@ -29,7 +29,7 @@ const String sentryDsn = '';
 /// uploads debug symbols and source maps under the same values; setting a
 /// release here means changing it there too.
 ///
-/// On web ([platform] defaults to [KonteynerPlatform.current]) it also adds
+/// On web ([platform] defaults to [CorePlatform.current]) it also adds
 /// sentry_flutter's `OnErrorIntegration`, which sentry_flutter leaves out on
 /// web because the web engine never calls `PlatformDispatcher.onError`.
 /// Core's `runGuarded` zone calls it there instead, so uncaught asynchronous
@@ -38,7 +38,7 @@ void configureSentryOptions(
   SentryFlutterOptions options,
   AppConfig config, {
   String dsn = sentryDsn,
-  KonteynerPlatform? platform,
+  CorePlatform? platform,
 }) {
   options
     ..dsn = dsn
@@ -63,7 +63,7 @@ void configureSentryOptions(
   options.replay
     ..sessionSampleRate = 0
     ..onErrorSampleRate = 0;
-  if ((platform ?? KonteynerPlatform.current) == KonteynerPlatform.web) {
+  if ((platform ?? CorePlatform.current) == CorePlatform.web) {
     options.addIntegration(OnErrorIntegration());
   }
 }

@@ -1,36 +1,36 @@
-# Konteyner
+# Flutter Riverpod Quickstart Template
 
 The shared foundation that new mobile, tablet and web apps are started from.
 
 ## Language
 
-**Konteyner**:
-The template itself: the common foundation every new app starts from, configured with minimal setup.
+**Template**:
+The common foundation every new app starts from, configured with minimal setup.
 _Avoid_: base app, starter, boilerplate
 
-**Public Konteyner**:
+**Public template**:
 This repository. Generic and public; holds no company-specific rules.
 
 **Company copy**:
-A private duplicate of the Public Konteyner that keeps merging updates from it and adds the company layer.
+A private duplicate of the Public template that keeps merging updates from it and adds the company layer.
 _Avoid_: fork, mirror
 
 **Derived app**:
-A real app started from a Konteyner, living in its own private repository.
+A real app started from a Template, living in its own private repository.
 _Avoid_: client app, child project
 
 **Company layer**:
-Rules that belong to one company (commit conventions, tracker conventions, internal links). Never present in the Public Konteyner.
+Rules that belong to one company (commit conventions, tracker conventions, internal links). Never present in the Public template.
 
 **First-class platform**:
-A platform where every Konteyner feature works and is built and tested in CI: Android, iOS, web.
+A platform where every Template feature works and is built and tested in CI: Android, iOS, web.
 
 **Build-only platform**:
 A platform that is built in CI but where features needing a missing native SDK switch themselves off: macOS, Windows, Linux.
 _Avoid_: unsupported platform, secondary platform
 
 **Minimum OS**:
-The oldest OS version a platform supports. Konteyner always matches Flutter's own minimum; a Derived app may raise it, never lower it.
+The oldest OS version a platform supports. The Template always matches Flutter's own minimum; a Derived app may raise it, never lower it.
 
 **Flavor**:
 One of an app's three build variants (dev, staging, prod), each with its own backend, identifiers and Firebase project.
@@ -114,8 +114,8 @@ _Avoid_: crash (only for fatal ones), event, issue
 
 ## Relationships
 
-- The **Public Konteyner** feeds one or more **Company copies**; changes flow one way, public to company
-- A **Company copy** adds the **Company layer** without editing files the **Public Konteyner** owns
+- The **Public template** feeds one or more **Company copies**; changes flow one way, public to company
+- A **Company copy** adds the **Company layer** without editing files the **Public template** owns
 - A **Derived app** is started from a **Company copy** and inherits its **Company layer**
 - A **Derived app** is created once and never merges later updates from its **Company copy**
 - A **Derived app** starts with every **Module** and removes the ones it doesn't use; **Core** always stays

@@ -1,5 +1,5 @@
 import 'app_config.dart';
-import 'konteyner_platform.dart';
+import 'core_platform.dart';
 
 /// Thrown when the native flavor (`--flavor`) differs from the entrypoint's
 /// flavor, for example a prod app id wrapped around dev config.
@@ -24,10 +24,10 @@ class FlavorMismatchError extends Error {
 void checkNativeFlavor(
   Flavor entrypoint, {
   required String? nativeFlavor,
-  required KonteynerPlatform platform,
+  required CorePlatform platform,
 }) {
-  if (platform != KonteynerPlatform.android &&
-      platform != KonteynerPlatform.ios) {
+  if (platform != CorePlatform.android &&
+      platform != CorePlatform.ios) {
     return;
   }
   if (nativeFlavor != entrypoint.name) {

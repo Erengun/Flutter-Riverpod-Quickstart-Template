@@ -95,7 +95,7 @@ void main() {
     await startApp(tester, openSession: () => opening.future, settle: false);
     await tester.pump();
 
-    expect(find.byType(KonteynerSplash), findsOneWidget);
+    expect(find.byType(CoreSplash), findsOneWidget);
     expect(find.byType(LoginScreen), findsNothing);
     expect(find.byType(HomeScreen), findsNothing);
 
@@ -103,7 +103,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginScreen), findsOneWidget);
-    expect(find.byType(KonteynerSplash), findsNothing);
+    expect(find.byType(CoreSplash), findsNothing);
   });
 
   testWidgets('a signed-out user lands on login', (WidgetTester tester) async {

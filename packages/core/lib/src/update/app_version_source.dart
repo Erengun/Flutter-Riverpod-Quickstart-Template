@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../config/konteyner_platform.dart';
+import '../config/core_platform.dart';
 import '../reporting/remote_flags.dart';
 
 /// The minimum and recommended app versions for one platform, as `x.y.z`
@@ -21,22 +21,22 @@ class AppVersionConstraints {
 ///
 /// Throwing, or returning empty values, never blocks anyone.
 typedef AppVersionSource = Future<AppVersionConstraints> Function(
-  KonteynerPlatform platform,
+  CorePlatform platform,
 );
 
 /// The `RemoteFlags` key holding the minimum app version for [platform].
-String appMinVersionKey(KonteynerPlatform platform) =>
+String appMinVersionKey(CorePlatform platform) =>
     'app_min_version_${platform.name}';
 
 /// The `RemoteFlags` key holding the recommended app version for [platform].
-String appRecommendedVersionKey(KonteynerPlatform platform) =>
+String appRecommendedVersionKey(CorePlatform platform) =>
     'app_recommended_version_${platform.name}';
 
 /// Core's default [AppVersionSource]: reads [appMinVersionKey] and
 /// [appRecommendedVersionKey] from [flags]. The fallback for every key is
 /// "no constraint".
 AppVersionSource remoteFlagsAppVersionSource(RemoteFlags flags) {
-  return (KonteynerPlatform platform) async => AppVersionConstraints(
+  return (CorePlatform platform) async => AppVersionConstraints(
     minimum: flags.getString(appMinVersionKey(platform), fallback: '').trim(),
     recommended: flags
         .getString(appRecommendedVersionKey(platform), fallback: '')

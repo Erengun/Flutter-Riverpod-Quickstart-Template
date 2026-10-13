@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:logging/logging.dart';
 
 import '../config/app_config.dart';
-import '../config/konteyner_platform.dart';
+import '../config/core_platform.dart';
 import '../reporting/analytics.dart';
 import '../reporting/error_reporter.dart';
 import '../reporting/remote_flags.dart';
@@ -11,13 +11,13 @@ import '../reporting/report_dispatcher.dart';
 /// An optional piece of infrastructure an app opts into, such as Firebase or
 /// Sentry. A Module lives in `packages/<name>_module` and is listed in the
 /// app's `lib/app/modules.dart`.
-abstract class KonteynerModule {
+abstract class CoreModule {
   /// A short name used in startup errors and logs.
   String get name;
 
   /// The platforms where the Module's native SDK exists. On any other
   /// platform the Module is skipped before any of its plugins is touched.
-  Set<KonteynerPlatform> get platforms;
+  Set<CorePlatform> get platforms;
 
   /// Starts the Module and returns what it provides. Runs before the
   /// `ProviderScope` exists, so it receives the [config] directly.
@@ -139,7 +139,7 @@ class _Slot<T extends Object> {
 
 /// Starts [modules] in order on [platform] (the current one by default).
 ///
-/// - A Module whose [KonteynerModule.platforms] lacks [platform] is skipped.
+/// - A Module whose [CoreModule.platforms] lacks [platform] is skipped.
 /// - A Module whose `init` throws is logged and recorded in
 ///   [StartedModules.failures]; the defaults stay and the app still starts.
 ///   Each failure is reported, non-fatal, through [reports] (a new
@@ -150,12 +150,12 @@ class _Slot<T extends Object> {
 ///   yet.
 /// - Two Modules providing the same interface throw [ModuleConflictError].
 Future<StartedModules> startModules(
-  List<KonteynerModule> modules,
+  List<CoreModule> modules,
   AppConfig config, {
-  KonteynerPlatform? platform,
+  CorePlatform? platform,
   ReportDispatcher? reports,
 }) async {
-  final KonteynerPlatform target = platform ?? KonteynerPlatform.current;
+  final CorePlatform target = platform ?? CorePlatform.current;
   final ReportDispatcher dispatcher = reports ?? ReportDispatcher();
   final _Slot<ErrorReporter> reporter = _Slot<ErrorReporter>(
     'ErrorReporter',
@@ -171,7 +171,7 @@ Future<StartedModules> startModules(
   );
   final List<ModuleStartupFailure> failures = <ModuleStartupFailure>[];
 
-  for (final KonteynerModule module in modules) {
+  for (final CoreModule module in modules) {
     if (!module.platforms.contains(target)) continue;
     final ModuleContributions contributions;
     try {

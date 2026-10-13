@@ -32,7 +32,7 @@ class WidgetbookApp extends StatelessWidget {
   });
 
   /// The app's light and dark themes.
-  final KonteynerTheme theme;
+  final CoreTheme theme;
 
   /// Widgetbook's first route; `/?path=<use case path>` opens a use case.
   final String initialRoute;

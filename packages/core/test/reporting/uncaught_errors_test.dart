@@ -75,7 +75,7 @@ void main() {
           thrown.complete();
           throw error;
         });
-      }, platform: KonteynerPlatform.web);
+      }, platform: CorePlatform.web);
       await thrown.future;
       await pumpEventQueue();
 
@@ -94,14 +94,14 @@ void main() {
 
       await runGuarded(() async {
         Timer.run(() => throw StateError('no handler'));
-      }, platform: KonteynerPlatform.web);
+      }, platform: CorePlatform.web);
       await pumpEventQueue();
 
       expect(printed.join('\n'), contains('no handler'));
     });
 
-    for (final KonteynerPlatform platform in KonteynerPlatform.values.where(
-      (KonteynerPlatform p) => p != KonteynerPlatform.web,
+    for (final CorePlatform platform in CorePlatform.values.where(
+      (CorePlatform p) => p != CorePlatform.web,
     )) {
       test("on ${platform.name}, runs the body in the caller's zone", () async {
         final Zone caller = Zone.current;

@@ -20,7 +20,7 @@ import 'catalog_app.dart';
 /// - theme: the app's light and dark themes. It must come last: it wraps the
 ///   use case in [CatalogApp], which reads the locale addon's locale.
 List<WidgetbookAddon<dynamic>> catalogAddons(
-  KonteynerTheme theme, {
+  CoreTheme theme, {
   bool debug = kDebugMode,
 }) {
   return <WidgetbookAddon<dynamic>>[

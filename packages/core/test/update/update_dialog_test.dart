@@ -26,7 +26,7 @@ void main() {
         ],
         supportedLocales: CoreLocalizations.supportedLocales,
         home: Scaffold(
-          body: KonteynerUpdateDialog(
+          body: CoreUpdateDialog(
             updateRequired: updateRequired,
             title: title,
             message: message,
