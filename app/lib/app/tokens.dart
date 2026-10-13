@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 // The app's design tokens: raw values only, written by hand.
 //
-// Only lib/app/theme.dart may import this file (the konteyner_lints rule
+// Only lib/app/theme.dart may import this file (the app_lints rule
 // tokens_only_in_theme). The theme turns these values into light and dark
 // ThemeData and theme extensions; widgets read them through
 // Theme.of(context), and Core through CoreTokens.of(context).

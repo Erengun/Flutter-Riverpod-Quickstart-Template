@@ -31,7 +31,7 @@ A production-ready Flutter template built with the latest packages and best prac
 - UI & Navigation: GoRouter 18, FlexColorScheme 9, Google Fonts 9, Material 3
 
 **Developer Tools:**
-- Flutter Lints 6, riverpod_lint and the template's own analyzer plugins (`packages/konteyner_lints`, `packages/app_lints`)
+- Flutter Lints 6, riverpod_lint and the template's own analyzer plugin (`packages/app_lints`)
 - Custom linting rules (`lint_rules.yaml`)
 - Build Runner, code generation
 - Melos 7 scripts across the workspace
@@ -50,8 +50,7 @@ The repo is a Dart pub workspace: the app lives in `app/`, shared infrastructure
 │   ├── core/              # Infrastructure every app gets (bootstrap, network, session, permissions, logging)
 │   ├── firebase_module/   # Optional Module: Firebase Analytics and Remote Config
 │   ├── sentry_module/     # Optional Module: Sentry error reporting
-│   ├── konteyner_lints/   # Analyzer plugin with the template's architecture rules
-│   └── app_lints/         # Empty analyzer plugin for your app's own rules
+│   └── app_lints/         # Analyzer plugin: the template's architecture rules and your app's own
 ├── widgetbook/            # Widgetbook catalog (web)
 ├── .github/               # Workflows, the shared setup action, Dependabot
 ├── Gemfile                # fastlane, for the release workflow
