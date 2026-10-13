@@ -69,7 +69,7 @@ One example in the **Catalog**: a widget or screen shown in one particular state
 _Avoid_: story, scenario; never a business operation
 
 **Fake**:
-A hand-written stand-in for a repository or for storage that answers from code instead of the backend or the device. The tests and the **Catalog** use the same **Fakes**.
+A hand-written stand-in for a repository or for storage that answers from code instead of the backend or the device, so a screen runs in tests and in the **Catalog** without either.
 _Avoid_: mock (a test-only double scripted per test), stub, demo data
 
 **Session**:
