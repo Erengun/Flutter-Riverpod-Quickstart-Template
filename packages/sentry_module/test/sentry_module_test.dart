@@ -20,7 +20,7 @@ const String _dsn = 'https://public@example.ingest.sentry.io/1';
 void main() {
   group('SentryModule', () {
     test('runs on all six platforms', () {
-      expect(SentryModule().platforms, KonteynerPlatform.values.toSet());
+      expect(SentryModule().platforms, CorePlatform.values.toSet());
     });
 
     test('dev never starts Sentry and returns the no-op reporter', () async {
@@ -133,7 +133,7 @@ void main() {
 
   group('configureSentryOptions on web', () {
     test('adds one OnErrorIntegration on web and none elsewhere', () {
-      int onErrorIntegrations(KonteynerPlatform platform) {
+      int onErrorIntegrations(CorePlatform platform) {
         final SentryFlutterOptions options = SentryFlutterOptions();
         configureSentryOptions(
           options,
@@ -144,9 +144,9 @@ void main() {
         return options.integrations.whereType<OnErrorIntegration>().length;
       }
 
-      expect(onErrorIntegrations(KonteynerPlatform.web), 1);
-      for (final KonteynerPlatform platform in KonteynerPlatform.values) {
-        if (platform == KonteynerPlatform.web) continue;
+      expect(onErrorIntegrations(CorePlatform.web), 1);
+      for (final CorePlatform platform in CorePlatform.values) {
+        if (platform == CorePlatform.web) continue;
         expect(onErrorIntegrations(platform), 0, reason: platform.name);
       }
     });
@@ -168,7 +168,7 @@ void main() {
         options,
         _config(Flavor.prod),
         dsn: _dsn,
-        platform: KonteynerPlatform.web,
+        platform: CorePlatform.web,
       );
       options
         ..bindingUtils = _RealDispatcherBindingWrapper()
@@ -187,7 +187,7 @@ void main() {
         integration.call(Hub(options), options);
         await runGuarded(() async {
           Timer.run(() => throw error);
-        }, platform: KonteynerPlatform.web);
+        }, platform: CorePlatform.web);
         await Future<void>.delayed(const Duration(milliseconds: 10));
       } finally {
         integration.close();

@@ -35,9 +35,9 @@ void main() {
     AppVersionSource source, {
     String storeLink = 'https://example.com/app',
   }) {
-    return KonteynerUpgraderStore(
+    return CoreUpgraderStore(
       source: source,
-      platform: KonteynerPlatform.ios,
+      platform: CorePlatform.ios,
       storeLink: storeLink,
     ).getVersionInfo(
       state: Upgrader().state,
@@ -48,7 +48,7 @@ void main() {
   }
 
   AppVersionSource constraints({String minimum = '', String recommended = ''}) {
-    return (KonteynerPlatform platform) async =>
+    return (CorePlatform platform) async =>
         AppVersionConstraints(minimum: minimum, recommended: recommended);
   }
 
@@ -63,12 +63,12 @@ void main() {
       );
 
       final AppVersionConstraints android = await source(
-        KonteynerPlatform.android,
+        CorePlatform.android,
       );
       expect(android.minimum, '1.0.0');
       expect(android.recommended, '1.1.0');
 
-      final AppVersionConstraints ios = await source(KonteynerPlatform.ios);
+      final AppVersionConstraints ios = await source(CorePlatform.ios);
       expect(ios.minimum, '2.0.0');
       expect(ios.recommended, isEmpty);
     });
@@ -79,7 +79,7 @@ void main() {
 
       final AppVersionConstraints result = await container.read(
         appVersionSourceProvider,
-      )(KonteynerPlatform.windows);
+      )(CorePlatform.windows);
 
       expect(result.minimum, isEmpty);
       expect(result.recommended, isEmpty);
@@ -97,13 +97,13 @@ void main() {
 
       final AppVersionConstraints result = await container.read(
         appVersionSourceProvider,
-      )(KonteynerPlatform.linux);
+      )(CorePlatform.linux);
 
       expect(result.minimum, '3.0.0');
     });
   });
 
-  group('KonteynerUpgraderStore', () {
+  group('CoreUpgraderStore', () {
     test('no constraint: nothing is available', () async {
       final UpgraderVersionInfo info = await versionInfo(constraints());
 
@@ -170,7 +170,7 @@ void main() {
 
     test('fail-open: a failing source with no earlier values', () async {
       final UpgraderVersionInfo info = await versionInfo(
-        (KonteynerPlatform platform) async => throw StateError('offline'),
+        (CorePlatform platform) async => throw StateError('offline'),
       );
 
       expect(info.appStoreVersion, isNull);
@@ -179,12 +179,12 @@ void main() {
 
     test('fail-open: a failing source keeps the last values', () async {
       bool fail = false;
-      final KonteynerUpgraderStore store = KonteynerUpgraderStore(
-        source: (KonteynerPlatform platform) async {
+      final CoreUpgraderStore store = CoreUpgraderStore(
+        source: (CorePlatform platform) async {
           if (fail) throw StateError('offline');
           return const AppVersionConstraints(minimum: '2.0.0');
         },
-        platform: KonteynerPlatform.android,
+        platform: CorePlatform.android,
         storeLink: 'https://example.com/app',
       );
       Future<UpgraderVersionInfo> read() => store.getVersionInfo(
@@ -200,15 +200,15 @@ void main() {
     });
   });
 
-  group('KonteynerUpgraderMessages', () {
+  group('CoreUpgraderMessages', () {
     test("reads Core's strings, with the body for the update kind", () {
-      final KonteynerUpgraderMessages hard =
-          KonteynerUpgraderMessages.forLocale(
+      final CoreUpgraderMessages hard =
+          CoreUpgraderMessages.forLocale(
             const Locale('en'),
             updateRequired: true,
           );
-      final KonteynerUpgraderMessages soft =
-          KonteynerUpgraderMessages.forLocale(
+      final CoreUpgraderMessages soft =
+          CoreUpgraderMessages.forLocale(
             const Locale('en'),
             updateRequired: false,
           );
@@ -224,7 +224,7 @@ void main() {
     });
 
     test('uses the given locale', () {
-      final KonteynerUpgraderMessages tr = KonteynerUpgraderMessages.forLocale(
+      final CoreUpgraderMessages tr = CoreUpgraderMessages.forLocale(
         const Locale('tr'),
         updateRequired: false,
       );
@@ -234,7 +234,7 @@ void main() {
     });
 
     test('falls back to English for a locale Core has no strings for', () {
-      final KonteynerUpgraderMessages de = KonteynerUpgraderMessages.forLocale(
+      final CoreUpgraderMessages de = CoreUpgraderMessages.forLocale(
         const Locale('de'),
         updateRequired: false,
       );

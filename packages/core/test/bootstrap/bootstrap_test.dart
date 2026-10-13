@@ -20,7 +20,7 @@ class _ProbeApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppConfig config = ref.watch(appConfigProvider);
-    final KonteynerTheme theme = ref.watch(konteynerThemeProvider);
+    final CoreTheme theme = ref.watch(coreThemeProvider);
     return MaterialApp(
       theme: theme.light,
       home: Column(
@@ -58,7 +58,7 @@ void main() {
     WidgetTester tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
-    final KonteynerTheme theme = KonteynerTheme(
+    final CoreTheme theme = CoreTheme(
       light: ThemeData(colorSchemeSeed: Colors.teal),
       dark: ThemeData.dark(),
     );
@@ -88,7 +88,7 @@ void main() {
       await bootstrap(
         _config,
         app: const _ProbeApp(),
-        theme: KonteynerTheme.fallback(),
+        theme: CoreTheme.fallback(),
       );
       await tester.pump();
 
@@ -113,7 +113,7 @@ void main() {
       await bootstrap(
         _config,
         app: const _ProbeApp(),
-        theme: KonteynerTheme.fallback(),
+        theme: CoreTheme.fallback(),
         overrides: <Override>[
           sessionHooksProvider.overrideWithValue(hooks),
         ],
@@ -139,7 +139,7 @@ void main() {
         bootstrap(
           _config,
           app: const _ProbeApp(),
-          theme: KonteynerTheme.fallback(),
+          theme: CoreTheme.fallback(),
         ),
         throwsA(isA<FlavorMismatchError>()),
       );

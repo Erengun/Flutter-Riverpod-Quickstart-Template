@@ -7,7 +7,7 @@ import 'package:sentry_module/sentry_module.dart';
 /// To add a Module, depend on its `packages/<name>_module` package and list
 /// it here. To remove one, delete it here, from the app's dependencies and
 /// from the workspace.
-List<KonteynerModule> buildAppModules() => <KonteynerModule>[
+List<CoreModule> buildAppModules() => <CoreModule>[
   const FirebaseModule(),
   SentryModule(),
 ];

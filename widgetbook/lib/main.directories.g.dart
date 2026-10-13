@@ -195,7 +195,7 @@ final directories = <_widgetbook.WidgetbookNode>[
         name: 'update',
         children: [
           _widgetbook.WidgetbookComponent(
-            name: 'KonteynerUpdateDialog',
+            name: 'CoreUpdateDialog',
             useCases: [
               _widgetbook.WidgetbookUseCase(
                 name: 'Blocking',

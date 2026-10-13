@@ -2,7 +2,7 @@ import 'package:core/core.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
-/// The force-update dialog over a scrim, as `KonteynerUpdateGate` shows it.
+/// The force-update dialog over a scrim, as `CoreUpdateGate` shows it.
 /// The gate never checks on web, so the catalog shows the dialog itself.
 Widget _overScrim(BuildContext context, Widget dialog) {
   return Scaffold(
@@ -15,26 +15,26 @@ Widget _overScrim(BuildContext context, Widget dialog) {
 /// lets it be dismissed.
 @widgetbook.UseCase(
   name: 'Blocking',
-  type: KonteynerUpdateDialog,
+  type: CoreUpdateDialog,
   path: '[Core]/update',
 )
 Widget buildBlockingUpdateDialog(BuildContext context) {
   return _overScrim(
     context,
-    KonteynerUpdateDialog(updateRequired: true, onUpdate: () {}),
+    CoreUpdateDialog(updateRequired: true, onUpdate: () {}),
   );
 }
 
 /// Soft update (below the recommended version): Ignore, Later and Update.
 @widgetbook.UseCase(
   name: 'Dismissible',
-  type: KonteynerUpdateDialog,
+  type: CoreUpdateDialog,
   path: '[Core]/update',
 )
 Widget buildDismissibleUpdateDialog(BuildContext context) {
   return _overScrim(
     context,
-    KonteynerUpdateDialog(
+    CoreUpdateDialog(
       updateRequired: false,
       onUpdate: () {},
       onIgnore: () {},

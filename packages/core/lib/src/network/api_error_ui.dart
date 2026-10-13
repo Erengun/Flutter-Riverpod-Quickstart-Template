@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/misc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../l10n/core_localizations.dart';
-import '../theme/konteyner_tokens.dart';
+import '../theme/core_tokens.dart';
 import 'api_exception.dart';
 
 /// The text to show for [error]: an [ApiException]'s own message or Core's
@@ -70,7 +70,7 @@ class ApiErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final CoreLocalizations l10n = CoreLocalizations.of(context);
-    final KonteynerTokens tokens = KonteynerTokens.of(context);
+    final CoreTokens tokens = CoreTokens.of(context);
     final ThemeData theme = Theme.of(context);
     final VoidCallback? retry = onRetry;
     return Center(

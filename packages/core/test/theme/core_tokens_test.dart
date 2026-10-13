@@ -2,7 +2,7 @@ import 'package:core/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
-const KonteynerTokens _appTokens = KonteynerTokens(
+const CoreTokens _appTokens = CoreTokens(
   spaceXs: 2,
   spaceSm: 6,
   spaceMd: 12,
@@ -19,14 +19,14 @@ const KonteynerTokens _appTokens = KonteynerTokens(
   onInfo: Color(0xFFFFFFFF),
 );
 
-Future<KonteynerTokens> _tokensIn(WidgetTester tester, ThemeData theme) async {
-  late KonteynerTokens tokens;
+Future<CoreTokens> _tokensIn(WidgetTester tester, ThemeData theme) async {
+  late CoreTokens tokens;
   await tester.pumpWidget(
     Theme(
       data: theme,
       child: Builder(
         builder: (BuildContext context) {
-          tokens = KonteynerTokens.of(context);
+          tokens = CoreTokens.of(context);
           return const SizedBox.shrink();
         },
       ),
@@ -36,27 +36,27 @@ Future<KonteynerTokens> _tokensIn(WidgetTester tester, ThemeData theme) async {
 }
 
 void main() {
-  group('KonteynerTokens.of', () {
+  group('CoreTokens.of', () {
     testWidgets('falls back to the light defaults without the extension', (
       WidgetTester tester,
     ) async {
-      final KonteynerTokens tokens = await _tokensIn(tester, ThemeData.light());
+      final CoreTokens tokens = await _tokensIn(tester, ThemeData.light());
 
-      expect(tokens, same(KonteynerTokens.fallbackLight));
+      expect(tokens, same(CoreTokens.fallbackLight));
     });
 
     testWidgets('falls back to the dark defaults in a dark theme', (
       WidgetTester tester,
     ) async {
-      final KonteynerTokens tokens = await _tokensIn(tester, ThemeData.dark());
+      final CoreTokens tokens = await _tokensIn(tester, ThemeData.dark());
 
-      expect(tokens, same(KonteynerTokens.fallbackDark));
+      expect(tokens, same(CoreTokens.fallbackDark));
     });
 
     testWidgets("returns the app's values when the theme sets them", (
       WidgetTester tester,
     ) async {
-      final KonteynerTokens tokens = await _tokensIn(
+      final CoreTokens tokens = await _tokensIn(
         tester,
         ThemeData.light().copyWith(
           extensions: const <ThemeExtension<dynamic>>[_appTokens],
@@ -68,8 +68,8 @@ void main() {
   });
 
   test('the defaults differ between light and dark only in colors', () {
-    const KonteynerTokens light = KonteynerTokens.fallbackLight;
-    const KonteynerTokens dark = KonteynerTokens.fallbackDark;
+    const CoreTokens light = CoreTokens.fallbackLight;
+    const CoreTokens dark = CoreTokens.fallbackDark;
 
     expect(
       <double>[
@@ -91,24 +91,24 @@ void main() {
   });
 
   test('copyWith replaces only the given values', () {
-    final KonteynerTokens copy = KonteynerTokens.fallbackLight.copyWith(
+    final CoreTokens copy = CoreTokens.fallbackLight.copyWith(
       spaceMd: 18,
       info: const Color(0xFF123456),
     );
 
     expect(copy.spaceMd, 18);
     expect(copy.info, const Color(0xFF123456));
-    expect(copy.spaceSm, KonteynerTokens.fallbackLight.spaceSm);
-    expect(copy.onInfo, KonteynerTokens.fallbackLight.onInfo);
+    expect(copy.spaceSm, CoreTokens.fallbackLight.spaceSm);
+    expect(copy.onInfo, CoreTokens.fallbackLight.onInfo);
   });
 
   test('lerp interpolates every value', () {
-    const KonteynerTokens a = KonteynerTokens.fallbackLight;
-    const KonteynerTokens b = _appTokens;
+    const CoreTokens a = CoreTokens.fallbackLight;
+    const CoreTokens b = _appTokens;
 
-    final KonteynerTokens start = a.lerp(b, 0);
-    final KonteynerTokens end = a.lerp(b, 1);
-    final KonteynerTokens middle = a.lerp(b, 0.5);
+    final CoreTokens start = a.lerp(b, 0);
+    final CoreTokens end = a.lerp(b, 1);
+    final CoreTokens middle = a.lerp(b, 0.5);
 
     expect(start.spaceXl, a.spaceXl);
     expect(start.success, a.success);
@@ -122,8 +122,8 @@ void main() {
 
   test('lerp with another extension type returns this', () {
     expect(
-      KonteynerTokens.fallbackLight.lerp(null, 0.5),
-      same(KonteynerTokens.fallbackLight),
+      CoreTokens.fallbackLight.lerp(null, 0.5),
+      same(CoreTokens.fallbackLight),
     );
   });
 }

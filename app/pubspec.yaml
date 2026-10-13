@@ -1,5 +1,5 @@
 name: flutter_riverpod_template
-description: A flutter boilerplate project with riverpod 2.0 containing riverpod annotations, freezed, lints, hive, gen-l10n localization and more
+description: The app of the Flutter Riverpod Quickstart Template, built on Riverpod 3, Freezed, GoRouter, Hive CE and gen-l10n.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.

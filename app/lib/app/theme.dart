@@ -11,15 +11,15 @@ import 'tokens.dart';
 ///
 /// The only reader of `tokens.dart`: it turns the raw tokens into
 /// FlexColorScheme `ThemeData` and the theme extensions (Core's
-/// [KonteynerTokens], plus any the app adds next to it).
+/// [CoreTokens], plus any the app adds next to it).
 ///
 /// It also sets up the bundled fonts first: runtime fetching is turned off
 /// before any google_fonts text style starts loading, and the fonts' license
 /// is registered.
-KonteynerTheme buildAppTheme() {
+CoreTheme buildAppTheme() {
   _setUpFonts();
   final TextTheme textTheme = _textTheme();
-  return KonteynerTheme(
+  return CoreTheme(
     light: FlexThemeData.light(
       colors: const FlexSchemeColor(
         primary: AppColors.lightPrimary,
@@ -44,7 +44,7 @@ KonteynerTheme buildAppTheme() {
       swapLegacyOnMaterial3: true,
       textTheme: textTheme,
       extensions: const <ThemeExtension<dynamic>>[
-        KonteynerTokens(
+        CoreTokens(
           spaceXs: AppSpacing.xs,
           spaceSm: AppSpacing.sm,
           spaceMd: AppSpacing.md,
@@ -86,7 +86,7 @@ KonteynerTheme buildAppTheme() {
       swapLegacyOnMaterial3: true,
       textTheme: textTheme,
       extensions: const <ThemeExtension<dynamic>>[
-        KonteynerTokens(
+        CoreTokens(
           spaceXs: AppSpacing.xs,
           spaceSm: AppSpacing.sm,
           spaceMd: AppSpacing.md,

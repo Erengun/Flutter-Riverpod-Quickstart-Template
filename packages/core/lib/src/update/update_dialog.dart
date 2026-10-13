@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
-import 'konteyner_upgrader_messages.dart';
+import 'core_upgrader_messages.dart';
 
-/// The force-update dialog that `KonteynerUpdateGate` shows, built from
+/// The force-update dialog that `CoreUpdateGate` shows, built from
 /// material_ui so it follows the app's theme. Its text comes from Core's
 /// localizations in the current locale (the device's when there is no
 /// `Localizations` above it; English when Core has no strings for it).
@@ -12,8 +12,8 @@ import 'konteyner_upgrader_messages.dart';
 ///
 /// - [updateRequired] (hard update): the required body and only Update.
 /// - Otherwise (soft update): the optional body with Ignore, Later and Update.
-class KonteynerUpdateDialog extends StatelessWidget {
-  const KonteynerUpdateDialog({
+class CoreUpdateDialog extends StatelessWidget {
+  const CoreUpdateDialog({
     required this.updateRequired,
     required this.onUpdate,
     this.onIgnore,
@@ -43,8 +43,8 @@ class KonteynerUpdateDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final KonteynerUpgraderMessages messages =
-        KonteynerUpgraderMessages.forLocale(
+    final CoreUpgraderMessages messages =
+        CoreUpgraderMessages.forLocale(
           Localizations.maybeLocaleOf(context) ??
               WidgetsBinding.instance.platformDispatcher.locale,
           updateRequired: updateRequired,

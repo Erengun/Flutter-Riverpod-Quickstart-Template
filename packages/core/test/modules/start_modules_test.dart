@@ -71,10 +71,10 @@ class _FakeAnalytics implements Analytics {
   void setUserId(String? id) {}
 }
 
-class _FakeModule implements KonteynerModule {
+class _FakeModule implements CoreModule {
   _FakeModule(
     this.name, {
-    this.platforms = const <KonteynerPlatform>{...KonteynerPlatform.values},
+    this.platforms = const <CorePlatform>{...CorePlatform.values},
     this.contributions = const ModuleContributions(),
     this.error,
   });
@@ -83,7 +83,7 @@ class _FakeModule implements KonteynerModule {
   final String name;
 
   @override
-  final Set<KonteynerPlatform> platforms;
+  final Set<CorePlatform> platforms;
 
   final ModuleContributions contributions;
   final Error? error;
@@ -109,9 +109,9 @@ ProviderContainer _containerFor(StartedModules started) {
 void main() {
   test('with no Modules every interface keeps its no-op default', () async {
     final StartedModules started = await startModules(
-      const <KonteynerModule>[],
+      const <CoreModule>[],
       _config,
-      platform: KonteynerPlatform.android,
+      platform: CorePlatform.android,
     );
     final ProviderContainer container = _containerFor(started);
 
@@ -136,9 +136,9 @@ void main() {
       );
 
       final StartedModules started = await startModules(
-        <KonteynerModule>[module],
+        <CoreModule>[module],
         _config,
-        platform: KonteynerPlatform.ios,
+        platform: CorePlatform.ios,
       );
       final ProviderContainer container = _containerFor(started);
 
@@ -156,17 +156,17 @@ void main() {
   test('a Module is skipped on a platform outside its platforms', () async {
     final _FakeModule module = _FakeModule(
       'mobile_only',
-      platforms: const <KonteynerPlatform>{
-        KonteynerPlatform.android,
-        KonteynerPlatform.ios,
+      platforms: const <CorePlatform>{
+        CorePlatform.android,
+        CorePlatform.ios,
       },
       contributions: ModuleContributions(analytics: _FakeAnalytics()),
     );
 
     final StartedModules started = await startModules(
-      <KonteynerModule>[module],
+      <CoreModule>[module],
       _config,
-      platform: KonteynerPlatform.macos,
+      platform: CorePlatform.macos,
     );
     final ProviderContainer container = _containerFor(started);
 
@@ -190,9 +190,9 @@ void main() {
     );
 
     final StartedModules started = await startModules(
-      <KonteynerModule>[broken, reporting],
+      <CoreModule>[broken, reporting],
       _config,
-      platform: KonteynerPlatform.web,
+      platform: CorePlatform.web,
     );
     final ProviderContainer container = _containerFor(started);
 
@@ -230,9 +230,9 @@ void main() {
     );
 
     final StartedModules started = await startModules(
-      <KonteynerModule>[first, second, reporting],
+      <CoreModule>[first, second, reporting],
       _config,
-      platform: KonteynerPlatform.android,
+      platform: CorePlatform.android,
     );
 
     expect(started.errorReporter, same(reporter));
@@ -259,9 +259,9 @@ void main() {
     );
 
     final StartedModules started = await startModules(
-      <KonteynerModule>[broken, reporting],
+      <CoreModule>[broken, reporting],
       _config,
-      platform: KonteynerPlatform.android,
+      platform: CorePlatform.android,
       reports: reports,
     );
 
@@ -282,9 +282,9 @@ void main() {
 
     await expectLater(
       startModules(
-        <KonteynerModule>[first, second],
+        <CoreModule>[first, second],
         _config,
-        platform: KonteynerPlatform.android,
+        platform: CorePlatform.android,
       ),
       throwsA(
         isA<ModuleConflictError>()

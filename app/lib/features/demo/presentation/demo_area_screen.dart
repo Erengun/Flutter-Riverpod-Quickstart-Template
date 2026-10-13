@@ -15,7 +15,7 @@ class DemoAreaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final KonteynerTokens tokens = KonteynerTokens.of(context);
+    final CoreTokens tokens = CoreTokens.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(

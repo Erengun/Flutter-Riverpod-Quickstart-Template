@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'konteyner_platform.dart';
+import 'core_platform.dart';
 
 /// One of an app's three build variants.
 ///
@@ -37,21 +37,21 @@ class StoreLinks {
 
   /// The link to open for an update on [platform], or an empty string when
   /// the check is off there.
-  String linkFor(KonteynerPlatform platform) {
+  String linkFor(CorePlatform platform) {
     return switch (platform) {
-      KonteynerPlatform.android =>
+      CorePlatform.android =>
         playStoreId.isEmpty
             ? ''
             : 'https://play.google.com/store/apps/details?id=$playStoreId',
-      KonteynerPlatform.ios =>
+      CorePlatform.ios =>
         appStoreId.isEmpty ? '' : 'https://apps.apple.com/app/id$appStoreId',
-      KonteynerPlatform.windows =>
+      CorePlatform.windows =>
         microsoftStoreProductId.isEmpty
             ? ''
             : 'ms-windows-store://pdp/?ProductId=$microsoftStoreProductId',
-      KonteynerPlatform.macos => macosLink,
-      KonteynerPlatform.linux => linuxLink,
-      KonteynerPlatform.web => '',
+      CorePlatform.macos => macosLink,
+      CorePlatform.linux => linuxLink,
+      CorePlatform.web => '',
     };
   }
 }

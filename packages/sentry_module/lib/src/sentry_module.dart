@@ -30,7 +30,7 @@ Future<void> _startSentry(FlutterOptionsConfiguration configureOptions) =>
 /// Sentry. On web, where the engine never calls `PlatformDispatcher.onError`,
 /// Core's `runGuarded` zone calls it, and [configureSentryOptions] adds the
 /// platform error integration sentry_flutter leaves out there.
-class SentryModule implements KonteynerModule {
+class SentryModule implements CoreModule {
   /// [dsn] defaults to [sentryDsn]; [start] defaults to `SentryFlutter.init`.
   /// Both are replaceable for tests.
   SentryModule({this.dsn = sentryDsn, SentryStarter? start})
@@ -46,7 +46,7 @@ class SentryModule implements KonteynerModule {
   String get name => 'sentry';
 
   @override
-  Set<KonteynerPlatform> get platforms => KonteynerPlatform.values.toSet();
+  Set<CorePlatform> get platforms => CorePlatform.values.toSet();
 
   @override
   Future<ModuleContributions> init(AppConfig config) async {

@@ -1,19 +1,17 @@
 [![Stand With Palestine](https://raw.githubusercontent.com/TheBSD/StandWithPalestine/main/banner-no-action.svg)](https://thebsd.github.io/StandWithPalestine)
-# Flutter Riverpod Template - 2025 Edition
+# Flutter Riverpod Quickstart Template
 
 ## Modern Flutter Architecture Template with Riverpod
 
-A production-ready Flutter template built with the latest packages and best practices, supporting Flutter 3.47.4 and above. This template implements clean architecture principles and provides a robust foundation for building scalable applications.
+A production-ready Flutter template built with the latest packages and best practices, supporting Flutter 3.47.4 and above. It provides a robust foundation for building scalable applications.
 
 ---
 
 ### Key Features
 
-- 🏗️ Clean Architecture with Domain-Driven Design
 - 🎯 Riverpod 3 with code generation
 - 🔒 Built-in authentication pack with secure storage (Hive CE + AES-256), token refresh and backend-driven permissions
 - 🌐 Type-safe API integration with retrofit clients on one shared Dio
-- 📱 Responsive UI with adaptive widgets
 - 🌍 Internationalization with Flutter's gen-l10n (ARB files, English and Turkish)
 - 💾 Secure local storage with Hive CE
 - 🧩 Optional Modules: Firebase (Analytics, Remote Config) and Sentry, each removable in a few lines

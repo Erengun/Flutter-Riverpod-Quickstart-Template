@@ -15,7 +15,7 @@ class ComponentRulesDemo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final KonteynerTokens tokens = KonteynerTokens.of(context);
+    final CoreTokens tokens = CoreTokens.of(context);
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: tokens.spaceMd),
       child: Wrap(

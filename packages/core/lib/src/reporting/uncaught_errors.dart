@@ -4,7 +4,7 @@ import 'dart:ui' show ErrorCallback;
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
-import '../config/konteyner_platform.dart';
+import '../config/core_platform.dart';
 
 final Logger _log = Logger('uncaught');
 
@@ -49,12 +49,12 @@ void installUncaughtErrorLogging() {
 ///
 /// On every other platform [body] runs as is: the engine already calls
 /// `PlatformDispatcher.onError`, and a zone would only add a second path.
-/// [platform] defaults to [KonteynerPlatform.current].
+/// [platform] defaults to [CorePlatform.current].
 Future<void> runGuarded(
   Future<void> Function() body, {
-  KonteynerPlatform? platform,
+  CorePlatform? platform,
 }) {
-  if ((platform ?? KonteynerPlatform.current) != KonteynerPlatform.web) {
+  if ((platform ?? CorePlatform.current) != CorePlatform.web) {
     return body();
   }
   return runZonedGuarded<Future<void>>(body, (

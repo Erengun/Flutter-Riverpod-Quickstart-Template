@@ -10,7 +10,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('buildAppTheme', () {
-    late KonteynerTheme theme;
+    late CoreTheme theme;
 
     setUpAll(() {
       theme = buildAppTheme();
@@ -28,9 +28,9 @@ void main() {
       expect(theme.dark.colorScheme.tertiary, FlexColor.deepBlueDarkTertiary);
     });
 
-    test('fills KonteynerTokens for light and dark', () {
-      final KonteynerTokens? light = theme.light.extension<KonteynerTokens>();
-      final KonteynerTokens? dark = theme.dark.extension<KonteynerTokens>();
+    test('fills CoreTokens for light and dark', () {
+      final CoreTokens? light = theme.light.extension<CoreTokens>();
+      final CoreTokens? dark = theme.dark.extension<CoreTokens>();
 
       expect(light, isNotNull);
       expect(dark, isNotNull);

@@ -7,11 +7,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:upgrader/upgrader.dart';
 
 import '../config/app_config.dart';
-import '../config/konteyner_platform.dart';
+import '../config/core_platform.dart';
 import '../reporting/remote_flags.dart';
 import 'app_version_source.dart';
-import 'konteyner_upgrader_messages.dart';
-import 'konteyner_upgrader_store.dart';
+import 'core_upgrader_messages.dart';
+import 'core_upgrader_store.dart';
 import 'update_dialog.dart';
 
 final Logger _log = Logger('update');
@@ -23,7 +23,7 @@ final Logger _log = Logger('update');
 /// key:
 ///
 /// ```dart
-/// builder: (BuildContext context, Widget? child) => KonteynerUpdateGate(
+/// builder: (BuildContext context, Widget? child) => CoreUpdateGate(
 ///   navigatorKey: router.configuration.navigatorKey,
 ///   child: child ?? const SizedBox.shrink(),
 /// ),
@@ -46,8 +46,8 @@ final Logger _log = Logger('update');
 ///   A failed check lets the user in.
 /// - The dialog is a route on the router's navigator. When a redirect
 ///   replaces the page below it without a button tap, it is shown again.
-class KonteynerUpdateGate extends ConsumerStatefulWidget {
-  const KonteynerUpdateGate({
+class CoreUpdateGate extends ConsumerStatefulWidget {
+  const CoreUpdateGate({
     super.key,
     required this.navigatorKey,
     required this.child,
@@ -60,28 +60,28 @@ class KonteynerUpdateGate extends ConsumerStatefulWidget {
   final Widget child;
 
   @override
-  ConsumerState<KonteynerUpdateGate> createState() =>
-      _KonteynerUpdateGateState();
+  ConsumerState<CoreUpdateGate> createState() =>
+      _CoreUpdateGateState();
 }
 
-class _KonteynerUpdateGateState extends ConsumerState<KonteynerUpdateGate> {
-  late final KonteynerPlatform _platform;
-  _KonteynerUpgrader? _upgrader;
+class _CoreUpdateGateState extends ConsumerState<CoreUpdateGate> {
+  late final CorePlatform _platform;
+  _CoreUpgrader? _upgrader;
   StreamSubscription<void>? _flagChanges;
   AppLifecycleListener? _lifecycle;
 
   @override
   void initState() {
     super.initState();
-    _platform = KonteynerPlatform.current;
+    _platform = CorePlatform.current;
     final String storeLink = ref
         .read(appConfigProvider)
         .storeLinks
         .linkFor(_platform);
     if (storeLink.isEmpty) return;
 
-    final _KonteynerUpgrader upgrader = _KonteynerUpgrader(
-      KonteynerUpgraderStore(
+    final _CoreUpgrader upgrader = _CoreUpgrader(
+      CoreUpgraderStore(
         source: ref.read(appVersionSourceProvider),
         platform: _platform,
         storeLink: storeLink,
@@ -123,9 +123,9 @@ class _KonteynerUpdateGateState extends ConsumerState<KonteynerUpdateGate> {
   /// Android hard update: Play's immediate in-app update, then the store
   /// link if that can't run. Returns `false` to skip upgrader's own launch.
   bool _onUpdate() {
-    final _KonteynerUpgrader? upgrader = _upgrader;
+    final _CoreUpgrader? upgrader = _upgrader;
     if (upgrader == null ||
-        _platform != KonteynerPlatform.android ||
+        _platform != CorePlatform.android ||
         !upgrader.blocked()) {
       return true;
     }
@@ -163,9 +163,9 @@ class _KonteynerUpdateGateState extends ConsumerState<KonteynerUpdateGate> {
 
   @override
   Widget build(BuildContext context) {
-    final _KonteynerUpgrader? upgrader = _upgrader;
+    final _CoreUpgrader? upgrader = _upgrader;
     if (upgrader == null) return widget.child;
-    return _KonteynerUpgradeAlert(
+    return _CoreUpgradeAlert(
       upgrader: upgrader,
       navigatorKey: widget.navigatorKey,
       onUpdate: _onUpdate,
@@ -174,10 +174,10 @@ class _KonteynerUpdateGateState extends ConsumerState<KonteynerUpdateGate> {
   }
 }
 
-/// An [Upgrader] that only asks [KonteynerUpgraderStore] and reads its text
+/// An [Upgrader] that only asks [CoreUpgraderStore] and reads its text
 /// from Core's localizations.
-class _KonteynerUpgrader extends Upgrader {
-  _KonteynerUpgrader(UpgraderStore store)
+class _CoreUpgrader extends Upgrader {
+  _CoreUpgrader(UpgraderStore store)
     : super(
         storeController: UpgraderStoreController(
           onAndroid: () => store,
@@ -207,7 +207,7 @@ class _KonteynerUpgrader extends Upgrader {
 
   @override
   UpgraderMessages determineMessages(BuildContext context) {
-    return KonteynerUpgraderMessages.forLocale(
+    return CoreUpgraderMessages.forLocale(
       findLocale(context: context),
       updateRequired: blocked(),
     );
@@ -216,8 +216,8 @@ class _KonteynerUpgrader extends Upgrader {
 
 /// upgrader's [UpgradeAlert] with the dialog built from material_ui, so it
 /// follows the app's theme.
-class _KonteynerUpgradeAlert extends UpgradeAlert {
-  _KonteynerUpgradeAlert({
+class _CoreUpgradeAlert extends UpgradeAlert {
+  _CoreUpgradeAlert({
     required Upgrader super.upgrader,
     required GlobalKey<NavigatorState> super.navigatorKey,
     required BoolCallback super.onUpdate,
@@ -225,10 +225,10 @@ class _KonteynerUpgradeAlert extends UpgradeAlert {
   }) : super(showPrompt: false, showReleaseNotes: false);
 
   @override
-  UpgradeAlertState createState() => _KonteynerUpgradeAlertState();
+  UpgradeAlertState createState() => _CoreUpgradeAlertState();
 }
 
-class _KonteynerUpgradeAlertState extends UpgradeAlertState {
+class _CoreUpgradeAlertState extends UpgradeAlertState {
   @override
   void showTheDialog({
     Key? key,
@@ -286,7 +286,7 @@ class _KonteynerUpgradeAlertState extends UpgradeAlertState {
     bool cupertino,
     UpgraderMessages messages,
   ) {
-    return KonteynerUpdateDialog(
+    return CoreUpdateDialog(
       key: key,
       updateRequired: widget.upgrader.blocked(),
       title: title,

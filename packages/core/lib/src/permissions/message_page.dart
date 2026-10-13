@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../theme/konteyner_tokens.dart';
+import '../theme/core_tokens.dart';
 
 /// The layout Core's full-page messages share: an icon, a title, a body and
 /// one button. Not exported.
@@ -24,7 +24,7 @@ class MessagePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final KonteynerTokens tokens = KonteynerTokens.of(context);
+    final CoreTokens tokens = CoreTokens.of(context);
     final ThemeData theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(title)),

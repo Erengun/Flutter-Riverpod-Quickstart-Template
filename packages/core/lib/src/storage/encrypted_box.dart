@@ -6,6 +6,8 @@ import 'package:hive_ce/hive.dart';
 import 'package:logging/logging.dart';
 
 /// The name the Hive encryption key is saved under in the [HiveKeyStore].
+/// Installed apps already hold their key under this name: changing it loses
+/// the key, so every encrypted box comes back empty.
 const String hiveEncryptionKeyName = 'konteyner.hive.key';
 
 /// Where the Hive encryption key is kept. [SecureHiveKeyStore] (Keychain,

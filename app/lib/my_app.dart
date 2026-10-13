@@ -13,11 +13,11 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final GoRouter router = ref.watch(goRouterProvider);
-    final KonteynerTheme theme = ref.watch(konteynerThemeProvider);
+    final CoreTheme theme = ref.watch(coreThemeProvider);
     return MaterialApp.router(
       routerConfig: router,
       // Force update: a dialog above the router, on its root navigator.
-      builder: (BuildContext context, Widget? child) => KonteynerUpdateGate(
+      builder: (BuildContext context, Widget? child) => CoreUpdateGate(
         navigatorKey: router.configuration.navigatorKey,
         child: child ?? const SizedBox.shrink(),
       ),

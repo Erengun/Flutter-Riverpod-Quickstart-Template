@@ -2,7 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:upgrader/upgrader.dart';
 import 'package:version/version.dart';
 
-import '../config/konteyner_platform.dart';
+import '../config/core_platform.dart';
 import 'app_version_source.dart';
 
 final Logger _log = Logger('update');
@@ -18,15 +18,15 @@ final Logger _log = Logger('update');
 /// - An empty [storeLink] turns the check off.
 /// - Fail-open: when [source] throws, the last values it returned are used;
 ///   with none, nothing is shown. A value that is not a version is ignored.
-class KonteynerUpgraderStore extends UpgraderStore {
-  KonteynerUpgraderStore({
+class CoreUpgraderStore extends UpgraderStore {
+  CoreUpgraderStore({
     required this.source,
     required this.platform,
     required this.storeLink,
   });
 
   final AppVersionSource source;
-  final KonteynerPlatform platform;
+  final CorePlatform platform;
 
   /// Where the Update button sends the user.
   final String storeLink;

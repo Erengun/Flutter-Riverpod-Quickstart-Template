@@ -5,20 +5,20 @@ import '../../l10n/core_localizations.dart';
 
 /// The update dialog's text, from Core's localizations instead of upgrader's
 /// built-in translations.
-class KonteynerUpgraderMessages extends UpgraderMessages {
-  KonteynerUpgraderMessages(this.strings, {required this.updateRequired})
+class CoreUpgraderMessages extends UpgraderMessages {
+  CoreUpgraderMessages(this.strings, {required this.updateRequired})
     : super(code: strings.localeName);
 
   /// Core's strings in [locale], or in English when Core has no strings for
   /// it. Usable without a `BuildContext`.
-  factory KonteynerUpgraderMessages.forLocale(
+  factory CoreUpgraderMessages.forLocale(
     Locale locale, {
     required bool updateRequired,
   }) {
     final Locale supported = CoreLocalizations.delegate.isSupported(locale)
         ? locale
         : const Locale('en');
-    return KonteynerUpgraderMessages(
+    return CoreUpgraderMessages(
       lookupCoreLocalizations(supported),
       updateRequired: updateRequired,
     );
