@@ -60,6 +60,10 @@ _Avoid_: component (kept for **Component rule**), common widget
 A piece of UI that belongs to one **Feature** and is used only there.
 _Avoid_: component
 
+**UI file**:
+A file that only draws a **Feature**'s screen or a **Shared widget**; what the **Designer** owns. Controllers and UI models are not UI files.
+_Avoid_: view, page file
+
 **Catalog**:
 The browsable collection of an app's **Shared widgets** and screens, each shown with fake data so it runs without a backend.
 _Avoid_: storybook, gallery
