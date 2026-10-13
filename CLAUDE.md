@@ -68,6 +68,8 @@ The template's rules (`no_cross_feature_imports`, `tokens_only_in_theme`) come f
 
 Gitignored and never committed: `CLAUDE.local.md`, `.claude/worktrees/`, `.claude/settings.local.json`, `graphify-out/`, `.idea/`, `*.iml`, `app/ios/Flutter/Signing.xcconfig`, `app/macos/Runner/Configs/Signing.xcconfig`, `app/android/key.properties`, signing material (`*.jks`, `*.keystore`, `*.p8`, `*.p12`, service-account JSON), fastlane output (`report.xml`, its generated `README.md`, `*.aab`, `*.ipa`, ...), and everything in `.vscode/` except `launch.json` and `extensions.json`.
 
+`.claude/settings.json` is committed: it registers the dart-flutter and impeccable plugin marketplaces and turns on only `dart-flutter@dart-flutter`. Keep it free of machine paths, credentials and personal permissions; those go in the gitignored `.claude/settings.local.json`.
+
 ## Architecture
 
 **State management.** Riverpod 3 with code generation (`@riverpod` / `@Riverpod(keepAlive: true)` + `part '*.g.dart'`). Generated provider names are `<name>Provider` (e.g. `authenticationRepository` → `authenticationRepositoryProvider`). Immutable models and UI state use Freezed.

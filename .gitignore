@@ -120,4 +120,6 @@ jira.md
 CLAUDE.local.md
 .claude/worktrees/
 .claude/settings.local.json
+# impeccable's live-session journals (the impeccable plugin, off by default)
+.impeccable/
 graphify-out/
