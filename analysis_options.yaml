@@ -11,6 +11,12 @@ plugins:
     path: packages/app_lints
 
 analyzer:
+  # Relative to this file, so they cover only the repo root; each member
+  # excludes its own build output.
+  exclude:
+    - build/**
+    - android/**
+    - windows/**
   language:
     strict-casts: true
     strict-inference: true
