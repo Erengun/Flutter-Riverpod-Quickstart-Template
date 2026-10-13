@@ -64,10 +64,12 @@ app/lib/
 ├── common/            # Shared widgets
 ├── constants/         # App-wide constants (assets, strings)
 ├── data/              # Shared models
+├── fakes/             # FakeStorage and FakeScope, for tests and the catalog
 ├── features/          # Features (authentication, home, demo)
 │   └── authentication/
 │       ├── data/
 │       ├── domain/
+│       ├── fakes/     # The Feature's Fakes (FakeAuthRepository)
 │       └── presentation/
 ├── hive/              # Local storage setup and adapters
 ├── l10n/              # ARB files and generated localizations
@@ -370,7 +372,7 @@ dart run melos run widgetbook
 
 ### Add a use case
 
-Write a function annotated with `@UseCase` in a file whose path mirrors the widget's, for example `widgetbook/lib/core/permission_gate.use_cases.dart` for Core's `PermissionGate`, or `widgetbook/lib/app/features/home/presentation/home_screen.use_cases.dart` for the app's home screen. Screens that use Riverpod get their own `ProviderScope` with fake overrides (see `widgetbook/lib/app/demo_scope.dart`). Then run `dart run melos run gen`, which regenerates `widgetbook/lib/main.directories.g.dart`; commit it. CI fails when it is out of date.
+Write a function annotated with `@UseCase` in a file whose path mirrors the widget's, for example `widgetbook/lib/core/permission_gate.use_cases.dart` for Core's `PermissionGate`, or `widgetbook/lib/app/features/home/presentation/home_screen.use_cases.dart` for the app's home screen. Screens that use Riverpod get their own `ProviderScope` with fake overrides (see `FakeScope` in the app's `lib/fakes/`). Then run `dart run melos run gen`, which regenerates `widgetbook/lib/main.directories.g.dart`; commit it. CI fails when it is out of date.
 
 ### Publish it to GitHub Pages
 

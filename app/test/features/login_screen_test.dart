@@ -1,34 +1,14 @@
 import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod_template/fakes/fake_storage.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/authentication_repository.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/login_response.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/register_response.dart';
+import 'package:flutter_riverpod_template/features/authentication/fakes/fake_auth_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/presentation/login/login_screen.dart';
 import 'package:flutter_riverpod_template/l10n/app_localizations.dart';
 import 'package:flutter_riverpod_template/my_app.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-
-import '../support/storage.dart';
-
-/// Answers every login with [error] and counts the calls.
-class _RejectingAuthRepository implements AuthenticationRepository {
-  _RejectingAuthRepository(this.error);
-
-  final ApiException error;
-  int logins = 0;
-
-  @override
-  Future<LoginResponse> login(String email, String password) async {
-    logins++;
-    throw error;
-  }
-
-  @override
-  Future<RegisterResponse> register(String email, String password) async =>
-      const RegisterResponse(id: 4, token: 'token-from-register');
-}
 
 /// No store links, so force update stays off.
 const AppConfig _config = AppConfig(
@@ -38,11 +18,11 @@ const AppConfig _config = AppConfig(
 );
 
 void main() {
-  late TestStorage storage;
+  late FakeStorage storage;
   final AppLocalizations en = lookupAppLocalizations(const Locale('en'));
 
   setUp(() async {
-    storage = await TestStorage.open();
+    storage = await FakeStorage.open();
   });
 
   tearDown(() => storage.close());
@@ -77,8 +57,10 @@ void main() {
     testWidgets("shows the backend's message", (WidgetTester tester) async {
       await startApp(
         tester,
-        _RejectingAuthRepository(
-          const ApiUnauthorizedException(message: 'Invalid password'),
+        FakeAuthRepository(
+          loginError: const ApiUnauthorizedException(
+            message: 'Invalid password',
+          ),
         ),
       );
 
@@ -99,7 +81,7 @@ void main() {
     ) async {
       await startApp(
         tester,
-        _RejectingAuthRepository(const ApiUnauthorizedException()),
+        FakeAuthRepository(loginError: const ApiUnauthorizedException()),
       );
 
       await tester.enterText(
@@ -118,8 +100,8 @@ void main() {
     testWidgets('with an empty email shows a message and never calls login', (
       WidgetTester tester,
     ) async {
-      final _RejectingAuthRepository repository = _RejectingAuthRepository(
-        const ApiUnauthorizedException(),
+      final FakeAuthRepository repository = FakeAuthRepository(
+        loginError: const ApiUnauthorizedException(),
       );
       await startApp(tester, repository);
 
@@ -135,8 +117,8 @@ void main() {
     testWidgets('with both fields filled logs in like the button', (
       WidgetTester tester,
     ) async {
-      final _RejectingAuthRepository repository = _RejectingAuthRepository(
-        const ApiUnauthorizedException(message: 'Invalid password'),
+      final FakeAuthRepository repository = FakeAuthRepository(
+        loginError: const ApiUnauthorizedException(message: 'Invalid password'),
       );
       await startApp(tester, repository);
 
@@ -160,7 +142,7 @@ void main() {
     await tester.runAsync(() => storage.prefs.put('locale', 'tr'));
     await startApp(
       tester,
-      _RejectingAuthRepository(const ApiUnauthorizedException()),
+      FakeAuthRepository(loginError: const ApiUnauthorizedException()),
     );
 
     expect(find.text(tr.authWelcome), findsOneWidget);
@@ -173,8 +155,8 @@ void main() {
   testWidgets('the empty-credentials check is localized', (
     WidgetTester tester,
   ) async {
-    final _RejectingAuthRepository repository = _RejectingAuthRepository(
-      const ApiUnauthorizedException(),
+    final FakeAuthRepository repository = FakeAuthRepository(
+      loginError: const ApiUnauthorizedException(),
     );
     await startApp(tester, repository);
 

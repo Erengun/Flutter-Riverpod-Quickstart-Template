@@ -3,13 +3,12 @@ import 'dart:typed_data';
 
 import 'package:core/core.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod_template/fakes/fake_storage.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/authentication_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/domain/login_response.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod/misc.dart';
 import 'package:riverpod/riverpod.dart';
-
-import '../support/storage.dart';
 
 /// Answers every request with [status] and [body], and records requests.
 class _FakeAdapter implements HttpClientAdapter {
@@ -45,7 +44,7 @@ const AppConfig _config = AppConfig(
   apiKey: 'demo-key',
 );
 
-ProviderContainer _container(_FakeAdapter adapter, TestStorage storage) {
+ProviderContainer _container(_FakeAdapter adapter, FakeStorage storage) {
   final ProviderContainer container = ProviderContainer(
     overrides: <Override>[
       appConfigProvider.overrideWithValue(_config),
@@ -59,10 +58,10 @@ ProviderContainer _container(_FakeAdapter adapter, TestStorage storage) {
 }
 
 void main() {
-  late TestStorage storage;
+  late FakeStorage storage;
 
   setUp(() async {
-    storage = await TestStorage.open();
+    storage = await FakeStorage.open();
   });
 
   tearDown(() => storage.close());

@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod_template/fakes/fake_storage.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/authentication_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/demo_permissions.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/login_response.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/register_response.dart';
+import 'package:flutter_riverpod_template/features/authentication/fakes/fake_auth_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/presentation/login/login_screen.dart';
 import 'package:flutter_riverpod_template/features/demo/presentation/demo_area_screen.dart';
 import 'package:flutter_riverpod_template/features/home/presentation/home_screen.dart';
@@ -16,18 +16,6 @@ import 'package:flutter_riverpod_template/shared/permission_keys.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
-
-import '../support/storage.dart';
-
-class _FakeAuthRepository implements AuthenticationRepository {
-  @override
-  Future<LoginResponse> login(String email, String password) async =>
-      const LoginResponse(token: 'token-from-login');
-
-  @override
-  Future<RegisterResponse> register(String email, String password) async =>
-      const RegisterResponse(id: 4, token: 'token-from-register');
-}
 
 /// No store links, so force update stays off.
 const AppConfig _config = AppConfig(
@@ -39,11 +27,11 @@ const AppConfig _config = AppConfig(
 final CoreLocalizations _core = lookupCoreLocalizations(const Locale('en'));
 
 void main() {
-  late TestStorage storage;
+  late FakeStorage storage;
   late List<Session> loads;
 
   setUp(() async {
-    storage = await TestStorage.open();
+    storage = await FakeStorage.open();
     loads = <Session>[];
   });
 
@@ -72,7 +60,7 @@ void main() {
           ...storage.overrides,
           appConfigProvider.overrideWithValue(_config),
           authenticationRepositoryProvider.overrideWithValue(
-            _FakeAuthRepository(),
+            FakeAuthRepository(),
           ),
           sessionHooksProvider.overrideWithValue(
             SessionHooks(loadPermissions: loadPermissions ?? demoLoader),

@@ -31,7 +31,6 @@ dependencies:
   accessibility_tools: ^2.6.0
 
   flutter_riverpod: ^3.4.3
-  hive_ce: ^2.11.1
   material_ui: ^1.6.0
 
 dev_dependencies:
