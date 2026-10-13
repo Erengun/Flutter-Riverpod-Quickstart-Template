@@ -5,10 +5,10 @@ import 'package:core/core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod_template/fakes/fake_storage.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/authentication_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/domain/login_request.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/login_response.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/register_response.dart';
+import 'package:flutter_riverpod_template/features/authentication/fakes/fake_auth_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/presentation/login/login_screen.dart';
 import 'package:flutter_riverpod_template/features/home/presentation/home_screen.dart';
 import 'package:flutter_riverpod_template/my_app.dart';
@@ -18,18 +18,6 @@ import 'package:go_router/go_router.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../support/storage.dart';
-
-class _FakeAuthRepository implements AuthenticationRepository {
-  @override
-  Future<LoginResponse> login(String email, String password) async =>
-      const LoginResponse(token: 'token-from-login');
-
-  @override
-  Future<RegisterResponse> register(String email, String password) async =>
-      const RegisterResponse(id: 4, token: 'token-from-register');
-}
-
 /// No store links, so force update stays off.
 const AppConfig _config = AppConfig(
   flavor: Flavor.dev,
@@ -38,10 +26,10 @@ const AppConfig _config = AppConfig(
 );
 
 void main() {
-  late TestStorage storage;
+  late FakeStorage storage;
 
   setUp(() async {
-    storage = await TestStorage.open();
+    storage = await FakeStorage.open();
   });
 
   tearDown(() => storage.close());
@@ -65,7 +53,7 @@ void main() {
           ...storage.overridesWith(openSession: openSession),
           appConfigProvider.overrideWithValue(_config),
           authenticationRepositoryProvider.overrideWithValue(
-            _FakeAuthRepository(),
+            FakeAuthRepository(),
           ),
         ],
         child: const MyApp(),
@@ -136,7 +124,7 @@ void main() {
     expect(find.byType(HomeScreen), findsOneWidget);
     // Login is not left underneath home.
     expect(router(tester).canPop(), isFalse);
-    expect(storage.session.get('accessToken'), 'token-from-login');
+    expect(storage.session.get('accessToken'), FakeAuthRepository.token);
 
     await startApp(tester);
 

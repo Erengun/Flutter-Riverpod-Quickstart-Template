@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Never navigate home after login or to login after logout; changing the Session is enough.
 - Record an exception with `ref.read(errorReporterProvider).report(error, stackTrace)`, not `log.warning`. Never log headers, bodies, tokens, passwords or personal data.
 - Every `GoRoute` sets `name:`.
-- No imports between Features. Only `lib/app/theme.dart` imports `lib/app/tokens.dart`.
+- No imports between Features. Only `lib/app/theme.dart` imports `lib/app/tokens.dart`. Only `test/`, `widgetbook/` and other `fakes/` folders import from a `fakes/` folder.
 - Before writing a new screen, Shared widget, use case or test, read an existing one of the same kind.
 - When the Dart MCP server is connected, prefer its tools (analyze, pub, hot reload, runtime errors) over the CLI; the CLI is fine otherwise.
 

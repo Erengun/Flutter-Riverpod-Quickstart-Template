@@ -1,12 +1,12 @@
 import 'package:core/core.dart';
+import 'package:flutter_riverpod_template/fakes/fake_scope.dart';
+import 'package:flutter_riverpod_template/features/authentication/fakes/fake_auth_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/presentation/login/login_screen.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
 
-import '../../../../demo_scope.dart';
-
 // The demo login screen, as an example of use cases for an app's own
-// screens: wrapped in `DemoScope` (a `ProviderScope` with the tests' fake
+// screens: wrapped in `FakeScope` (a `ProviderScope` with the tests' fake
 // repository and in-memory boxes). Signing in works but goes nowhere: the
 // catalog has no router.
 
@@ -16,7 +16,7 @@ import '../../../../demo_scope.dart';
   path: '[App]/authentication',
 )
 Widget buildLoginScreen(BuildContext context) {
-  return const DemoScope(child: LoginScreen());
+  return const FakeScope(child: LoginScreen());
 }
 
 @widgetbook.UseCase(
@@ -25,8 +25,8 @@ Widget buildLoginScreen(BuildContext context) {
   path: '[App]/authentication',
 )
 Widget buildLoginScreenRemembered(BuildContext context) {
-  return const DemoScope(
-    seed: DemoSeed(credentials: demoCredentials),
+  return const FakeScope(
+    seed: FakeSeed(credentials: demoCredentials),
     child: LoginScreen(),
   );
 }
@@ -38,11 +38,11 @@ Widget buildLoginScreenRemembered(BuildContext context) {
   path: '[App]/authentication',
 )
 Widget buildLoginScreenFailing(BuildContext context) {
-  return const DemoScope(
-    seed: DemoSeed(credentials: demoCredentials),
-    repository: FakeAuthRepository(
-      loginError: ApiServerException(400, message: 'user not found'),
+  return FakeScope(
+    seed: const FakeSeed(credentials: demoCredentials),
+    authRepository: FakeAuthRepository(
+      loginError: const ApiServerException(400, message: 'user not found'),
     ),
-    child: LoginScreen(),
+    child: const LoginScreen(),
   );
 }

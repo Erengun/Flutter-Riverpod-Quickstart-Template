@@ -1,9 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod_template/fakes/fake_storage.dart';
 import 'package:flutter_riverpod_template/router/app_router.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-
-import '../support/storage.dart';
 
 Iterable<GoRoute> _goRoutes(List<RouteBase> routes) sync* {
   for (final RouteBase route in routes) {
@@ -13,10 +12,10 @@ Iterable<GoRoute> _goRoutes(List<RouteBase> routes) sync* {
 }
 
 void main() {
-  late TestStorage storage;
+  late FakeStorage storage;
 
   setUp(() async {
-    storage = await TestStorage.open();
+    storage = await FakeStorage.open();
   });
 
   tearDown(() => storage.close());

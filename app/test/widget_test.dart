@@ -1,9 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_riverpod_template/app/l10n.dart';
+import 'package:flutter_riverpod_template/fakes/fake_storage.dart';
 import 'package:flutter_riverpod_template/features/home/presentation/widgets/language_tile.dart';
 import 'package:flutter_riverpod_template/features/home/presentation/widgets/theme_widget.dart';
 import 'package:flutter_riverpod_template/l10n/app_localizations.dart';
@@ -11,7 +10,6 @@ import 'package:flutter_riverpod_template/my_app.dart';
 import 'package:flutter_riverpod_template/router/app_router.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hive_ce/hive.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -58,15 +56,13 @@ void main() {
   );
 
   group('MyApp', () {
-    late Box<String> box;
+    late FakeStorage storage;
 
-    // An in-memory box: a file-backed box's writes never finish inside the
-    // widget tests' fake async zone.
     setUp(() async {
-      box = await Hive.openBox<String>(prefsBoxName, bytes: Uint8List(0));
+      storage = await FakeStorage.open();
     });
 
-    tearDown(() => box.close());
+    tearDown(() => storage.close());
 
     Future<void> pumpApp(WidgetTester tester) async {
       final GoRouter router = GoRouter(
@@ -84,7 +80,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
-            prefsBoxProvider.overrideWithValue(box),
+            ...storage.overrides,
             goRouterProvider.overrideWithValue(router),
             // No store links, so force update stays off.
             appConfigProvider.overrideWithValue(
@@ -128,14 +124,14 @@ void main() {
       expect(materialApp(tester).locale, const Locale('tr'));
       expect(find.text('Dili Değiştir'), findsOneWidget);
       expect(find.text('Temayı Değiştir'), findsOneWidget);
-      expect(box.get('locale'), 'tr');
+      expect(storage.prefs.get('locale'), 'tr');
 
       await tester.tap(find.byType(Switch));
       await tester.pumpAndSettle();
 
       expect(materialApp(tester).locale, const Locale('en'));
       expect(find.text('Change Language'), findsOneWidget);
-      expect(box.get('locale'), 'en');
+      expect(storage.prefs.get('locale'), 'en');
     });
 
     testWidgets('switching the theme mode updates the app and saves it', (
@@ -152,21 +148,21 @@ void main() {
         Theme.of(tester.element(find.byType(LanguageTile))).brightness,
         Brightness.dark,
       );
-      expect(box.get('themeMode'), 'dark');
+      expect(storage.prefs.get('themeMode'), 'dark');
 
       await tester.tap(find.byIcon(Ionicons.sunnyOutline));
       await tester.pumpAndSettle();
 
       expect(materialApp(tester).themeMode, ThemeMode.light);
-      expect(box.get('themeMode'), 'light');
+      expect(storage.prefs.get('themeMode'), 'light');
     });
 
     testWidgets('starts with the saved language and theme mode', (
       WidgetTester tester,
     ) async {
       await tester.runAsync(() async {
-        await box.put('locale', 'tr');
-        await box.put('themeMode', 'dark');
+        await storage.prefs.put('locale', 'tr');
+        await storage.prefs.put('themeMode', 'dark');
       });
 
       await pumpApp(tester);

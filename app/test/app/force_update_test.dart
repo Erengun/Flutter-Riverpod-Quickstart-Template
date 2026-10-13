@@ -1,67 +1,17 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod_template/fakes/fake_remote_flags.dart';
+import 'package:flutter_riverpod_template/fakes/fake_storage.dart';
 import 'package:flutter_riverpod_template/my_app.dart';
 import 'package:flutter_riverpod_template/router/app_router.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hive_ce/hive.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-/// A [RemoteFlags] whose values the test sets.
-class FakeRemoteFlags implements RemoteFlags {
-  final Map<String, String> values = <String, String>{};
-  final StreamController<void> _changes = StreamController<void>.broadcast();
-  int refreshCount = 0;
-
-  /// Values the next [refresh] fetches, without emitting [onChanged], like a
-  /// fetch that finds newer values while the real-time listener is silent.
-  Map<String, String>? nextFetch;
-
-  /// While set, [refresh] waits for it before applying [nextFetch], like a
-  /// fetch still on the network.
-  Completer<void>? refreshGate;
-
-  /// Changes the values and emits [onChanged], like a real-time update.
-  void change(Map<String, String> newValues) {
-    values
-      ..clear()
-      ..addAll(newValues);
-    _changes.add(null);
-  }
-
-  @override
-  bool getBool(String key, {required bool fallback}) => fallback;
-
-  @override
-  int getInt(String key, {required int fallback}) => fallback;
-
-  @override
-  String getString(String key, {required String fallback}) =>
-      values[key] ?? fallback;
-
-  @override
-  Future<void> refresh() async {
-    refreshCount++;
-    await refreshGate?.future;
-    final Map<String, String>? fetched = nextFetch;
-    if (fetched == null) return;
-    nextFetch = null;
-    values
-      ..clear()
-      ..addAll(fetched);
-  }
-
-  @override
-  Stream<void> get onChanged => _changes.stream;
-
-  Future<void> close() => _changes.close();
-}
 
 const AppConfig _listedConfig = AppConfig(
   flavor: Flavor.dev,
@@ -85,7 +35,7 @@ final TargetPlatformVariant _ios = TargetPlatformVariant.only(
 );
 
 void main() {
-  late Box<String> box;
+  late FakeStorage storage;
   late FakeRemoteFlags flags;
   final CoreLocalizations en = lookupCoreLocalizations(const Locale('en'));
 
@@ -98,13 +48,13 @@ void main() {
       buildNumber: '1',
       buildSignature: '',
     );
-    box = await Hive.openBox<String>(prefsBoxName, bytes: Uint8List(0));
+    storage = await FakeStorage.open();
     flags = FakeRemoteFlags();
   });
 
   tearDown(() async {
     await flags.close();
-    await box.close();
+    await storage.close();
   });
 
   /// upgrader opens the dialog from a zero-delay timer, which
@@ -136,7 +86,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: <Override>[
-          prefsBoxProvider.overrideWithValue(box),
+          ...storage.overrides,
           goRouterProvider.overrideWithValue(appRouter),
           appConfigProvider.overrideWithValue(config),
           remoteFlagsProvider.overrideWithValue(flags),
@@ -395,7 +345,7 @@ void main() {
   testWidgets("the dialog follows the app's language", (
     WidgetTester tester,
   ) async {
-    await tester.runAsync(() => box.put('locale', 'tr'));
+    await tester.runAsync(() => storage.prefs.put('locale', 'tr'));
     flags.values['app_recommended_version_ios'] = '1.0.1';
 
     await pumpApp(tester);
@@ -408,7 +358,7 @@ void main() {
   testWidgets("the dialog follows the app's theme", (
     WidgetTester tester,
   ) async {
-    await tester.runAsync(() => box.put('themeMode', 'dark'));
+    await tester.runAsync(() => storage.prefs.put('themeMode', 'dark'));
     flags.values['app_recommended_version_ios'] = '1.0.1';
 
     await pumpApp(tester);

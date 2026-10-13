@@ -1,8 +1,7 @@
+import 'package:flutter_riverpod_template/fakes/fake_scope.dart';
 import 'package:flutter_riverpod_template/features/home/presentation/home_screen.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:widgetbook_annotation/widgetbook_annotation.dart' as widgetbook;
-
-import '../../../demo_scope.dart';
 
 /// The demo home screen, signed in with the demo permissions saved: the
 /// component rules row shows readonly, disabled and hidden controls, and the
@@ -15,5 +14,5 @@ import '../../../demo_scope.dart';
   path: '[App]/home',
 )
 Widget buildHomeScreen(BuildContext context) {
-  return const DemoScope(seed: DemoSeed(signedIn: true), child: HomeScreen());
+  return const FakeScope(seed: FakeSeed(signedIn: true), child: HomeScreen());
 }

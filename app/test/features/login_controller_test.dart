@@ -1,46 +1,16 @@
 import 'package:core/core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:flutter_riverpod_template/fakes/fake_storage.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/authentication_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/data/credentials_store.dart';
 import 'package:flutter_riverpod_template/features/authentication/domain/login_request.dart';
 import 'package:flutter_riverpod_template/features/authentication/domain/login_response.dart';
-import 'package:flutter_riverpod_template/features/authentication/domain/register_response.dart';
+import 'package:flutter_riverpod_template/features/authentication/fakes/failing_credentials_store.dart';
+import 'package:flutter_riverpod_template/features/authentication/fakes/fake_auth_repository.dart';
 import 'package:flutter_riverpod_template/features/authentication/presentation/login/auth_ui_model.dart';
 import 'package:flutter_riverpod_template/features/authentication/presentation/login/login_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../support/storage.dart';
-
-class FakeAuthRepository implements AuthenticationRepository {
-  @override
-  Future<LoginResponse> login(String email, String password) async {
-    if (email.isEmpty || password.isEmpty) throw Exception('Empty');
-    return const LoginResponse(token: 'fake_token');
-  }
-
-  @override
-  Future<RegisterResponse> register(String email, String password) async {
-    if (email.isEmpty || password.isEmpty) throw Exception('Empty');
-    return const RegisterResponse(id: 1, token: 'fake_token');
-  }
-}
-
-class _RejectingAuthRepository extends FakeAuthRepository {
-  @override
-  Future<LoginResponse> login(String email, String password) async {
-    throw const ApiServerException(400, message: 'user not found');
-  }
-}
-
-class _FailingCredentialsStore extends CredentialsStore {
-  const _FailingCredentialsStore(super.box);
-
-  @override
-  Future<void> save(LoginCredentials credentials) async {
-    throw StateError('disk full');
-  }
-}
 
 class _RecordingReporter extends NoopErrorReporter {
   final List<Object> errors = <Object>[];
@@ -64,10 +34,10 @@ const LoginCredentials _eve = LoginCredentials(
 );
 
 void main() {
-  late TestStorage storage;
+  late FakeStorage storage;
 
   setUp(() async {
-    storage = await TestStorage.open();
+    storage = await FakeStorage.open();
   });
 
   tearDown(() => storage.close());
@@ -130,12 +100,12 @@ void main() {
           .read(loginControllerProvider.notifier)
           .login(email: _eve.email, password: _eve.password);
 
-      expect(response?.token, 'fake_token');
+      expect(response?.token, FakeAuthRepository.token);
       expect(
         container.read(sessionProvider).value,
-        const Session(accessToken: 'fake_token'),
+        const Session(accessToken: FakeAuthRepository.token),
       );
-      expect(storage.session.get('accessToken'), 'fake_token');
+      expect(storage.session.get('accessToken'), FakeAuthRepository.token);
     });
 
     test('waits for the permissions before starting the session', () async {
@@ -161,7 +131,9 @@ void main() {
           .read(loginControllerProvider.notifier)
           .login(email: _eve.email, password: _eve.password);
 
-      expect(loads, <Session>[const Session(accessToken: 'fake_token')]);
+      expect(loads, <Session>[
+        const Session(accessToken: FakeAuthRepository.token),
+      ]);
       // Not signed in yet while loading: no screen sees them missing.
       expect(sessionsDuringLoad, <Session?>[null]);
       expect(container.read(permissionsProvider), loaded);
@@ -234,7 +206,9 @@ void main() {
 
     test('a failed login is an AsyncError that keeps the form', () async {
       final ProviderContainer container = await createContainer(
-        repository: _RejectingAuthRepository(),
+        repository: FakeAuthRepository(
+          loginError: const ApiServerException(400, message: 'user not found'),
+        ),
       );
       final LoginController controller = container.read(
         loginControllerProvider.notifier,
@@ -259,7 +233,7 @@ void main() {
       final ProviderContainer container = await createContainer(
         more: <Override>[
           credentialsStoreProvider.overrideWith(
-            (Ref ref) async => _FailingCredentialsStore(storage.credentials),
+            (Ref ref) async => FailingCredentialsStore(storage.credentials),
           ),
           errorReporterProvider.overrideWithValue(reporter),
         ],
@@ -274,7 +248,7 @@ void main() {
         password: _eve.password,
       );
 
-      expect(response?.token, 'fake_token');
+      expect(response?.token, FakeAuthRepository.token);
       expect(reporter.errors.single, isA<StateError>());
       expect(container.read(sessionProvider).value, isNotNull);
     });
