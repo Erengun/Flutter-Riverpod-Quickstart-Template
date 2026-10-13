@@ -6,7 +6,7 @@ The shared foundation that new mobile, tablet and web apps are started from.
 
 **Template**:
 The common foundation every new app starts from, configured with minimal setup.
-_Avoid_: base app, starter, boilerplate, Konteyner (its former name)
+_Avoid_: base app, starter, boilerplate
 
 **Public template**:
 This repository. Generic and public; holds no company-specific rules.
