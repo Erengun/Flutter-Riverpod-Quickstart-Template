@@ -41,6 +41,10 @@ melos:
       description: Run the Widgetbook catalog in Chrome.
       run: cd widgetbook && flutter run -d chrome
 
+    design:update:
+      description: Rewrite the DESIGN.md frontmatter from the app's theme.
+      run: cd app && flutter test test/conventions/design_md_test.dart --update-goldens
+
     # The analyzer plugin in packages/app_lints is not a workspace member, so
     # melos exec skips it. These scripts cover it.
     test:lints:
