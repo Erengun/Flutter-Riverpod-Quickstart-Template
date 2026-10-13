@@ -61,7 +61,7 @@ Four workflows in `.github/workflows/` (`ci.yaml`, `desktop.yaml`, `widgetbook.y
 - No imports between Features (`no_cross_feature_imports`): a file in `lib/features/<a>/` must not import or export anything from `lib/features/<b>/`. Move shared code to Core or `lib/shared/`, or navigate through the router. Files outside a Feature folder (`lib/app/`, `test/`) may import any Feature.
 - Only `lib/app/theme.dart` imports `lib/app/tokens.dart` (`tokens_only_in_theme`, also for tests and other packages). Everything else reads tokens through `Theme.of(context)` or `CoreTokens.of(context)`.
 
-The template's rules (`no_cross_feature_imports`, `tokens_only_in_theme`) come from the `packages/app_lints` analyzer plugin. Only `dart analyze` runs plugins; `flutter analyze` does not, so a clean `flutter analyze` alone proves nothing for them. The Melos `analyze` script runs both.
+The template's rules (`no_cross_feature_imports`, `tokens_only_in_theme`, `no_set_state`, `no_shrink_wrap`, `no_widget_functions`) come from the `packages/app_lints` analyzer plugin. Only `dart analyze` runs plugins; `flutter analyze` does not, so a clean `flutter analyze` alone proves nothing for them. The Melos `analyze` script runs both.
 
 ## Local files
 

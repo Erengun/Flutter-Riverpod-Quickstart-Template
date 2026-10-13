@@ -42,56 +42,49 @@ class HomeScreen extends ConsumerWidget {
           const LanguageTile(),
           const _PermissionDemoLinks(),
           const ComponentRulesDemo(),
-          ListView.separated(
-            itemCount: 4,
-            shrinkWrap: true,
+          // Four fixed tiles: a Column, not a shrink-wrapped ListView.
+          Padding(
             padding: const EdgeInsets.all(8),
-            separatorBuilder: (BuildContext context, int index) {
-              return const Gap(5); // Change the height to control the gap size
-            },
-            itemBuilder: (BuildContext context, int index) {
-              // Switch case to return different widgets for each index
-              switch (index) {
-                case 0:
-                  return SocialTile(
-                    leadingIcon: Icon(
-                      Ionicons.logoGithub,
-                      color: context.colorScheme.primary,
-                    ),
-                    title: 'Github',
-                    url: Uri.parse('https://github.com/erengun'),
-                  );
-                case 1:
-                  return SocialTile(
-                    leadingIcon: Icon(
-                      Ionicons.logoLinkedin,
-                      color: context.colorScheme.primary,
-                    ),
-                    title: 'Linkedin',
-                    url: Uri.parse('https://www.linkedin.com/in/erengun'),
-                  );
-                case 2:
-                  return SocialTile(
-                    leadingIcon: Icon(
-                      Ionicons.logoMedium,
-                      color: context.colorScheme.primary,
-                    ),
-                    title: 'Medium',
-                    url: Uri.parse('https://erengun.medium.com/'),
-                  );
-                case 3:
-                  return SocialTile(
-                    leadingIcon: Icon(
-                      Ionicons.globeOutline,
-                      color: context.colorScheme.primary,
-                    ),
-                    title: 'Website',
-                    url: Uri.parse('https://erengun.dev'),
-                  );
-                default:
-                  return const SizedBox.shrink();
-              }
-            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                SocialTile(
+                  leadingIcon: Icon(
+                    Ionicons.logoGithub,
+                    color: context.colorScheme.primary,
+                  ),
+                  title: 'Github',
+                  url: Uri.parse('https://github.com/erengun'),
+                ),
+                const Gap(5),
+                SocialTile(
+                  leadingIcon: Icon(
+                    Ionicons.logoLinkedin,
+                    color: context.colorScheme.primary,
+                  ),
+                  title: 'Linkedin',
+                  url: Uri.parse('https://www.linkedin.com/in/erengun'),
+                ),
+                const Gap(5),
+                SocialTile(
+                  leadingIcon: Icon(
+                    Ionicons.logoMedium,
+                    color: context.colorScheme.primary,
+                  ),
+                  title: 'Medium',
+                  url: Uri.parse('https://erengun.medium.com/'),
+                ),
+                const Gap(5),
+                SocialTile(
+                  leadingIcon: Icon(
+                    Ionicons.globeOutline,
+                    color: context.colorScheme.primary,
+                  ),
+                  title: 'Website',
+                  url: Uri.parse('https://erengun.dev'),
+                ),
+              ],
+            ),
           ),
         ],
       ),
