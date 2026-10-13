@@ -12,9 +12,9 @@ A UI file is any file under `app/lib/features/<feature>/presentation/` or `app/l
 ## UI files
 
 - Draw from the controller's UI model and Core's providers. Never import `data/` or read a repository, `dioProvider`, `apiCallProvider`, the Dio interceptors or `sessionBoxProvider` (`ui_no_data_imports`, `ui_no_backend_providers`).
-- No `setState`. A `StatefulWidget` only owns a `TextEditingController`, `FocusNode` or `AnimationController`; any other state lives in a provider. No flutter_hooks.
-- Split a widget into widget classes, not functions or helper methods that return a `Widget`. `@UseCase` builders in `widgetbook/` are functions by design.
-- No `shrinkWrap: true`. Lists of unknown length use `ListView.builder` or slivers, not `.map()` or `for` into `children:`.
+- No `setState` (`no_set_state`). A `StatefulWidget` only owns a `TextEditingController`, `FocusNode` or `AnimationController`; any other state lives in a provider. No flutter_hooks.
+- Split a widget into widget classes, not functions or helper methods that return a `Widget` (`no_widget_functions`). `@UseCase` builders in `widgetbook/` are functions by design.
+- No `shrinkWrap: true` (`no_shrink_wrap`). Lists of unknown length use `ListView.builder` or slivers, not `.map()` or `for` into `children:`.
 - Colors, spacing, radii and text styles come from `Theme.of(context)` and `CoreTokens.of(context)`; strings from `AppLocalizations`. No literal colors or font sizes.
 - API errors: `ref.listenApiErrors(provider, context)` for a snackbar, `ApiErrorView` when the screen's main data failed. Gate controls with `PermissionGate`.
 - Name a screen `<name>_screen.dart`. A widget several Features use goes in `app/lib/shared/widgets/`; one every app needs goes to Core.

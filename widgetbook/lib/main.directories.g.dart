@@ -16,6 +16,8 @@ import 'package:widgetbook_catalog/app/features/authentication/presentation/logi
     as _widgetbook_catalog_app_features_authentication_presentation_login_login_screen_use_cases;
 import 'package:widgetbook_catalog/app/features/home/presentation/home_screen.use_cases.dart'
     as _widgetbook_catalog_app_features_home_presentation_home_screen_use_cases;
+import 'package:widgetbook_catalog/catalog/tokens_page.use_cases.dart'
+    as _widgetbook_catalog_catalog_tokens_page_use_cases;
 import 'package:widgetbook_catalog/core/api_error_ui.use_cases.dart'
     as _widgetbook_catalog_core_api_error_ui_use_cases;
 import 'package:widgetbook_catalog/core/no_permission_page.use_cases.dart'
@@ -72,6 +74,21 @@ final directories = <_widgetbook.WidgetbookNode>[
                         .buildHomeScreen,
               ),
             ],
+          ),
+        ],
+      ),
+    ],
+  ),
+  _widgetbook.WidgetbookCategory(
+    name: 'Catalog',
+    children: [
+      _widgetbook.WidgetbookComponent(
+        name: 'TokensPage',
+        useCases: [
+          _widgetbook.WidgetbookUseCase(
+            name: 'Default',
+            builder: _widgetbook_catalog_catalog_tokens_page_use_cases
+                .buildTokensPage,
           ),
         ],
       ),

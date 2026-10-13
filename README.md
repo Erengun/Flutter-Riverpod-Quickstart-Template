@@ -512,7 +512,7 @@ The repo ships instructions for [Claude Code](https://claude.com/claude-code), w
 | File | Covers |
 |---|---|
 | `presentation.md` | UI files (screens and their widgets, Shared widgets), the catalog's use cases, controllers and UI models |
-| `theming.md` | The theme, design tokens, fonts, strings and ARB files |
+| `theming.md` | The theme, design tokens, fonts, strings and ARB files, `DESIGN.md` |
 | `networking.md` | The shared Dio, retrofit clients, `ApiException` and showing errors |
 | `session-permissions.md` | The Session, token refresh, permissions and local storage |
 | `routing.md` | GoRouter, the redirects and the permission guard |
@@ -538,6 +538,7 @@ The repo ships instructions for [Claude Code](https://claude.com/claude-code), w
 - Up-to-date documentation in this README
 - [CLAUDE.md](CLAUDE.md) and [`.claude/rules/`](.claude/rules): the architecture, commands and the rules the code follows (see [Claude Code](#claude-code))
 - [CONTEXT.md](CONTEXT.md): the project's vocabulary (Module, Feature, Flavor, Session, ...)
+- [DESIGN.md](DESIGN.md): the design system in Google Stitch format; its frontmatter is generated from the theme (`dart run melos run design:update`), its prose is written by hand
 - Code comments and examples throughout
 
 ---
