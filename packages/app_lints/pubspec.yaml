@@ -1,5 +1,5 @@
 name: app_lints
-description: Empty analyzer plugin where an app built from the template adds its own rules.
+description: Analyzer plugin with the template's architecture rules and the app's own.
 publish_to: none
 version: 0.1.0
 
@@ -11,6 +11,11 @@ environment:
 
 dependencies:
   # analysis_server_plugin is still 0.x and can break on SDK bumps, so it is
-  # pinned. Keep it on the same version as packages/konteyner_lints.
+  # pinned. Bump it together with the analyzer version it requires.
   analysis_server_plugin: 0.3.24
   analyzer: 14.5.0
+
+dev_dependencies:
+  analyzer_testing: any
+  test: any
+  test_reflective_loader: any

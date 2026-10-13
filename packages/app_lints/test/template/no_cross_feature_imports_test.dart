@@ -6,7 +6,7 @@ import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 // ignore: implementation_imports
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
     show ExpectedDiagnostic;
-import 'package:konteyner_lints/src/no_cross_feature_imports.dart';
+import 'package:app_lints/src/template/no_cross_feature_imports.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {

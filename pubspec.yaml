@@ -41,15 +41,15 @@ melos:
       description: Run the Widgetbook catalog in Chrome.
       run: cd widgetbook && flutter run -d chrome
 
-    # The analyzer plugins in packages/konteyner_lints and packages/app_lints
-    # are not workspace members, so melos exec skips them. These scripts cover them.
+    # The analyzer plugin in packages/app_lints is not a workspace member, so
+    # melos exec skips it. These scripts cover it.
     test:lints:
-      description: Run the analyzer rule tests in packages/konteyner_lints.
-      run: cd packages/konteyner_lints && dart pub get && dart test
+      description: Run the analyzer rule tests in packages/app_lints.
+      run: cd packages/app_lints && dart pub get && dart test
 
     analyze:lints:
-      description: Run dart analyze in the analyzer plugin packages.
-      run: (cd packages/konteyner_lints && dart pub get && dart analyze --fatal-infos --fatal-warnings) && (cd packages/app_lints && dart pub get && dart analyze --fatal-infos --fatal-warnings)
+      description: Run dart analyze in the analyzer plugin package.
+      run: cd packages/app_lints && dart pub get && dart analyze --fatal-infos --fatal-warnings
 
     # Firebase (packages/firebase_module): one script per flavor, run in app/.
     # Each runs `flutterfire configure` once per iOS build configuration
