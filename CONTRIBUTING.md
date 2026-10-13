@@ -18,6 +18,7 @@ Thanks for helping improve the Flutter Riverpod Quickstart Template. Report bugs
 - Write the tests first for a new feature or a bug fix; a fix starts with a test that fails without it.
 - Run what CI runs, from the repo root: `dart run melos run analyze` (any lint info fails) and `dart run melos run test`.
 - Commit generated files (`*.g.dart`, `*.freezed.dart`, the generated localizations) with the source that produced them. CI fails when they are out of date.
+- A pull request from a fork gets no hosted catalog preview; reviewers check its Widgetbook catalog with a local `dart run melos run widgetbook`.
 - When your change adds a setup step, or a new place a Module or Widgetbook touches, update the README's checklists in the same pull request.
 
 ## Where the rules live

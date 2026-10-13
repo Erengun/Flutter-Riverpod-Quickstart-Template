@@ -10,7 +10,7 @@ paths:
 
 # CI, release and Dependabot
 
-Four workflows in `.github/workflows/`; none needs a secret until a repo turns releases on.
+Five workflows in `.github/workflows/`; none needs a secret until a repo turns on releases or per-PR previews.
 
 `ci.yaml` (every PR to `main` and every push to `main`). All four jobs are meant to be required checks, but the workflow does not enforce that: a repo admin turns it on in branch protection for `main` ("Use this template" does not copy that setting). Shared setup is the composite action `.github/actions/setup` (Flutter stable with caching, `flutter pub get`, Melos at the version in the root `pubspec.lock`); each job checks out first, then uses it.
 - `check`: `melos run gen`, then fails if any `*.g.dart` / `*.freezed.dart` file or generated `lib/l10n/*_localizations*.dart` changed or is untracked (so always commit regenerated files), then `melos run analyze` (any lint info fails), then `melos run test` (`--coverage`; the coverage artifact never blocks). No format check.
@@ -20,4 +20,4 @@ Four workflows in `.github/workflows/`; none needs a secret until a repo turns r
 - `.github/workflows/release.yaml` (`v*` tags) ships prod: fastlane lanes in `app/android/fastlane/` (obfuscated App Bundle to Play's internal track) and `app/ios/fastlane/` (`match` readonly, TestFlight), a web build with source maps, Sentry symbol/source-map upload through `sentry_dart_plugin` (an `app/` dev dependency) with the release set explicitly to what sentry_flutter reports, and a GitHub Release with the files. Every job runs only when the repo variable `RELEASE_ENABLED` is `'true'`; the template skips. The tag must be `v<name>` of `app/pubspec.yaml`'s version. fastlane is pinned by the root `Gemfile` / `Gemfile.lock`. Secrets and variables are listed in the README's "Releases" section. `app/android/app/build.gradle.kts` signs release builds with the keystore from `ANDROID_KEYSTORE_*` env vars or `app/android/key.properties` (gitignored), else with the debug keys.
 - Dependabot (`.github/dependabot.yml`) updates pub (root, `app/`, `packages/*`, `widgetbook/`), GitHub Actions and Bundler weekly. New packages under `packages/` are picked up by the glob.
 
-The Widgetbook publish workflow is described in `.claude/rules/widgetbook.md`.
+The Widgetbook publish and per-PR preview workflows are described in `.claude/rules/widgetbook.md`.

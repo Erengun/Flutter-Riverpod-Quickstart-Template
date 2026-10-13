@@ -1,0 +1,111 @@
+# Hosts the Widgetbook catalog (widgetbook/) for each pull request on a
+# Firebase Hosting preview channel, pr-<number>, and comments its link.
+#
+# Off until a repo opts in: both jobs run only when the repository variable
+# WIDGETBOOK_PR_PREVIEW is 'true'. They also need the variable
+# WIDGETBOOK_FIREBASE_PROJECT_ID and the secret
+# WIDGETBOOK_FIREBASE_SERVICE_ACCOUNT_JSON (README, "Preview every PR").
+#
+# Only PRs from a branch of this repo get a preview. GitHub gives fork PRs no
+# secrets, so they are skipped; pull_request_target is never used, because
+# building the catalog runs the PR's code. This is not a required check: a
+# preview outage must never block a merge. Deleting Widgetbook deletes this
+# file too.
+name: Widgetbook preview
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+
+# The action-hosting-deploy default is `latest`; pin the CLI that gets the
+# service-account key. Dependabot does not bump this value: raise it by hand.
+env:
+  FIREBASE_TOOLS_VERSION: 15.32.1
+
+jobs:
+  deploy:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && vars.WIDGETBOOK_PR_PREVIEW == 'true'
+      && github.event.action != 'closed'
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    # A new push to the PR cancels its older deploy. Cleanup has its own group,
+    # so a deploy never cancels it.
+    concurrency:
+      group: widgetbook-preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      pull-requests: write # the action's PR comment with the link
+      checks: write # the action's check run
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The job only builds and uploads; it never needs the git token.
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      # Each channel has its own hostname, so the default base href "/" works.
+      # Widgetbook uses hash routing, so firebase.json needs no rewrites.
+      - name: Build Widgetbook (web, release)
+        working-directory: widgetbook
+        run: flutter build web --release
+
+      - uses: FirebaseExtended/action-hosting-deploy@v0.11.0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.WIDGETBOOK_FIREBASE_SERVICE_ACCOUNT_JSON }}
+          projectId: ${{ vars.WIDGETBOOK_FIREBASE_PROJECT_ID }}
+          entryPoint: widgetbook # widgetbook/firebase.json serves build/web
+          channelId: pr-${{ github.event.pull_request.number }}
+          expires: 14d
+          firebaseToolsVersion: ${{ env.FIREBASE_TOOLS_VERSION }}
+
+  # Deletes the PR's channel when the PR is closed or merged. A PR closed while
+  # its deploy is still running can leave a channel behind; it expires after
+  # 14 days.
+  cleanup:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && vars.WIDGETBOOK_PR_PREVIEW == 'true'
+      && github.event.action == 'closed'
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
+    concurrency:
+      group: widgetbook-preview-cleanup-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    steps:
+      # The Firebase CLI only needs widgetbook/firebase.json; take it from the
+      # base branch, which still exists when the PR's branch is deleted.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          persist-credentials: false
+
+      # An expired or already deleted channel is not an error. A failed list
+      # or delete (a wrong key or project id) still fails the job.
+      - name: Delete the preview channel
+        working-directory: widgetbook
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.WIDGETBOOK_FIREBASE_SERVICE_ACCOUNT_JSON }}
+          PROJECT_ID: ${{ vars.WIDGETBOOK_FIREBASE_PROJECT_ID }}
+          CHANNEL_ID: pr-${{ github.event.pull_request.number }}
+        run: |
+          key="$RUNNER_TEMP/widgetbook-firebase-key.json"
+          trap 'rm -f "$key"' EXIT
+          printf '%s' "$SERVICE_ACCOUNT" > "$key"
+          export GOOGLE_APPLICATION_CREDENTIALS="$key"
+          firebase=(npx --yes "firebase-tools@$FIREBASE_TOOLS_VERSION")
+
+          channels="$("${firebase[@]}" hosting:channel:list --project "$PROJECT_ID" --json)"
+          if ! jq -e --arg id "$CHANNEL_ID" \
+            '.result.channels[] | select(.name | endswith("/channels/" + $id))' \
+            <<<"$channels" >/dev/null; then
+            echo "Channel $CHANNEL_ID does not exist (expired or already deleted)."
+            exit 0
+          fi
+
+          "${firebase[@]}" hosting:channel:delete "$CHANNEL_ID" --project "$PROJECT_ID" --force
