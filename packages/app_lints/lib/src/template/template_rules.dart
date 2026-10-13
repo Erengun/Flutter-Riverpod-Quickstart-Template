@@ -1,12 +1,18 @@
 import 'package:analysis_server_plugin/registry.dart';
 
 import 'no_cross_feature_imports.dart';
+import 'no_fake_imports.dart';
 import 'tokens_only_in_theme.dart';
+import 'ui_no_backend_providers.dart';
+import 'ui_no_data_imports.dart';
 
 /// Registers the template's architecture rules. The template owns this file.
 void registerTemplateRules(PluginRegistry registry) {
   // Warning rules are on by default in every package that enables the plugin.
   registry
     ..registerWarningRule(NoCrossFeatureImports())
-    ..registerWarningRule(TokensOnlyInTheme());
+    ..registerWarningRule(TokensOnlyInTheme())
+    ..registerWarningRule(UiNoDataImports())
+    ..registerWarningRule(UiNoBackendProviders())
+    ..registerWarningRule(NoFakeImports());
 }
