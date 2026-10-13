@@ -8,6 +8,7 @@ import 'package:hive_ce/hive.dart';
 import '../features/authentication/data/credentials_store.dart';
 import '../features/authentication/data/demo_permissions.dart';
 import '../features/authentication/domain/login_request.dart';
+import '../hive/hive_adapters.dart';
 import '../hive/hive_registrar.g.dart';
 
 /// In-memory stand-ins for the app's Hive boxes, with their real names, for
@@ -27,7 +28,9 @@ class FakeStorage {
   /// Opens (or reuses) the boxes and empties them. Tests call [close] in
   /// `tearDown`; the catalog reopens them each time a use case opens.
   static Future<FakeStorage> open() async {
-    if (!Hive.isAdapterRegistered(3)) Hive.registerAdapters();
+    if (!Hive.isAdapterRegistered(LoginCredentialsAdapter().typeId)) {
+      Hive.registerAdapters();
+    }
     final FakeStorage storage = FakeStorage._(
       await Hive.openBox<String>(prefsBoxName, bytes: Uint8List(0)),
       await Hive.openBox<String>(sessionBoxName, bytes: Uint8List(0)),
