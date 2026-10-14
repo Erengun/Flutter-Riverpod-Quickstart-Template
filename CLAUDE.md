@@ -62,11 +62,13 @@ Five workflows in `.github/workflows/` (`ci.yaml`, `desktop.yaml`, `widgetbook.y
 - No imports between Features (`no_cross_feature_imports`): a file in `lib/features/<a>/` must not import or export anything from `lib/features/<b>/`. Move shared code to Core or `lib/shared/`, or navigate through the router. Files outside a Feature folder (`lib/app/`, `test/`) may import any Feature.
 - Only `lib/app/theme.dart` imports `lib/app/tokens.dart` (`tokens_only_in_theme`, also for tests and other packages). Everything else reads tokens through `Theme.of(context)` or `CoreTokens.of(context)`.
 
-The template's rules (`no_cross_feature_imports`, `tokens_only_in_theme`, `no_set_state`, `no_shrink_wrap`, `no_widget_functions`) come from the `packages/app_lints` analyzer plugin. Only `dart analyze` runs plugins; `flutter analyze` does not, so a clean `flutter analyze` alone proves nothing for them. The Melos `analyze` script runs both.
+The template's rules (`no_cross_feature_imports`, `tokens_only_in_theme`, `no_set_state`, `no_shrink_wrap`, `no_widget_functions`, `ui_no_data_imports`, `ui_no_backend_providers`, `no_fake_imports`) come from the `packages/app_lints` analyzer plugin. Only `dart analyze` runs plugins; `flutter analyze` does not, so a clean `flutter analyze` alone proves nothing for them. The Melos `analyze` script runs both.
 
 ## Local files
 
 Gitignored and never committed: `CLAUDE.local.md`, `.claude/worktrees/`, `.claude/settings.local.json`, `graphify-out/`, `.idea/`, `*.iml`, `app/ios/Flutter/Signing.xcconfig`, `app/macos/Runner/Configs/Signing.xcconfig`, `app/android/key.properties`, signing material (`*.jks`, `*.keystore`, `*.p8`, `*.p12`, service-account JSON), fastlane output (`report.xml`, its generated `README.md`, `*.aab`, `*.ipa`, ...), and everything in `.vscode/` except `launch.json` and `extensions.json`.
+
+`.claude/settings.json` is committed: it registers the dart-flutter and impeccable plugin marketplaces and turns on only `dart-flutter@dart-flutter`. Keep it free of machine paths, credentials and personal permissions; those go in the gitignored `.claude/settings.local.json`.
 
 ## Architecture
 
