@@ -16,6 +16,7 @@ A production-ready Flutter template built with the latest packages and best prac
 - 💾 Secure local storage with Hive CE
 - 🧩 Optional Modules: Firebase (Analytics, Remote Config) and Sentry, each removable in a few lines
 - 🧪 Pre-configured unit and widget tests, plus a Widgetbook catalog
+- 🎨 A Designer workflow in the Catalog: the Designer's Claude edits screens and Shared widgets and hot-reloads them live, and every PR can get its own hosted Catalog for review
 - ⚡ Modern navigation with GoRouter 18
 - 🚀 CI on every PR, and a tag-driven release workflow with fastlane
 - 🛠️ Custom linting and devtools configuration
@@ -93,7 +94,7 @@ Start from everything, then remove what you don't need. Each step links to the s
 5. **Register the ids.** Register the bundle ids with Apple (Certificates, Identifiers & Profiles; `.dev` and `.staging` too if you run those flavors on devices) and create the app in Play Console. For local device builds, add your Apple team id as in [Signing on iOS and macOS](#signing-on-ios-and-macos).
 6. **Firebase.** Edit and run the `firebase:configure:<flavor>` scripts as in [Set up Firebase](#set-up-firebase), or [remove the Firebase Module](#remove-firebase).
 7. **Sentry.** Paste your DSN as in [Sentry Module](#sentry-module), or [remove the Sentry Module](#remove-sentry).
-8. **Protect `main`.** In Settings > Rules > Rulesets (or Settings > Branches), protect `main` and require the status checks `check`, `build-android`, `build-ios` and `build-web` from `ci.yaml`. "Use this template" doesn't copy this setting, and the checks only appear in the picker after `ci.yaml` has run once. See [CI](#ci).
+8. **Protect `main`.** In Settings > Rules > Rulesets (or Settings > Branches), protect `main`, require one approval before merging (one developer's review; no CODEOWNERS file, see [Review](#review)) and require the status checks `check`, `build-android`, `build-ios` and `build-web` from `ci.yaml`. "Use this template" doesn't copy this setting, and the checks only appear in the picker after `ci.yaml` has run once. See [CI](#ci).
 9. **fastlane placeholders.** Replace the certificates repo URL in [app/ios/fastlane/Matchfile](app/ios/fastlane/Matchfile) (or set `MATCH_GIT_URL`); for local runs, also `team_id` in [app/ios/fastlane/Appfile](app/ios/fastlane/Appfile) and `json_key_file` in [app/android/fastlane/Appfile](app/android/fastlane/Appfile). The lanes refuse to upload while the id is still `com.example.temp`.
 10. **Release secrets, variables and match.** Follow [One-time setup](#one-time-setup): the Play upload keystore and service account, the App Store Connect API key, the first `match` run that creates the certificate and profile, the secrets and variables, then `RELEASE_ENABLED`.
 11. **Widgetbook hosting.** Two optional opt-ins, independent of each other: publish `main`'s catalog to Pages (the Pages source and the `WIDGETBOOK_PUBLISH` variable, as in [Publish it to GitHub Pages](#publish-it-to-github-pages)), and host a preview for every PR (a Firebase project, its service-account key and the `WIDGETBOOK_PR_PREVIEW` variable, as in [Preview every PR](#preview-every-pr)). Or [remove Widgetbook](#remove-widgetbook).
@@ -369,7 +370,7 @@ It is its own workspace member that depends on the app, Core and each Module; th
 dart run melos run widgetbook
 ```
 
-(or `flutter run -d chrome` inside `widgetbook/`).
+(or `flutter run -d chrome --print-dtd` inside `widgetbook/`). `--print-dtd` prints the address of the Dart Tooling Daemon, which Claude can use to hot-reload the running catalog; see [The loop](#the-loop).
 
 ### Add a use case
 
@@ -415,6 +416,106 @@ Delete all of these, then run `flutter pub get`:
 - the `widgetbook/` line and the other Widgetbook mentions in `CLAUDE.md`, and this section of the README
 
 If you turned on previews, also delete the repository variables `WIDGETBOOK_PR_PREVIEW` and `WIDGETBOOK_FIREBASE_PROJECT_ID` and the secret `WIDGETBOOK_FIREBASE_SERVICE_ACCOUNT_JSON`, and delete the Firebase preview project (or at least its service account). If you turned on Pages, delete `WIDGETBOOK_PUBLISH` too.
+
+Reword the [Designer](#designer) section instead of deleting it: the UI-file boundary, the guard and the rules stay, and the Catalog, hot-reload and hosted-catalog steps go.
+
+---
+
+## Designer
+
+This section is for the Designer, the person who shapes how the app looks: its tokens, its Shared widgets and the look of its screens. It is all you need to read.
+
+### What you own
+
+A UI file is any file under `app/lib/features/<feature>/presentation/` or `app/lib/shared/widgets/` except `*_controller.dart`, `*_ui_model.dart` and generated files (`*.g.dart`, `*.freezed.dart`). UI files belong to the Designer; controllers and UI models belong to developers.
+
+| Designer owns | Developers own |
+|---|---|
+| UI files: screens and their widgets | Controllers (`*_controller.dart`) and UI models (`*_ui_model.dart`) |
+| The design tokens and theme: `app/lib/app/tokens.dart` and `app/lib/app/theme.dart` | `data/` (repositories and API clients) and `domain/` (models) |
+| Shared widgets in `app/lib/shared/widgets/` | The router and `SGRoute` (`app/lib/router/`) |
+| The Catalog: `widgetbook/` | `packages/` (Core, the Modules, the lints) |
+| Widget tests under `app/test/` | The app's setup files: `app/lib/app/config.dart`, `modules.dart`, `overrides.dart`, `setup.dart`, `app/lib/main*.dart` and `app/lib/my_app.dart` |
+| The prose of `DESIGN.md` | |
+
+### Set up once
+
+1. **Flutter.** Install [Flutter](https://docs.flutter.dev/get-started/install) 3.47.4 or later, and Chrome.
+2. **The repo.** Clone it and install its dependencies from the repo root:
+    ```bash
+    git clone <this repo's URL>
+    cd <the repo folder>
+    flutter pub get
+    ```
+3. **Claude Code.** Install [Claude Code](https://code.claude.com/docs/en/setup) and run `claude` from the repo root. The first time, it asks you to trust the folder and to approve the Dart MCP server; approve both. That server is how Claude hot-reloads the Catalog.
+4. **impeccable.** Turn on the design plugin:
+    ```bash
+    claude plugin install impeccable@impeccable
+    ```
+    Use either impeccable's plugin or its standalone skill, not both, or Claude sees two copies.
+5. **Your guard.** Two personal files keep your Claude out of the files developers own. Both are gitignored: never commit them.
+
+    `.claude/settings.local.json` (if it already exists, add the `deny` list to its `permissions`):
+    ```json
+    {
+      "permissions": {
+        "deny": [
+          "Edit(**/data/**)",
+          "Edit(**/domain/**)",
+          "Edit(**/*_controller.dart)",
+          "Edit(**/*_ui_model.dart)",
+          "Edit(app/lib/router/**)",
+          "Edit(packages/**)",
+          "Edit(app/lib/app/config.dart)",
+          "Edit(app/lib/app/modules.dart)",
+          "Edit(app/lib/app/overrides.dart)",
+          "Edit(app/lib/app/setup.dart)",
+          "Edit(app/lib/main*.dart)",
+          "Edit(app/lib/my_app.dart)"
+        ]
+      }
+    }
+    ```
+    An `Edit(...)` rule covers every built-in tool that changes a file. Keep them as `Edit(...)`: Claude Code never checks a `Write(...)` path rule. The paths are relative to where you start Claude, so always start it from the repo root.
+
+    `CLAUDE.local.md`, at the repo root:
+    ```markdown
+    I'm the Designer. Edit only UI files, the tokens and theme, `DESIGN.md`, tests and the catalog. If a change needs state the UI model doesn't have, write it in the PR description and stop.
+    ```
+
+    This is a strong guard, not a wall. The deny rules stop Claude's built-in edit tools and the Bash file commands Claude Code recognizes (such as `sed`, `tee` and `>>` redirects), but not a script that opens files itself. CI enforces only the import boundary, through the lints (a UI file can't import `data/` or read a repository); nothing in CI checks which files a PR touches.
+
+### The loop
+
+1. **Start the Catalog.** In your own terminal, from the repo root:
+    ```bash
+    dart run melos run widgetbook
+    ```
+    It opens the Catalog in Chrome and prints a line `The Dart Tooling Daemon is available at: ws://...`. Leave it running.
+2. **Ask Claude for the change.** Run `claude` from the repo root in another terminal and describe what you want. Claude edits UI files and hot-reloads the running Catalog after each edit. It finds the Catalog itself through the Dart MCP server: its `dtd` tool lists the running apps, and Claude connects to the one whose workspace is `widgetbook/`. If it finds none, or picks another app (one your IDE started), paste it the `ws://...` address the Catalog printed. A hot reload keeps the Catalog open where it was; it is not a restart.
+3. **One use case per state.** Each state of a screen (loading, empty, error, ...) is its own named use case in the Catalog, running on Fakes, so you design each state directly. Ask Claude for a new use case when you add a state; see [Add a use case](#add-a-use-case).
+4. **Test.** A new screen or Shared widget needs a widget test at its mirrored path under `app/test/` and a use case at its mirrored path under `widgetbook/lib/app/`. Ask Claude to write the test through the `test-writer` agent. CI's coverage meta-test fails the PR when either one is missing.
+5. **When the data isn't there.** If a change needs state the UI model doesn't have (a field it doesn't hold, a state it doesn't have), Claude says so and stops before touching the controller or UI model. Write the request in the PR description: what the screen needs and when. You can keep going meanwhile: build the look as a widget that takes its data as parameters, with its own use case.
+6. **Open a PR.** Commit on a branch and open a pull request to `main`. Have Claude run `dart run melos run analyze` and `dart run melos run test` first; CI runs them too.
+7. **A developer finishes the state.** For a request in the PR description, a developer pushes the field and the wiring to your branch, so one PR merges with the state working.
+
+### The hosted catalog
+
+When the repo has per-PR previews turned on (the `WIDGETBOOK_PR_PREVIEW` variable, see [Preview every PR](#preview-every-pr)), each PR from a branch of this repo gets its own hosted Catalog: the workflow comments the link on the PR and updates it on every push. Reviewers open that link instead of checking out your branch.
+
+- **No link, local review.** A PR from a fork never gets a preview, and no PR does while previews are off. Review those with a local `dart run melos run widgetbook` on the PR's branch.
+- **Preview URLs are public.** Anyone with the link can open the Catalog, so keep real data and secrets out of use cases.
+
+### Design context
+
+Claude and impeccable read two files at the repo root before changing a UI file:
+
+- **`DESIGN.md`** describes the design system. Edit its prose freely. Its frontmatter (the block between the `---` lines at the top: colors, type scale, radii, spacing) is generated from the theme, so never edit it by hand: change the token in `app/lib/app/tokens.dart`, then run `dart run melos run design:update` and commit the result. CI fails when the frontmatter is out of date. Don't run `/impeccable document`: it rewrites the whole file.
+- **`PRODUCT.md`** says what the app is for and who it serves. It ships as `[TODO]` headings: fill them in, or run `/impeccable teach` to be interviewed for it.
+
+### Review
+
+One developer reviews the PR against its hosted Catalog link (or, when there is none, against a local `dart run melos run widgetbook`) and approves it. "Require one approval" is a branch-protection setting on `main`, set in step 8 of [Create a new app](#create-a-new-app); there is no CODEOWNERS file. After the merge, `main`'s Catalog is published to GitHub Pages if the repo has [Pages publishing](#publish-it-to-github-pages) on.
 
 ---
 
@@ -529,7 +630,7 @@ The repo ships instructions for [Claude Code](https://claude.com/claude-code), w
 
 - **[`.claude/agents/test-writer.md`](.claude/agents/test-writer.md)** is a subagent that writes tests from requirements (a new feature, a bug reproduction) without reading the implementation. Claude hands work to it on its own, or ask for it by name.
 - **[`.claude/settings.json`](.claude/settings.json)** recommends plugins to everyone who clones the repo. It registers two plugin marketplaces and turns on only the [dart-flutter](https://github.com/flutter/agent-plugins) plugin (the Dart MCP server and the Dart and Flutter skills); Claude Code asks once to trust the folder, and once to approve the MCP server. [impeccable](https://github.com/pbakaus/impeccable), the design plugin, is registered but off: a Designer turns it on with `claude plugin install impeccable@impeccable`. Use either impeccable's plugin or its standalone skill, not both, or Claude sees two copies. Claude Code on the web ignores this file.
-- **Personal files** are gitignored: `CLAUDE.local.md` for your own instructions and `.claude/settings.local.json` for your own permissions. They never reach anyone else, and Claude Code on the web doesn't see them.
+- **Personal files** are gitignored: `CLAUDE.local.md` for your own instructions and `.claude/settings.local.json` for your own permissions (the Designer's guard lives there, see [Set up once](#set-up-once)). They never reach anyone else, and Claude Code on the web doesn't see them.
 
 ### Your own rules
 
