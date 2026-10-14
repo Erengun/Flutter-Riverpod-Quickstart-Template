@@ -480,7 +480,7 @@ A UI file is any file under `app/lib/features/<feature>/presentation/` or `app/l
 
     `CLAUDE.local.md`, at the repo root:
     ```markdown
-    I'm the Designer. Edit only UI files, tests and the catalog. If a change needs state the UI model doesn't have, write it in the PR description and stop.
+    I'm the Designer. Edit only UI files, the tokens and theme, `DESIGN.md`, tests and the catalog. If a change needs state the UI model doesn't have, write it in the PR description and stop.
     ```
 
     This is a strong guard, not a wall. The deny rules stop Claude's built-in edit tools and the Bash file commands Claude Code recognizes (such as `sed`, `tee` and `>>` redirects), but not a script that opens files itself. CI enforces only the import boundary, through the lints (a UI file can't import `data/` or read a repository); nothing in CI checks which files a PR touches.
@@ -503,7 +503,7 @@ A UI file is any file under `app/lib/features/<feature>/presentation/` or `app/l
 
 When the repo has per-PR previews turned on (the `WIDGETBOOK_PR_PREVIEW` variable, see [Preview every PR](#preview-every-pr)), each PR from a branch of this repo gets its own hosted Catalog: the workflow comments the link on the PR and updates it on every push. Reviewers open that link instead of checking out your branch.
 
-- **Fork PRs get no preview.** A PR from a fork is reviewed with a local `dart run melos run widgetbook` on its branch.
+- **No link, local review.** A PR from a fork never gets a preview, and no PR does while previews are off. Review those with a local `dart run melos run widgetbook` on the PR's branch.
 - **Preview URLs are public.** Anyone with the link can open the Catalog, so keep real data and secrets out of use cases.
 
 ### Design context
@@ -515,7 +515,7 @@ Claude and impeccable read two files at the repo root before changing a UI file:
 
 ### Review
 
-One developer reviews the PR against its hosted Catalog link (a fork PR, against a local `dart run melos run widgetbook`) and approves it. "Require one approval" is a branch-protection setting on `main`, set in step 8 of [Create a new app](#create-a-new-app); there is no CODEOWNERS file. After the merge, `main`'s Catalog is published to GitHub Pages if the repo has [Pages publishing](#publish-it-to-github-pages) on.
+One developer reviews the PR against its hosted Catalog link (or, when there is none, against a local `dart run melos run widgetbook`) and approves it. "Require one approval" is a branch-protection setting on `main`, set in step 8 of [Create a new app](#create-a-new-app); there is no CODEOWNERS file. After the merge, `main`'s Catalog is published to GitHub Pages if the repo has [Pages publishing](#publish-it-to-github-pages) on.
 
 ---
 
