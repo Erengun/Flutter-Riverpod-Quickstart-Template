@@ -20,6 +20,7 @@ A UI file is any file under `app/lib/features/<feature>/presentation/` or `app/l
 - API errors: `ref.listenApiErrors(provider, context)` for a snackbar, `ApiErrorView` when the screen's main data failed. Gate controls with `PermissionGate`.
 - Name a screen `<name>_screen.dart`. A widget several Features use goes in `app/lib/shared/widgets/`; one every app needs goes to Core.
 - A use case renders on Fakes alone: `FakeScope(child: TheScreen())`.
+- Each state (loading, empty, error, ...) is its own named use case with its own Fake setup.
 - Every screen and Shared widget has a widget test at its mirrored path under `app/test/` and a use case at its mirrored path under `widgetbook/lib/app/`; CI checks both.
 
 ## Controllers and UI models

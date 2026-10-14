@@ -32,56 +32,65 @@ class HomeScreen extends ConsumerWidget {
       // Only the granted areas; opened from the app bar's menu button.
       endDrawer: const AppMenuDrawer(),
       backgroundColor: context.colorScheme.surface,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Header(text: AppLocalizations.of(context).homeIntro),
-          const Divider(),
-          const ThemeWidget(),
-          const LanguageTile(),
-          const _PermissionDemoLinks(),
-          const ComponentRulesDemo(),
-          // Four fixed tiles: a Column, not a shrink-wrapped ListView.
-          Padding(
-            padding: const EdgeInsets.all(8),
+      // Spread over the screen when it fits; scrolls when it doesn't (every
+      // control shown, a small phone or a large text scale).
+      body: CustomScrollView(
+        slivers: <Widget>[
+          SliverFillRemaining(
+            hasScrollBody: false,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                SocialTile(
-                  leadingIcon: Icon(
-                    Ionicons.logoGithub,
-                    color: context.colorScheme.primary,
+                Header(text: AppLocalizations.of(context).homeIntro),
+                const Divider(),
+                const ThemeWidget(),
+                const LanguageTile(),
+                const _PermissionDemoLinks(),
+                const ComponentRulesDemo(),
+                // Four fixed tiles: a Column, not a shrink-wrapped ListView.
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      SocialTile(
+                        leadingIcon: Icon(
+                          Ionicons.logoGithub,
+                          color: context.colorScheme.primary,
+                        ),
+                        title: 'Github',
+                        url: Uri.parse('https://github.com/erengun'),
+                      ),
+                      const Gap(5),
+                      SocialTile(
+                        leadingIcon: Icon(
+                          Ionicons.logoLinkedin,
+                          color: context.colorScheme.primary,
+                        ),
+                        title: 'Linkedin',
+                        url: Uri.parse('https://www.linkedin.com/in/erengun'),
+                      ),
+                      const Gap(5),
+                      SocialTile(
+                        leadingIcon: Icon(
+                          Ionicons.logoMedium,
+                          color: context.colorScheme.primary,
+                        ),
+                        title: 'Medium',
+                        url: Uri.parse('https://erengun.medium.com/'),
+                      ),
+                      const Gap(5),
+                      SocialTile(
+                        leadingIcon: Icon(
+                          Ionicons.globeOutline,
+                          color: context.colorScheme.primary,
+                        ),
+                        title: 'Website',
+                        url: Uri.parse('https://erengun.dev'),
+                      ),
+                    ],
                   ),
-                  title: 'Github',
-                  url: Uri.parse('https://github.com/erengun'),
-                ),
-                const Gap(5),
-                SocialTile(
-                  leadingIcon: Icon(
-                    Ionicons.logoLinkedin,
-                    color: context.colorScheme.primary,
-                  ),
-                  title: 'Linkedin',
-                  url: Uri.parse('https://www.linkedin.com/in/erengun'),
-                ),
-                const Gap(5),
-                SocialTile(
-                  leadingIcon: Icon(
-                    Ionicons.logoMedium,
-                    color: context.colorScheme.primary,
-                  ),
-                  title: 'Medium',
-                  url: Uri.parse('https://erengun.medium.com/'),
-                ),
-                const Gap(5),
-                SocialTile(
-                  leadingIcon: Icon(
-                    Ionicons.globeOutline,
-                    color: context.colorScheme.primary,
-                  ),
-                  title: 'Website',
-                  url: Uri.parse('https://erengun.dev'),
                 ),
               ],
             ),
