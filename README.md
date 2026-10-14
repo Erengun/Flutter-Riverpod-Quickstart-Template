@@ -89,16 +89,17 @@ Start from everything, then remove what you don't need. Each step links to the s
 1. **Use this template.** Click **Use this template** on this repo (or on your organization's copy, see below). The new repo gets its own fresh history and never merges template updates; later template fixes reach it by hand.
 2. **Set your identity.** Edit the ids and names listed in [Customize names and IDs](#customize-names-and-ids): `app/android/gradle.properties`, `app/Identity.xcconfig`, `app/web/manifest.json`, `app/web/index.html`, `app/windows/CMakeLists.txt` and `app/linux/CMakeLists.txt`. The Dart package name and the Kotlin namespace stay as they are.
 3. **Point at your backend.** Set `apiBaseUrl` and `apiKey` per flavor in `app/lib/app/config.dart`, then replace the demo login (reqres.in) and the demo permission loader (`app/lib/features/authentication/data/demo_permissions.dart`) with your own.
-4. **Register the ids.** Register the bundle ids with Apple (Certificates, Identifiers & Profiles; `.dev` and `.staging` too if you run those flavors on devices) and create the app in Play Console. For local device builds, add your Apple team id as in [Signing on iOS and macOS](#signing-on-ios-and-macos).
-5. **Firebase.** Edit and run the `firebase:configure:<flavor>` scripts as in [Set up Firebase](#set-up-firebase), or [remove the Firebase Module](#remove-firebase).
-6. **Sentry.** Paste your DSN as in [Sentry Module](#sentry-module), or [remove the Sentry Module](#remove-sentry).
-7. **Protect `main`.** In Settings > Rules > Rulesets (or Settings > Branches), protect `main` and require the status checks `check`, `build-android`, `build-ios` and `build-web` from `ci.yaml`. "Use this template" doesn't copy this setting, and the checks only appear in the picker after `ci.yaml` has run once. See [CI](#ci).
-8. **fastlane placeholders.** Replace the certificates repo URL in [app/ios/fastlane/Matchfile](app/ios/fastlane/Matchfile) (or set `MATCH_GIT_URL`); for local runs, also `team_id` in [app/ios/fastlane/Appfile](app/ios/fastlane/Appfile) and `json_key_file` in [app/android/fastlane/Appfile](app/android/fastlane/Appfile). The lanes refuse to upload while the id is still `com.example.temp`.
-9. **Release secrets, variables and match.** Follow [One-time setup](#one-time-setup): the Play upload keystore and service account, the App Store Connect API key, the first `match` run that creates the certificate and profile, the secrets and variables, then `RELEASE_ENABLED`.
-10. **Widgetbook hosting.** Two optional opt-ins, independent of each other: publish `main`'s catalog to Pages (the Pages source and the `WIDGETBOOK_PUBLISH` variable, as in [Publish it to GitHub Pages](#publish-it-to-github-pages)), and host a preview for every PR (a Firebase project, its service-account key and the `WIDGETBOOK_PR_PREVIEW` variable, as in [Preview every PR](#preview-every-pr)). Or [remove Widgetbook](#remove-widgetbook).
-11. **Runners (optional).** Set the repository variables `LINUX_RUNNER`, `MACOS_RUNNER` and `WINDOWS_RUNNER` to use other runner labels. See [CI](#ci).
-12. **Your own Claude Code rules (optional).** Add them as `.claude/rules/app-*.md`, or edit the template's rules freely: your app never merges template updates. See [Claude Code](#claude-code).
-13. **Clean up.** Delete the open-source files a private app doesn't need: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `.github/FUNDING.yml` and `.github/ISSUE_TEMPLATE/`.
+4. **Design context.** Fill in `PRODUCT.md` (or run `/impeccable teach` with the impeccable plugin on) and rewrite the prose of `DESIGN.md` for your app. After changing tokens in `app/lib/app/tokens.dart`, run `dart run melos run design:update`: `DESIGN.md`'s frontmatter is generated from the theme and CI fails when it is out of date.
+5. **Register the ids.** Register the bundle ids with Apple (Certificates, Identifiers & Profiles; `.dev` and `.staging` too if you run those flavors on devices) and create the app in Play Console. For local device builds, add your Apple team id as in [Signing on iOS and macOS](#signing-on-ios-and-macos).
+6. **Firebase.** Edit and run the `firebase:configure:<flavor>` scripts as in [Set up Firebase](#set-up-firebase), or [remove the Firebase Module](#remove-firebase).
+7. **Sentry.** Paste your DSN as in [Sentry Module](#sentry-module), or [remove the Sentry Module](#remove-sentry).
+8. **Protect `main`.** In Settings > Rules > Rulesets (or Settings > Branches), protect `main` and require the status checks `check`, `build-android`, `build-ios` and `build-web` from `ci.yaml`. "Use this template" doesn't copy this setting, and the checks only appear in the picker after `ci.yaml` has run once. See [CI](#ci).
+9. **fastlane placeholders.** Replace the certificates repo URL in [app/ios/fastlane/Matchfile](app/ios/fastlane/Matchfile) (or set `MATCH_GIT_URL`); for local runs, also `team_id` in [app/ios/fastlane/Appfile](app/ios/fastlane/Appfile) and `json_key_file` in [app/android/fastlane/Appfile](app/android/fastlane/Appfile). The lanes refuse to upload while the id is still `com.example.temp`.
+10. **Release secrets, variables and match.** Follow [One-time setup](#one-time-setup): the Play upload keystore and service account, the App Store Connect API key, the first `match` run that creates the certificate and profile, the secrets and variables, then `RELEASE_ENABLED`.
+11. **Widgetbook hosting.** Two optional opt-ins, independent of each other: publish `main`'s catalog to Pages (the Pages source and the `WIDGETBOOK_PUBLISH` variable, as in [Publish it to GitHub Pages](#publish-it-to-github-pages)), and host a preview for every PR (a Firebase project, its service-account key and the `WIDGETBOOK_PR_PREVIEW` variable, as in [Preview every PR](#preview-every-pr)). Or [remove Widgetbook](#remove-widgetbook).
+12. **Runners (optional).** Set the repository variables `LINUX_RUNNER`, `MACOS_RUNNER` and `WINDOWS_RUNNER` to use other runner labels. See [CI](#ci).
+13. **Your own Claude Code rules (optional).** Add them as `.claude/rules/app-*.md`, or edit the template's rules freely: your app never merges template updates. See [Claude Code](#claude-code).
+14. **Clean up.** Delete the open-source files a private app doesn't need: `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `LICENSE`, `.github/FUNDING.yml` and `.github/ISSUE_TEMPLATE/`.
 
 ### Keeping your own copy of the template
 
@@ -208,7 +209,7 @@ Five workflows live in `.github/workflows/`. None of them needs a secret until y
 
 - **`check`** runs `melos run gen` and fails when a generated file (`*.g.dart`, `*.freezed.dart`, generated localizations) is out of date, then `melos run analyze` (any lint info fails) and `melos run test`. There is no format check.
 - **Build jobs** make unsigned prod release builds, so R8 and tree-shaking problems show up before a release. `build-ios` (and `build-macos`) fails if a `Podfile` appears: every plugin must support Swift Package Manager.
-- **Required checks:** the four `ci.yaml` jobs are meant to block merges. Turn that on in branch protection (step 7 of [Create a new app](#create-a-new-app)).
+- **Required checks:** the four `ci.yaml` jobs are meant to block merges. Turn that on in branch protection (step 8 of [Create a new app](#create-a-new-app)).
 - **Desktop** runs only after merge, because macOS and Windows minutes are expensive. GitHub turns off scheduled workflows after 60 days without repo activity, and a failed scheduled run only emails whoever last edited the workflow file.
 - **Runners** come from the repository variables `LINUX_RUNNER`, `MACOS_RUNNER` and `WINDOWS_RUNNER` (defaults `ubuntu-latest`, `macos-latest`, `windows-latest`), so a copy can switch runners without editing the workflows.
 - **Dependabot** ([.github/dependabot.yml](.github/dependabot.yml)) updates pub packages, GitHub Actions and the `Gemfile` weekly.
@@ -524,6 +525,7 @@ The repo ships instructions for [Claude Code](https://claude.com/claude-code), w
 | `testing.md` | Tests and their helpers |
 
 - **[`.claude/agents/test-writer.md`](.claude/agents/test-writer.md)** is a subagent that writes tests from requirements (a new feature, a bug reproduction) without reading the implementation. Claude hands work to it on its own, or ask for it by name.
+- **[`.claude/settings.json`](.claude/settings.json)** recommends plugins to everyone who clones the repo. It registers two plugin marketplaces and turns on only the [dart-flutter](https://github.com/flutter/agent-plugins) plugin (the Dart MCP server and the Dart and Flutter skills); Claude Code asks once to trust the folder, and once to approve the MCP server. [impeccable](https://github.com/pbakaus/impeccable), the design plugin, is registered but off: a Designer turns it on with `claude plugin install impeccable@impeccable`. Use either impeccable's plugin or its standalone skill, not both, or Claude sees two copies. Claude Code on the web ignores this file.
 - **Personal files** are gitignored: `CLAUDE.local.md` for your own instructions and `.claude/settings.local.json` for your own permissions. They never reach anyone else, and Claude Code on the web doesn't see them.
 
 ### Your own rules
@@ -538,6 +540,7 @@ The repo ships instructions for [Claude Code](https://claude.com/claude-code), w
 - Up-to-date documentation in this README
 - [CLAUDE.md](CLAUDE.md) and [`.claude/rules/`](.claude/rules): the architecture, commands and the rules the code follows (see [Claude Code](#claude-code))
 - [CONTEXT.md](CONTEXT.md): the project's vocabulary (Module, Feature, Flavor, Session, ...)
+- [PRODUCT.md](PRODUCT.md): what the app is for and who it serves, for Claude and impeccable; ships as a `[TODO]` skeleton
 - [DESIGN.md](DESIGN.md): the design system in Google Stitch format; its frontmatter is generated from the theme (`dart run melos run design:update`), its prose is written by hand
 - Code comments and examples throughout
 
