@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../utils/url_utils.dart';
+import '../../utils/url_utils.dart';
 
 class GridItem extends StatelessWidget {
   /// Named parameters are preferred, they make the code easier to understand.

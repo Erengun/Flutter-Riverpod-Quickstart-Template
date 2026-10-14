@@ -61,20 +61,20 @@ The repo is a Dart pub workspace: the app lives in `app/`, shared infrastructure
 ```
 app/lib/
 ├── app/               # App-wide setup: config, theme, tokens, Modules, overrides, l10n delegates
-├── common/            # Shared widgets
 ├── constants/         # App-wide constants (assets, strings)
 ├── data/              # Shared models
 ├── fakes/             # FakeStorage and FakeScope, for tests and the catalog
 ├── features/          # Features (authentication, home, demo)
 │   └── authentication/
 │       ├── data/
-│       ├── domain/
+│       ├── domain/    # Freezed request/response models only
 │       ├── fakes/     # The Feature's Fakes (FakeAuthRepository)
 │       └── presentation/
 ├── hive/              # Local storage setup and adapters
 ├── l10n/              # ARB files and generated localizations
 ├── router/            # Navigation, routing and the permission menu
 ├── shared/            # Code shared between Features (permission keys)
+│   └── widgets/       # Shared widgets several Features use
 ├── utils/             # Utility functions
 ├── main_<flavor>.dart # One entry point per flavor (main.dart is dev)
 └── my_app.dart        # App configuration
@@ -373,7 +373,7 @@ dart run melos run widgetbook
 
 ### Add a use case
 
-Write a function annotated with `@UseCase` in a file whose path mirrors the widget's, for example `widgetbook/lib/core/permission_gate.use_cases.dart` for Core's `PermissionGate`, or `widgetbook/lib/app/features/home/presentation/home_screen.use_cases.dart` for the app's home screen. Screens that use Riverpod get their own `ProviderScope` with fake overrides (see `FakeScope` in the app's `lib/fakes/`). Then run `dart run melos run gen`, which regenerates `widgetbook/lib/main.directories.g.dart`; commit it. CI fails when it is out of date.
+Write a function annotated with `@UseCase` in a file whose path mirrors the widget's, for example `widgetbook/lib/core/permission_gate.use_cases.dart` for Core's `PermissionGate`, or `widgetbook/lib/app/features/home/presentation/home_screen.use_cases.dart` for the app's home screen. Screens that use Riverpod get their own `ProviderScope` with fake overrides (see `FakeScope` in the app's `lib/fakes/`). Every app screen and Shared widget needs one; `widgetbook/test/catalog_coverage_test.dart` fails when one is missing. Then run `dart run melos run gen`, which regenerates `widgetbook/lib/main.directories.g.dart`; commit it. CI fails when it is out of date.
 
 ### Publish it to GitHub Pages
 
@@ -406,7 +406,7 @@ What to know:
 
 Delete all of these, then run `flutter pub get`:
 
-- `widgetbook/` (with it `widgetbook/firebase.json`, the preview's Hosting config)
+- `widgetbook/` (with it `widgetbook/firebase.json`, the preview's Hosting config, and `widgetbook/test/catalog_coverage_test.dart`, the half of the coverage meta-test that checks every screen and Shared widget has a use case)
 - `- widgetbook` in the root `pubspec.yaml` workspace list
 - the `dependency_overrides` block for `analyzer` in the root `pubspec.yaml` (it exists only for `widgetbook_generator`)
 - the `widgetbook` Melos script in the root `pubspec.yaml`
@@ -495,7 +495,10 @@ The upload runs with `commits=false`, so Sentry doesn't link commits to the rele
 
 ## Testing
 
-- Integrated tests for auth controller logic (`app/test/features/login_controller_test.dart`) and the session flow: restart, redirect and logout (`app/test/app/session_flow_test.dart`), and the permission guard, gates and menu (`app/test/app/permissions_flow_test.dart`)
+- Tests mirror `lib/` in every package: `app/lib/features/home/presentation/home_screen.dart` is tested in `app/test/features/home/presentation/home_screen_test.dart`. Tests that span several files go in `app/test/app/` (flows such as the session flow: restart, redirect and logout, and the permission guard, gates and menu), `app/test/l10n/` or `app/test/conventions/`.
+- Every screen and Shared widget has a widget test and a Widgetbook use case at its mirrored paths. The coverage meta-test checks both by path: `app/test/conventions/screen_tests_test.dart` for the tests and `widgetbook/test/catalog_coverage_test.dart` for the use cases.
+- Tests and the catalog share hand-written Fakes: `FakeStorage` and `FakeScope` in `app/lib/fakes/`, and each Feature's own in its `fakes/` folder (for example `FakeAuthRepository`). There are no mocks.
+- The details are in [`.claude/rules/testing.md`](.claude/rules/testing.md).
 - Run tests in every package with:
     ```bash
     dart run melos run test

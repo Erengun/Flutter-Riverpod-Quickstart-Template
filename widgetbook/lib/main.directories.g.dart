@@ -14,8 +14,16 @@
 import 'package:widgetbook/widgetbook.dart' as _widgetbook;
 import 'package:widgetbook_catalog/app/features/authentication/presentation/login/login_screen.use_cases.dart'
     as _widgetbook_catalog_app_features_authentication_presentation_login_login_screen_use_cases;
+import 'package:widgetbook_catalog/app/features/demo/presentation/demo_area_screen.use_cases.dart'
+    as _widgetbook_catalog_app_features_demo_presentation_demo_area_screen_use_cases;
 import 'package:widgetbook_catalog/app/features/home/presentation/home_screen.use_cases.dart'
     as _widgetbook_catalog_app_features_home_presentation_home_screen_use_cases;
+import 'package:widgetbook_catalog/app/shared/widgets/app_bar_gone.use_cases.dart'
+    as _widgetbook_catalog_app_shared_widgets_app_bar_gone_use_cases;
+import 'package:widgetbook_catalog/app/shared/widgets/grid_item.use_cases.dart'
+    as _widgetbook_catalog_app_shared_widgets_grid_item_use_cases;
+import 'package:widgetbook_catalog/app/shared/widgets/link_card.use_cases.dart'
+    as _widgetbook_catalog_app_shared_widgets_link_card_use_cases;
 import 'package:widgetbook_catalog/catalog/tokens_page.use_cases.dart'
     as _widgetbook_catalog_catalog_tokens_page_use_cases;
 import 'package:widgetbook_catalog/core/api_error_ui.use_cases.dart'
@@ -62,6 +70,22 @@ final directories = <_widgetbook.WidgetbookNode>[
         ],
       ),
       _widgetbook.WidgetbookFolder(
+        name: 'demo',
+        children: [
+          _widgetbook.WidgetbookComponent(
+            name: 'DemoAreaScreen',
+            useCases: [
+              _widgetbook.WidgetbookUseCase(
+                name: 'Granted area',
+                builder:
+                    _widgetbook_catalog_app_features_demo_presentation_demo_area_screen_use_cases
+                        .buildDemoAreaScreen,
+              ),
+            ],
+          ),
+        ],
+      ),
+      _widgetbook.WidgetbookFolder(
         name: 'home',
         children: [
           _widgetbook.WidgetbookComponent(
@@ -72,6 +96,44 @@ final directories = <_widgetbook.WidgetbookNode>[
                 builder:
                     _widgetbook_catalog_app_features_home_presentation_home_screen_use_cases
                         .buildHomeScreen,
+              ),
+            ],
+          ),
+        ],
+      ),
+      _widgetbook.WidgetbookFolder(
+        name: 'shared',
+        children: [
+          _widgetbook.WidgetbookComponent(
+            name: 'EmptyAppBar',
+            useCases: [
+              _widgetbook.WidgetbookUseCase(
+                name: 'Default',
+                builder:
+                    _widgetbook_catalog_app_shared_widgets_app_bar_gone_use_cases
+                        .buildEmptyAppBar,
+              ),
+            ],
+          ),
+          _widgetbook.WidgetbookComponent(
+            name: 'GridItem',
+            useCases: [
+              _widgetbook.WidgetbookUseCase(
+                name: 'With and without version',
+                builder:
+                    _widgetbook_catalog_app_shared_widgets_grid_item_use_cases
+                        .buildGridItem,
+              ),
+            ],
+          ),
+          _widgetbook.WidgetbookComponent(
+            name: 'LinkCard',
+            useCases: [
+              _widgetbook.WidgetbookUseCase(
+                name: 'Default',
+                builder:
+                    _widgetbook_catalog_app_shared_widgets_link_card_use_cases
+                        .buildLinkCard,
               ),
             ],
           ),

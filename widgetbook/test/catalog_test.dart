@@ -98,6 +98,10 @@ void main() {
           'LoginScreen/Remembered credentials',
           'LoginScreen/Login fails',
           'HomeScreen/Demo permissions',
+          'DemoAreaScreen/Granted area',
+          'EmptyAppBar/Default',
+          'GridItem/With and without version',
+          'LinkCard/Default',
           'TokensPage/Default',
         ]),
       );
