@@ -49,12 +49,14 @@ class FakeStorage {
   Future<void> remember(LoginCredentials credentials) =>
       this.credentials.put('credentials', credentials);
 
-  /// Saves a session and the demo permissions, as after a login.
-  Future<void> signIn() async {
+  /// Saves a session and [permissions] (by default the demo permissions),
+  /// as after a login.
+  Future<void> signIn({Permissions? permissions}) async {
     const Session saved = Session(accessToken: token);
     await session.putAll(<String, String>{
       'accessToken': saved.accessToken,
-      permissionsKey: (await loadDemoPermissions(saved)).encode(),
+      permissionsKey: (permissions ?? await loadDemoPermissions(saved))
+          .encode(),
     });
   }
 

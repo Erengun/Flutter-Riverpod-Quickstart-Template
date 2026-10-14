@@ -48,10 +48,10 @@ final directories = <_widgetbook.WidgetbookNode>[
             name: 'LoginScreen',
             useCases: [
               _widgetbook.WidgetbookUseCase(
-                name: 'Login fails',
+                name: 'Default',
                 builder:
                     _widgetbook_catalog_app_features_authentication_presentation_login_login_screen_use_cases
-                        .buildLoginScreenFailing,
+                        .buildLoginScreen,
               ),
               _widgetbook.WidgetbookUseCase(
                 name: 'Remembered credentials',
@@ -60,10 +60,28 @@ final directories = <_widgetbook.WidgetbookNode>[
                         .buildLoginScreenRemembered,
               ),
               _widgetbook.WidgetbookUseCase(
-                name: 'Signed out',
+                name: 'Server error',
                 builder:
                     _widgetbook_catalog_app_features_authentication_presentation_login_login_screen_use_cases
-                        .buildLoginScreen,
+                        .buildLoginScreenServerError,
+              ),
+              _widgetbook.WidgetbookUseCase(
+                name: 'Session expired',
+                builder:
+                    _widgetbook_catalog_app_features_authentication_presentation_login_login_screen_use_cases
+                        .buildLoginScreenSessionExpired,
+              ),
+              _widgetbook.WidgetbookUseCase(
+                name: 'Signing in',
+                builder:
+                    _widgetbook_catalog_app_features_authentication_presentation_login_login_screen_use_cases
+                        .buildLoginScreenSigningIn,
+              ),
+              _widgetbook.WidgetbookUseCase(
+                name: 'Wrong credentials',
+                builder:
+                    _widgetbook_catalog_app_features_authentication_presentation_login_login_screen_use_cases
+                        .buildLoginScreenWrongCredentials,
               ),
             ],
           ),
@@ -92,6 +110,12 @@ final directories = <_widgetbook.WidgetbookNode>[
             name: 'HomeScreen',
             useCases: [
               _widgetbook.WidgetbookUseCase(
+                name: 'All granted',
+                builder:
+                    _widgetbook_catalog_app_features_home_presentation_home_screen_use_cases
+                        .buildHomeScreenAllGranted,
+              ),
+              _widgetbook.WidgetbookUseCase(
                 name: 'Demo permissions',
                 builder:
                     _widgetbook_catalog_app_features_home_presentation_home_screen_use_cases
@@ -119,10 +143,16 @@ final directories = <_widgetbook.WidgetbookNode>[
             name: 'GridItem',
             useCases: [
               _widgetbook.WidgetbookUseCase(
-                name: 'With and without version',
+                name: 'With version',
                 builder:
                     _widgetbook_catalog_app_shared_widgets_grid_item_use_cases
-                        .buildGridItem,
+                        .buildGridItemWithVersion,
+              ),
+              _widgetbook.WidgetbookUseCase(
+                name: 'Without version',
+                builder:
+                    _widgetbook_catalog_app_shared_widgets_grid_item_use_cases
+                        .buildGridItemWithoutVersion,
               ),
             ],
           ),

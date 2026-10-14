@@ -32,6 +32,10 @@ Map<String, WidgetbookUseCase> _useCases() {
   return found;
 }
 
+/// Use cases that keep animating (a spinner waiting on a call that never
+/// answers), so `pumpAndSettle` would time out on them.
+const Set<String> _neverSettle = <String>{'LoginScreen/Signing in'};
+
 const List<String> _apiErrorKinds = <String>[
   'connection',
   'timeout',
@@ -77,7 +81,13 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (_neverSettle.contains(name)) {
+      for (int frame = 0; frame < 10; frame++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    } else {
+      await tester.pumpAndSettle();
+    }
   }
 
   group('catalog', () {
@@ -94,13 +104,18 @@ void main() {
           'PermissionGate/Hidden',
           'PermissionGate/Readonly',
           'PermissionGate/Disabled',
-          'LoginScreen/Signed out',
+          'LoginScreen/Default',
           'LoginScreen/Remembered credentials',
-          'LoginScreen/Login fails',
+          'LoginScreen/Signing in',
+          'LoginScreen/Wrong credentials',
+          'LoginScreen/Server error',
+          'LoginScreen/Session expired',
           'HomeScreen/Demo permissions',
+          'HomeScreen/All granted',
           'DemoAreaScreen/Granted area',
           'EmptyAppBar/Default',
-          'GridItem/With and without version',
+          'GridItem/With version',
+          'GridItem/Without version',
           'LinkCard/Default',
           'TokensPage/Default',
         ]),
@@ -248,10 +263,8 @@ void main() {
 
     testWidgets('PermissionGate states', (WidgetTester tester) async {
       Finder control() => find.byKey(const ValueKey<String>('gated-control'));
-      Finder absorbing() => find.ancestor(
-        of: control(),
-        matching: find.byType(AbsorbPointer),
-      );
+      Finder absorbing() =>
+          find.ancestor(of: control(), matching: find.byType(AbsorbPointer));
 
       await pumpUseCase(tester, 'PermissionGate/No rule');
       expect(control(), findsOneWidget);
@@ -266,9 +279,9 @@ void main() {
         findsNothing,
       );
       expect(
-        tester.widgetList<AbsorbPointer>(absorbing()).any(
-          (AbsorbPointer a) => a.absorbing,
-        ),
+        tester
+            .widgetList<AbsorbPointer>(absorbing())
+            .any((AbsorbPointer a) => a.absorbing),
         isTrue,
       );
 
@@ -279,13 +292,15 @@ void main() {
       );
     });
 
-    testWidgets('login screen: signed out shows an empty form', (
+    testWidgets('login screen: default shows an empty form', (
       WidgetTester tester,
     ) async {
-      await pumpUseCase(tester, 'LoginScreen/Signed out');
+      await pumpUseCase(tester, 'LoginScreen/Default');
 
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text('eve.holt@reqres.in'), findsNothing);
+      expect(find.text(en.authSessionExpired), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
     });
 
     testWidgets('login screen: remembered credentials pre-fill the form', (
@@ -296,22 +311,64 @@ void main() {
       expect(find.text('eve.holt@reqres.in'), findsOneWidget);
     });
 
-    testWidgets('login screen: a failed login shows the error snackbar', (
+    testWidgets('login screen: signing in shows a spinner on the button', (
       WidgetTester tester,
     ) async {
-      await pumpUseCase(tester, 'LoginScreen/Login fails');
+      await pumpUseCase(tester, 'LoginScreen/Signing in');
 
-      await tester.tap(find.widgetWithText(TextButton, 'Login'));
-      await tester.pumpAndSettle();
+      // The form stays, filled in, while the call is on the network.
+      expect(find.text('eve.holt@reqres.in'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(TextButton),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('login screen: wrong credentials show the Feature text', (
+      WidgetTester tester,
+    ) async {
+      await pumpUseCase(tester, 'LoginScreen/Wrong credentials');
 
       expect(
         find.descendant(
           of: find.byType(SnackBar),
-          matching: find.text('user not found'),
+          matching: find.text(
+            lookupAppLocalizations(const Locale('en')).authLoginFailed,
+          ),
         ),
         findsOneWidget,
       );
-      expect(find.byType(LoginScreen), findsOneWidget);
+      // The form is kept, not replaced by the error view.
+      expect(find.text('eve.holt@reqres.in'), findsOneWidget);
+      expect(find.byType(ApiErrorView), findsNothing);
+    });
+
+    testWidgets('login screen: a server error shows the Core message', (
+      WidgetTester tester,
+    ) async {
+      await pumpUseCase(tester, 'LoginScreen/Server error');
+
+      expect(
+        find.descendant(
+          of: find.byType(SnackBar),
+          matching: find.text(en.errorServer),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('eve.holt@reqres.in'), findsOneWidget);
+      expect(find.byType(ApiErrorView), findsNothing);
+    });
+
+    testWidgets('login screen: session expired shows the Core message', (
+      WidgetTester tester,
+    ) async {
+      await pumpUseCase(tester, 'LoginScreen/Session expired');
+
+      expect(find.text(en.authSessionExpired), findsOneWidget);
     });
 
     testWidgets('tokens page draws the theme colors in light and dark', (
@@ -346,11 +403,41 @@ void main() {
       expect(find.byType(ComponentRulesDemo), findsOneWidget);
       // The saved demo permissions apply: email is shown (readonly) and
       // delete account is hidden.
-      final AppLocalizations l10n = lookupAppLocalizations(
-        const Locale('en'),
-      );
+      final AppLocalizations l10n = lookupAppLocalizations(const Locale('en'));
       expect(find.text(l10n.demoEmailReadonly), findsOneWidget);
       expect(find.text(l10n.demoDeleteAccountHidden), findsNothing);
+    });
+
+    testWidgets('home screen with every area granted shows every control', (
+      WidgetTester tester,
+    ) async {
+      await pumpUseCase(tester, 'HomeScreen/All granted');
+
+      final AppLocalizations l10n = lookupAppLocalizations(const Locale('en'));
+      expect(find.text(l10n.demoDeleteAccountHidden), findsOneWidget);
+      expect(find.byType(ColorFiltered), findsNothing);
+      expect(
+        tester
+            .widgetList<AbsorbPointer>(
+              find.ancestor(
+                of: find.text(l10n.demoEmailReadonly),
+                matching: find.byType(AbsorbPointer),
+              ),
+            )
+            .any((AbsorbPointer a) => a.absorbing),
+        isFalse,
+      );
+    });
+
+    testWidgets('grid item shows its version only when it has one', (
+      WidgetTester tester,
+    ) async {
+      await pumpUseCase(tester, 'GridItem/With version');
+      expect(find.text('3.0.0'), findsOneWidget);
+
+      await pumpUseCase(tester, 'GridItem/Without version');
+      expect(find.text('Flutter'), findsOneWidget);
+      expect(find.text('3.0.0'), findsNothing);
     });
   });
 
