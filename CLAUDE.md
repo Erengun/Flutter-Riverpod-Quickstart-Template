@@ -45,6 +45,7 @@ Run from the repo root unless noted. Melos 7 is a root dev dependency, so call i
 - Install deps: `flutter pub get` (resolves every workspace member and runs gen-l10n in every package with an `l10n.yaml`, regenerating `lib/l10n/*_localizations*.dart`; commit them). Inside one package, `flutter gen-l10n` does the same.
 - Codegen in every package that uses build_runner (Riverpod, Freezed, json_serializable, retrofit clients, Hive CE adapters; Core too, for `BaseResponse`): `dart run melos run gen`. While iterating in the app: `dart run build_runner watch --delete-conflicting-outputs` from `app/`. Rerun after changing any `@riverpod`, `@freezed`, `@JsonSerializable`, or `@GenerateAdapters` code. Generated `*.g.dart` / `*.freezed.dart` files are committed, so commit regenerated output alongside source changes.
 - Tests in every package: `dart run melos run test`. Inside one package (`cd app` or `cd packages/core`): `flutter test`; single file: `flutter test test/features/authentication/presentation/login/login_controller_test.dart`; single test: add `--plain-name "successful login updates state correctly"`.
+- Regenerate `DESIGN.md`'s frontmatter from the theme after changing a token: `dart run melos run design:update` (runs `test/conventions/design_md_test.dart` with `--update-goldens` from `app/`; without the flag that test fails when the frontmatter is stale).
 - Analyze every package (matches CI): `dart run melos run analyze` (runs `flutter analyze --no-pub --fatal-infos --fatal-warnings` and `dart analyze --fatal-infos --fatal-warnings` per package).
 - Run (flavors), from `app/`: `flutter run --flavor dev -t lib/main_dev.dart` (also `staging` / `lib/main_staging.dart`, `prod` / `lib/main_prod.dart`). VS Code launch configs for all three flavors are committed in `.vscode/launch.json`.
 
@@ -61,7 +62,7 @@ Five workflows in `.github/workflows/` (`ci.yaml`, `desktop.yaml`, `widgetbook.y
 - No imports between Features (`no_cross_feature_imports`): a file in `lib/features/<a>/` must not import or export anything from `lib/features/<b>/`. Move shared code to Core or `lib/shared/`, or navigate through the router. Files outside a Feature folder (`lib/app/`, `test/`) may import any Feature.
 - Only `lib/app/theme.dart` imports `lib/app/tokens.dart` (`tokens_only_in_theme`, also for tests and other packages). Everything else reads tokens through `Theme.of(context)` or `CoreTokens.of(context)`.
 
-The template's rules (`no_cross_feature_imports`, `tokens_only_in_theme`) come from the `packages/app_lints` analyzer plugin. Only `dart analyze` runs plugins; `flutter analyze` does not, so a clean `flutter analyze` alone proves nothing for them. The Melos `analyze` script runs both.
+The template's rules (`no_cross_feature_imports`, `tokens_only_in_theme`, `no_set_state`, `no_shrink_wrap`, `no_widget_functions`) come from the `packages/app_lints` analyzer plugin. Only `dart analyze` runs plugins; `flutter analyze` does not, so a clean `flutter analyze` alone proves nothing for them. The Melos `analyze` script runs both.
 
 ## Local files
 

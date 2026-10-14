@@ -24,6 +24,8 @@ import 'package:widgetbook_catalog/app/shared/widgets/grid_item.use_cases.dart'
     as _widgetbook_catalog_app_shared_widgets_grid_item_use_cases;
 import 'package:widgetbook_catalog/app/shared/widgets/link_card.use_cases.dart'
     as _widgetbook_catalog_app_shared_widgets_link_card_use_cases;
+import 'package:widgetbook_catalog/catalog/tokens_page.use_cases.dart'
+    as _widgetbook_catalog_catalog_tokens_page_use_cases;
 import 'package:widgetbook_catalog/core/api_error_ui.use_cases.dart'
     as _widgetbook_catalog_core_api_error_ui_use_cases;
 import 'package:widgetbook_catalog/core/no_permission_page.use_cases.dart'
@@ -134,6 +136,21 @@ final directories = <_widgetbook.WidgetbookNode>[
                         .buildLinkCard,
               ),
             ],
+          ),
+        ],
+      ),
+    ],
+  ),
+  _widgetbook.WidgetbookCategory(
+    name: 'Catalog',
+    children: [
+      _widgetbook.WidgetbookComponent(
+        name: 'TokensPage',
+        useCases: [
+          _widgetbook.WidgetbookUseCase(
+            name: 'Default',
+            builder: _widgetbook_catalog_catalog_tokens_page_use_cases
+                .buildTokensPage,
           ),
         ],
       ),

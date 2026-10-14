@@ -102,6 +102,7 @@ void main() {
           'EmptyAppBar/Default',
           'GridItem/With and without version',
           'LinkCard/Default',
+          'TokensPage/Default',
         ]),
       );
     });
@@ -311,6 +312,29 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(LoginScreen), findsOneWidget);
+    });
+
+    testWidgets('tokens page draws the theme colors in light and dark', (
+      WidgetTester tester,
+    ) async {
+      for (final ThemeData data in <ThemeData>[theme.light, theme.dark]) {
+        await pumpUseCase(tester, 'TokensPage/Default', themeData: data);
+
+        for (final Color color in <Color>[
+          data.colorScheme.primary,
+          data.extension<CoreTokens>()!.success,
+        ]) {
+          expect(
+            find.byWidgetPredicate(
+              (Widget widget) =>
+                  widget is DecoratedBox &&
+                  widget.decoration is BoxDecoration &&
+                  (widget.decoration as BoxDecoration).color == color,
+            ),
+            findsOneWidget,
+          );
+        }
+      }
     });
 
     testWidgets('home screen shows the demo component rules', (

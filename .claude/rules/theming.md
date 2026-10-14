@@ -8,6 +8,7 @@ paths:
   - "app/assets/fonts/**"
   - "packages/core/lib/src/theme/**"
   - "packages/core/lib/src/preferences/**"
+  - "DESIGN.md"
 ---
 
 # Theming, i18n and design tokens
@@ -23,3 +24,5 @@ Strings use Flutter's gen-l10n, one translation set per package: the app's `lib/
 - On a merge conflict in generated l10n Dart, take either side and rerun `flutter pub get`.
 
 **Design tokens and fonts.** `lib/app/tokens.dart` holds the hand-written raw values (scheme colors, status colors, spacing, radii, font family and type scale); only `lib/app/theme.dart` reads it. `buildAppTheme()` turns them into light and dark FlexColorScheme 9 `ThemeData` and fills Core's `CoreTokens` `ThemeExtension` (spacing, radii, `success` / `warning` / `info` and their on-colors) for both. Core reads it only via `CoreTokens.of(context)`, which falls back to `CoreTokens.fallbackLight` / `fallbackDark`; app-only extensions go next to it in `theme.dart`. Core screens never hardcode colors or fonts: Core's widgets use no literal color, size or font (no `Colors.x`, `Color(0x...)`, `TextStyle(fontSize: ...)`, numeric `EdgeInsets` / `SizedBox` / radius) and read only `Theme.of(context)` and `CoreTokens.of(context)`; anything Material has no slot for becomes a field on `CoreTokens` (with a fallback), not a literal. No lint checks this. Fonts load through google_fonts from the files bundled in `assets/fonts/` (named `<Family>-<Weight>.ttf`, e.g. `Roboto-Medium.ttf`); `buildAppTheme()` sets `GoogleFonts.config.allowRuntimeFetching = false` and registers `assets/fonts/OFL.txt` with `LicenseRegistry`. Changing the font or using a new weight means bundling its files (and license) there; `test/app/theme_test.dart` fails when a used file is missing.
+
+**`DESIGN.md`.** The root `DESIGN.md` (Google Stitch format) gives designers and design tools the theme's values: a YAML frontmatter of tokens (the hand-set scheme colors and `CoreTokens`' status colors for light and dark, dark ones with a `-dark` suffix, plus spacing, radii, the font family and the type scale) and hand-written prose sections. The frontmatter is generated from the built theme by `dart run melos run design:update` and checked by `test/conventions/design_md_test.dart`, which fails when it differs from the theme. Never edit the frontmatter by hand: change the tokens, then regenerate. The prose is edited by hand and the regeneration leaves it alone.
