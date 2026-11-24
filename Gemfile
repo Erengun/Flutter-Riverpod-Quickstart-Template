@@ -4,4 +4,4 @@
 # walking up from there. Dependabot keeps Gemfile.lock up to date.
 source "https://rubygems.org"
 
-gem "fastlane", "~> 2.241"
+gem "fastlane", "~> 2.242"
